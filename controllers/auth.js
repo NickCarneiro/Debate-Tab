@@ -2,7 +2,11 @@
 
 module.exports.setRoutes = function(app) {
 //^^ this function definition ^^
-
+	var mongoose = require('mongoose');
+	mongoose.connect('mongodb://localhost/test');   
+	var Models = require('../models'); //include models
+	var BlogPost = mongoose.model('BlogPost', Models.BlogPost);
+	var User = mongoose.model('User', Models.User);
 	app.post('/login', function(req, res){
 	
 		User.find({'username': req.body.username, 'password': req.body.password},function(err, doc){
