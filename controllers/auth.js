@@ -10,9 +10,10 @@ module.exports.setRoutes = function(app) {
 	app.post('/login', function(req, res){
 	
 		User.find({'username': req.body.username, 'password': req.body.password},function(err, doc){
+			console.log(req);	
 			if(doc.length > 0){
 				console.log(req.body);
-				req.session.username = "user";
+				req.session.username = req.body.username;
 				res.redirect('/dashboard');
 			} else {
 				res.render('login', {
