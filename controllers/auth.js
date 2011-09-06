@@ -12,7 +12,7 @@ module.exports.setRoutes = function(app) {
 		User.find({'username': req.body.username, 'password': req.body.password},function(err, doc){
 			if(doc.length > 0){
 				console.log(req.body);
-				req.session.username = "user";
+				req.session.username = req.body.username;
 				res.redirect('/dashboard');
 			} else {
 				res.render('login', {
