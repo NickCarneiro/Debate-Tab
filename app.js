@@ -4,7 +4,9 @@
 
 var express = require('express');
 var fs = require('fs');
-var app = module.exports = express.createServer();
+var app = module.exports = express.createServer(),
+	io = require('socket.io').listen(app);
+//io.set('log level', 1);
 var Models = require('./models'); //include models
 //include mongoose
 var mongoose = require('mongoose'); 
