@@ -6,7 +6,8 @@ exports.BlogPost = new Schema({
 	user_id		: Number ,
 	title		: String ,
 	body		: String ,
-	date		: Date
+	date		: Date,
+	author		: String
 });
 
 exports.User = new Schema({
