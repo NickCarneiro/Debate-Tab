@@ -34,6 +34,7 @@ module.exports.setRoutes = function(app) {
 			user.password = req.body.password;
 			user.role = req.body.role;
 			user.save();
+			req.session.username = req.body.username;
 			res.redirect('/dashboard');
 		
 	});
