@@ -1,5 +1,5 @@
 /**
- * Module dependencies.
+ * Module dependencies..
  */
 
 var express = require('express');
@@ -10,7 +10,7 @@ var Models = require('./models'); //include models
 var mongoose = require('mongoose'); 
 
 //Change port variable to your port when testing:
-var port = 3003;
+var port = 3002;
 /*
 'ali.debatetab.com': '127.0.0.1:3001',
 'rohan.debatetab.com': '127.0.0.1:3002',
