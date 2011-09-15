@@ -3,41 +3,67 @@
 
 
 /* TEAM */
-  <your title>: <your name>
-  Site: 
-  Twitter: 
-  Location: 
+	Chief Executive Time Lord: Nick Carneiro
+	Site: http://trillworks.com/nick
+	Twitter: @NickC_dev
+	Location: Austin, Texas
+	
+	Co-founders:
+	Ali Nabi, Nikhil Saraf, Rohan Singhal 
 
 /* THANKS */
-  Names (& URL): 
+  Names (& URL): Victor Damm, Debbie Johnson
 
 /* SITE */
   Standards: HTML5, CSS3
   Components: Modernizr, jQuery
-  Software:
+  Software: Node.js, Express, MongoDB
   
 
                                     
-                               -o/-                       
-                               +oo//-                     
-                              :ooo+//:                    
-                             -ooooo///-                   
-                             /oooooo//:                   
-                            :ooooooo+//-                  
-                           -+oooooooo///-                 
-           -://////////////+oooooooooo++////////////::    
-            :+ooooooooooooooooooooooooooooooooooooo+:::-  
-              -/+ooooooooooooooooooooooooooooooo+/::////:-
-                -:+oooooooooooooooooooooooooooo/::///////:-
-                  --/+ooooooooooooooooooooo+::://////:-   
-                     -:+ooooooooooooooooo+:://////:--     
-                       /ooooooooooooooooo+//////:-        
-                      -ooooooooooooooooooo////-           
-                      /ooooooooo+oooooooooo//:            
-                     :ooooooo+/::/+oooooooo+//-           
-                    -oooooo/::///////+oooooo///-          
-                    /ooo+::://////:---:/+oooo//:          
-                   -o+/::///////:-      -:/+o+//-         
-                   :-:///////:-            -:/://         
-                     -////:-                 --//:        
-                       --                       -:        
+                    `:+syhhyyo/-`                                     .---..                        
+                   -dNNdhs/::sdmdo`                                -ohhysyyysso-                    
+                 `oNh:.`      `.oNy.                              oms:.    `.-sms-                  
+                 :Ms     -+:`    oMy                             +M+           .dm+                 
+                 /M/    /NMMs    `mh                             yh    .yho`    `oN.                
+                  ym-   `:/+-    .mo                             ys    .smN-     +M.                
+                  `hNs.         -dd.                             :N.     ..     `dN`                
+                   `ymd:` ```.-+dy.                               oh.          `yM+                 
+                     `/yhhhddmh+-                                  oho.`     `-hMo                  
+                        `mm:.ds                                     .sdhyosyydNN+                   
+                         ym  sm`                                      `:NmyhMso-                    
+                         sN` .N+                                       -M+ :N`                      
+                         oN`  sN.                                      ym` od                       
+                         /N.  `dy                                     /Ms  ho                       
+                         .M:   .d:                                   -Nd` `N:                       
+                         `ms    oN.                                 -Ny.  +m`                       
+                          sd.   .Ny                                /do   .m/                        
+                          -M:    +M+               ```````       -hh-    om`                        
+                          `dm`   `hN+    `.-/+oyhdddmmmmmmdhyo/-/d+`     hh                         
+                           +My    .dMsshmNNmhhy+:-` ``   `.-:/oss.      .N+                         
+          .:.              .NM.    `s+/::`                              +N.    `-/+sss++:`          
+      ./hhMNdddhhy/.        -Ns                                        /dy `-sdNNMMMMMMMMMmh+.      
+     +NNy::     `:sddo.    -ds`         .:+/syhhhhyss+o/:-.``          hMhyNMh/. ```:/-```-yMNy`    
+   `hNh-            `sNy` -No       -+ymmyoo++///+oosyssydNNNmyo/-     :NMs/.               `+NN.   
+   sMN:               -hd:dm`    `odms+`                  ```.-/odd+`   dM/                   oMd`  
+  +Mdo                  sNMd    -md/`/yoo/`            `-oyh/    oMN.   mN.                   `NM:  
+  hm-                    oMm`   dN.  .yyNMmNdmds+osyhdmNmhs/`    dMo   -MN.                    yMs  
+ :Ms                     `mN-   sM//. ` `.-/osyhyyso+:-``     -sdNs`   oMy                     mMo  
+ -M/         `y`          /Nd   `+mMmo+//:`    `          .:+dNMd:    /NN-                    `mM/  
+ .N+         .M+           oM+    `:sdNMMMNmmmdmdh+/+ydmdmNNNMN:`    /Nm:                     `mN.  
+ `Ny         -Mo            /-       ``-yMMMMMMMMMMMMMMMMNmyo:/    .ymy.      /+             `hN+   
+  dd         /Mo                        `:/oyhymmhdyso+/-.`        .:.        od            `dM+    
+  dm`        +Ms                      .:       ````        .       `:         /M:          `hMo     
+  hM.        yMNo`              s/    yN`                  do      +N`        :Mh          oMs`     
+  hM-        hMhMd-            .Nm`  `mM.                  sM+     dN.      .:sMd         +Nh       
+  oM/       -NN.+NNs.          `mM+  .MM/                  :Mm`   `mN`   `:smmydN`       -Nd-```    
+  :Mo       +Mo  .yMm+`         dMs  -MM-                  `NM:   `mm`-ohmNhs+odM-       /hyyhdhhy+:
+ `:Ms       dm`    :yMms:.      yMN` -MN`                   sMs    yNodds/:ymmdhy. -y`  -h: ``.`.:yd
+hhhN+      `hmy:.    +hNNmhs-:-.+Mm  oMm-                   .Ny`:..sMmo- `dMo.`  `oNm.  `mm/-.`.`.:m
+-.:/`   y-  `.odds.   `:odmNmmNNNMh `yMmm+``````````.-::/+sydMyoM+hMhsdms:MN.   -dMM/    sMsoyhddhdo
+ :Nd.   mh`    `:mm:     `..-sMNhdm/.mM/+mdmddddddddmmmdhdMNy+`mM::Mm``/NmmMmhsymyoMs```-dM: `.--.` 
+smMd    yMs`     oM+        +Md+./Mh /MNd:+MMo:::::-...` .hmooyMMdyMMy+omN:shhs+- `shssyhh:         
+mNMh    yMMh+.`.-md`        -mdyddmNhdNNNhdNd:            `ohyyo/soo/+/::-   `        ``            
+.omNs/:+md/sddyhddy.         `---`.:::---//:`                                                       
+  .-:::--`  `````                                                                                   
+                     
