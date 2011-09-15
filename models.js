@@ -25,15 +25,6 @@ Models for DebateTab registration
 	-Just use ObjectId for _id on every document.
 ================*/
 
-
-exports.School = new Schema({
-	id			: ObjectId ,
-	name		: String ,
-	coaches		: [Coach] ,
-	tournaments	: [Tournament]
-	
-})
-
 exports.Coach = new Schema({
 	id    		: ObjectId ,
 	email		: String ,
@@ -54,13 +45,13 @@ exports.Competitor = new Schema({
 
 exports.Team = new Schema({
 	id			: ObjectId ,
-	members		: [Competitor]	
+	members		: [exports.Competitor]	
 })
 
 exports.Division = new Schema({
 	id			: ObjectId ,
-	name		: String  //eg: VCX, NLD
-	teams		: [Team]
+	name		: String,  //eg: VCX, NLD
+	teams		: [exports.Team]
 })
 
 exports.Tournament = new Schema({
@@ -68,8 +59,14 @@ exports.Tournament = new Schema({
 	name		: String ,
 	start_date	: Date ,
 	end_date	: Date ,
-	divisions	: [Division] ,
+	divisions	: [exports.Division] ,
 	location	: String //eg: Austin, Texas
 })
 
-
+exports.School = new Schema({
+	id			: ObjectId ,
+	name		: String ,
+	coaches		: [exports.Coach] ,
+	tournaments	: [exports.Tournament]
+	
+})
