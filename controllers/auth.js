@@ -10,7 +10,6 @@ module.exports.setRoutes = function(app) {
 	app.post('/login', function(req, res){
 	
 		User.find({'username': req.body.username, 'password': req.body.password},function(err, doc){
-			console.log(req);	
 			if(doc.length > 0){
 				console.log(req.body);
 				req.session.username = req.body.username;
@@ -25,6 +24,32 @@ module.exports.setRoutes = function(app) {
 			}
 		
 		});
+	});
+	
+	app.post('/register', function(req, res){
+		//insert user to database
+		
+			var user = new User();
+			user.username = req.body.username;
+			user.password = req.body.password;
+			user.role = req.body.role;
+			user.save();
+			req.session.username = req.body.username;
+			res.redirect('/dashboard');
+		
+	});
+	
+	app.get('/register', function(req, res){
+		if(req.session.username === undefined){
+		res.render('register', {
+			scripts: [ 'client.js' ],
+			now: new Date(),
+			title: "Debate Tab Boilerplate",
+			error: ""
+		});
+		} else {
+			res.redirect('/dashboard');
+		}
 	});
 	
 	app.get('/login', function(req, res){

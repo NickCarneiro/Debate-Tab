@@ -6,7 +6,8 @@ exports.BlogPost = new Schema({
 	user_id		: Number ,
 	title		: String ,
 	body		: String ,
-	date		: Date
+	date		: Date,
+	author		: String
 });
 
 exports.User = new Schema({
@@ -17,9 +18,10 @@ exports.User = new Schema({
 });
 
 
+
 /*===============
 Models for DebateTab registration
-
+ 
 	-Just use ObjectId for _id on every document.
 ================*/
 

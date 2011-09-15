@@ -50,7 +50,8 @@ module.exports.setRoutes = function(app) {
 			res.render('post', {
 					title: "Blog Dashboard" ,
 					post_title: doc.title ,
-					body: doc.body
+					body: doc.body,
+					author: doc.author
 				});
 		});
 	});
@@ -67,6 +68,7 @@ module.exports.setRoutes = function(app) {
 			post.title = req.body.title;
 			post.body = req.body.body;
 			post.date = Date();
+			post.author = req.session.username;
 			post.save();
 			res.redirect('/dashboard');
 		}
