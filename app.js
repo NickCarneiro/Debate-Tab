@@ -4,7 +4,9 @@
 
 var express = require('express');
 var fs = require('fs');
-var app = module.exports = express.createServer();
+var app = module.exports = express.createServer(),
+	io = require('socket.io').listen(app);
+//io.set('log level', 1);
 var Models = require('./models'); //include models
 //include mongoose
 var mongoose = require('mongoose'); //like include
@@ -20,7 +22,7 @@ var port = 3002;
 'dev.debatetab.com': '127.0.0.1:3006'	Staging
 'debatetab.com': '127.0.0.1:3005'		Production*/
 		
-
+//asdfqwerty
 
 //db connection only needs to be made once. Change "test" if you want to use a different database.
 mongoose.connect('mongodb://localhost/test');    

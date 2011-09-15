@@ -6,7 +6,8 @@ exports.BlogPost = new Schema({
 	user_id		: Number ,
 	title		: String ,
 	body		: String ,
-	date		: Date
+	date		: Date,
+	author		: String
 });
 
 exports.User = new Schema({
@@ -16,3 +17,56 @@ exports.User = new Schema({
 	role		: String
 });
 
+
+
+/*===============
+Models for DebateTab registration
+ 
+	-Just use ObjectId for _id on every document.
+================*/
+
+exports.Coach = new Schema({
+	id    		: ObjectId ,
+	email		: String ,
+	password	: String ,
+	first_name	: String ,
+	last_name	: String ,
+	cell_phone	: String
+});
+
+exports.Competitor = new Schema({
+	id			: ObjectId ,
+	email		: String ,
+	first_name	: String ,
+	last_name	: String ,
+	cell_phone	: String ,
+	
+});
+
+exports.Team = new Schema({
+	id			: ObjectId ,
+	members		: [exports.Competitor]	
+})
+
+exports.Division = new Schema({
+	id			: ObjectId ,
+	name		: String,  //eg: VCX, NLD
+	teams		: [exports.Team]
+})
+
+exports.Tournament = new Schema({
+	id			: ObjectId ,
+	name		: String ,
+	start_date	: Date ,
+	end_date	: Date ,
+	divisions	: [exports.Division] ,
+	location	: String //eg: Austin, Texas
+})
+
+exports.School = new Schema({
+	id			: ObjectId ,
+	name		: String ,
+	coaches		: [exports.Coach] ,
+	tournaments	: [exports.Tournament]
+	
+})

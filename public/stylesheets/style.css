@@ -42,8 +42,8 @@ body, button, input, select, textarea { font-family: sans-serif; color: #222; }
  * Also: hot pink! (or customize the background color to match your design)
  */
 
-::-moz-selection { background: #fe57a1; color: #fff; text-shadow: none; }
-::selection { background: #fe57a1; color: #fff; text-shadow: none; }
+::-moz-selection { background: #9E8D61; color: #fff; text-shadow: none; }
+::selection { background: #9E8D61; color: #fff; text-shadow: none; }
 
 
 /* =============================================================================
@@ -208,22 +208,204 @@ td { vertical-align: top; }
 
 
 /* ==|== primary styles =====================================================
-   Author: 
+   Author: Nick Carneiro
    ========================================================================== */
 
+body {
+	background:#eee;
+	text-align:center;
+	margin:90px;
+	margin-top: 20px;
+	padding:0;
+	color:#666;
+	}
+a {
+	color:#FFF;
+	text-decoration:none;
+	border-bottom:1px dotted;
+	}
+a:hover {
+	border-bottom:1px solid;
+	color:#9343B9;
+	}
+#wrapper_1 {
+	position:relative;
+	text-align:left;
+	width:100%;
+	background:#FFF url("../images/ffffff.gif") repeat-y top right;
+	}
+#wrapper_2 {
+	position:relative;
+	text-align:left;
+	width:100%;
+	background:url("../images/ffffff.gif") repeat-y top left;
+	}
+#header {
+	background:#fff;
+	padding:10px;
+	margin:0;
+	text-align:center;
+	color:#FFF;
+	}
+#header h1 {
+	color: #666;
+	font-size: 40px;
+
+	}
+#header a:hover {
+	color:#7A2875;
+	}
+#main_col {
+	position:relative;
+	margin:0;
+	padding:10px;
+	}
+#left_col { 
+	position:relative;
+	top:-10px;
+	left:-10px;
+	float:left;
+	width:220px;  /* for IE5/WIN */
+	voice-family: "\"}\"";
+	voice-family:inherit;
+	width:200px; /* actual value */
+	margin:0 0 -10px 0;
+	padding:10px;
+	background:#fff;
+	z-index:100;
+
+	}
+#right_col {
+	position:relative;
+	top:-10px;
+	right:-10px;
+	float:right;
+	width:220px;  /* for IE5/WIN */
+	voice-family: "\"}\"";
+	voice-family:inherit;
+	width:200px; /* actual value */
+	margin:0 0 -10px 0;
+	padding:10px;
+	background:#fff;
+	z-index:99;
+	
+	
+	}
+#center_col {
+	position:relative;
+	padding:0 240px;
+	}
+#center_col a {
+	color:#666;
+	}
+#center_col a:hover {
+	border-bottom:1px solid;
+	color:#9343B9;
+	}
+#footer {
+	position:relative;
+	top:0px;
+	background:#fff;
+	width:100%;
+	clear:both;
+	margin:0;
+	padding:1% 0;
+	text-align:center;
+	color: #333;
+	text-shadow: rgba(255, 255, 255, 0.8) 0 1px 0;
+	text-align: center;
+	
+	-moz-box-shadow: rgba(0, 0, 0, 0.2) 0 5px 6px 0;
+	-webkit-box-shadow: rgba(0, 0, 0, 0.2) 0 5px 6px 0;
+	-o-box-shadow: rgba(0, 0, 0, 0.2) 0 5px 6px 0;
+	box-shadow: rgba(0, 0, 0, 0.2) 0 5px 6px 0;
+}
+.menu {
+	font-size: 30px;
+	list-style-type: none;
+	margin-top: 0px;
+}
+.sub_menu {
+	font-size: 20px;
+	list-style-type: none;
+	
+}
+
+.sub_menu_item {
+	margin: 0 0 6px -40px;
+}
+
+.menu_item {
+	margin:0px, 3px, 6px, 3px;
+}
+.menu_item:hover{
+	font-weight: bold;
+	cursor: pointer;
+}
+
+.search_box {
+	width: 230px;
+	font-size: 24px;
+	font-family: inherit;
+	line-height: 1.4em;
+	border: 0;
+	outline: none;
+	padding: 6px;
+	border: 1px solid #999;
+	-moz-box-shadow: rgba(0, 0, 0, 0.2) 0 1px 2px 0 inset;
+	-webkit-box-shadow: rgba(0, 0, 0, 0.2) 0 1px 2px 0 inset;
+	-o-box-shadow: rgba(0, 0, 0, 0.2) 0 1px 2px 0 inset;
+	box-shadow: rgba(0, 0, 0, 0.2) 0 1px 2px 0 inset;
+	margin-top:10px;
+	
+}
+
+.search_container {
+	width: 400px;
+	margin: 0px auto;
+}
+
+.search_button {
+	
+	height: 47px;
+	padding-top: 7px;
+	width: 80px;
+	font-size: 20px;
+}
+
+.rounds_table {
+	margin-top: 15px;
+	font-size: 20px;
+}
+
+td {
+	padding: 0 80px 6px 0;
+}
 
 
 
+#credit {
+	margin: 0px auto;
+	padding-top: 20px;
+	
+}
 
+#home {
+	text-align: center;
+	
+}
 
+#tournament_name {
+	font-size: 30px;
+}
 
+#tournament_date {
+	font-size: 20px;
+}
 
-
-
-
-
-
-
+.context_help {
+	font-size: 20px;
+}
 
 
 /* ==|== non-semantic helper classes ========================================
@@ -290,3 +472,5 @@ td { vertical-align: top; }
   p, h2, h3 { orphans: 3; widows: 3; }
   h2, h3 { page-break-after: avoid; }
 }
+
+
