@@ -7,7 +7,7 @@ var fs = require('fs');
 var app = module.exports = express.createServer();
 var Models = require('./models'); //include models
 //include mongoose
-var mongoose = require('mongoose'); 
+var mongoose = require('mongoose'); //like include
 
 //Change port variable to your port when testing:
 var port = 3002;

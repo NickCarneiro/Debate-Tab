@@ -29,6 +29,7 @@ module.exports.setRoutes = function(app) {
 	
 	app.get('/login', function(req, res){
 		if(req.session.username === undefined){
+		//req.session.username = "aa";
 		res.render('login', {
 			scripts: [ 'client.js' ],
 			now: new Date(),
