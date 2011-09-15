@@ -39,7 +39,7 @@ exports.Competitor = new Schema({
 	email		: String ,
 	first_name	: String ,
 	last_name	: String ,
-	cell_phone	: String ,
+	cell_phone	: String 
 	
 });
 
@@ -49,9 +49,19 @@ exports.Team = new Schema({
 })
 
 exports.Division = new Schema({
-	id			: ObjectId ,
-	name		: String,  //eg: VCX, NLD
-	teams		: [exports.Team]
+	id				: ObjectId ,
+	name			: String ,  //eg: VCX, NLD
+	teams			: [exports.Team] ,
+	comp_per_team	: Number , //number of competitors per team. 2 in CX, 1 in LD
+	break_to		: String , //quarterfinals, octofinals, etc.
+	prelim_judges	: Number , //number of judges in prelims
+	record_ranks	: Boolean ,
+	max_speaks		: Number , //maximum speaker points possible
+	flighted_rounds : Boolean ,
+	combine_speaks	: Boolean ,
+	prelims			: Number , //
+	prelim_matching : []
+	
 })
 
 exports.Tournament = new Schema({

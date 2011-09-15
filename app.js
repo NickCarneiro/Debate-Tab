@@ -63,18 +63,3 @@ app.listen(port);
 console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
 
 
-
-/*
-var post = new BlogPost();
-post.title = "testpost";
-post.body = "This is the body of the blog post.";
-post.date = Date();
-
-post.save();
-
-
-var query = BlogPost.find({title:"testpost"},function(err, docs){
-console.log(docs)});
-
-*/
-
