@@ -72,4 +72,3 @@ module.exports.setRoutes = function(app) {
 		res.redirect('/');
 	});
 }
->>>>>>> 989af81f6b57042669340966bee29fbe669fd3fb
