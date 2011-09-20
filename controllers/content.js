@@ -7,7 +7,8 @@ module.exports.setRoutes = function(app) {
 	var BlogPost = mongoose.model('BlogPost', Models.BlogPost);
 	var User = mongoose.model('User', Models.User);
 	var Tournament = mongoose.model('Tournament', Models.Tournament);
-
+	var Coach = mongoose.model('Coach', Models.Coach);
+	
 	app.get('/help', function(req, res){
 		res.render('help', {
 			jquery: false
@@ -17,8 +18,8 @@ module.exports.setRoutes = function(app) {
 	app.get('/dashboard', function(req, res){
 		//get posts
 		
-		if(req.session.username === undefined){
-			console.log("redirecting to login");
+		if(req.session.email === undefined){
+			console.log("redirecting");
 			res.redirect('/login');
 		} else {
 		

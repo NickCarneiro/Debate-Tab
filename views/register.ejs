@@ -1,7 +1,29 @@
-<span><%= error %></span>
-<form method="post" action="/register">
-Username: <input type="text" name="username"/><br />
+<style>
+	#accordion { width: 350px; height: 250px; padding: 0.5em; }
+	</style>
+
+<div id="accordion">
+	<h3><a href="#">Coach Registration</a></h3>
+	<div>
+	
+	<form method="post" action="/register">
+Email: <input type="text" name="email"/><br />
 Password: <input type="password" name="password"/> <br />
-Role: <input type="text" name="role"/><br />
-<input type="submit" name="register" value="Register"/>
+First Name: <input type="text" name="first_name"/><br />
+Last Name: <input type="text" name="last_name"/><br />
+Cell Phone: <input type="text" name="cell_phone"/><br />
+<input type="submit" name="register" value="Register" id="button" class="ui-state-default ui-corner-all"/>
 </form>
+		
+	</div>
+	
+</div>
+
+<style>
+	#draggable { width: 150px; height: 150px; padding: 0.5em; }
+	</style>
+
+
+<div id="draggable" class="ui-widget-content">
+	<p>Drag me around</p>
+</div>
