@@ -7,6 +7,7 @@ module.exports.setRoutes = function(app) {
 	var Models = require('../models'); //include models
 	var BlogPost = mongoose.model('BlogPost', Models.BlogPost);
 	var User = mongoose.model('User', Models.User);
+	var Tournament = mongoose.model('Tournament', Models.Tournament);
 	app.post('/login', function(req, res){
 	
 		User.find({'username': req.body.username, 'password': req.body.password},function(err, doc){
@@ -49,6 +50,38 @@ module.exports.setRoutes = function(app) {
 		});
 		} else {
 			res.redirect('/dashboard');
+		}
+	});
+	
+	app.post('/registertourney', function(req, res){
+		//insert tournament to database
+		
+			var tourney = new Tournament();
+			tourney.name = req.body.name;
+			tourney.start_date = req.body.start_date
+			tourney.end_date = req.body.end_date;
+			tourney.location = req.body.location;
+			tourney.save();
+			
+			res.redirect('/dashboard');
+		
+	});
+	
+	app.get('/registertourney', function(req, res){
+		if(req.session.username === undefined){
+		res.render('login', {
+			scripts: [ 'client.js' ],
+			now: new Date(),
+			title: "Debate Tab Boilerplate",
+			error: ""
+		});
+		} else {
+			res.render('registertourney', {
+			scripts: [ 'client.js' ],
+			now: new Date(),
+			title: "Tournament Registration",
+			error: ""
+		});
 		}
 	});
 	

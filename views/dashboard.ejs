@@ -11,9 +11,14 @@
 <br/>
 <span>Previous posts</span><br/>
 <ul>
-<% for(var i=0; i < posts.length; i++) {%>
+<% for(var i=0; i < posts.length; i++) {
+		 if(posts[i].author == username) 
+		{ 
+	%>
    <li><%= posts[i].title %></li> <a href="/post/<%= posts[i]._id %>">View</a> <a href="/delete/<%= posts[i]._id %>">Delete</a>
-<% } %>
+	<%	} 
+	
+ } %>
 </ul>
 <br />
 <br />

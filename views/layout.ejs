@@ -24,6 +24,8 @@
   <!-- CSS: implied media=all -->
   <!-- CSS concatenated and minified via ant build script-->
   <link rel="stylesheet" href="stylesheets/style.css">
+  <link href="javascripts/libs/jquery-ui/css/ui-lightness/jquery-ui-1.8.16.custom.css" rel="stylesheet" type="text/css"/>
+  
   <!-- end CSS-->
 
   <!-- More ideas for your <head> here: h5bp.com/d/head-Tips -->
@@ -32,9 +34,12 @@
        Modernizr enables HTML5 elements & feature detects; Respond is a polyfill for min/max-width CSS3 Media Queries
        For optimal performance, use a custom Modernizr build: www.modernizr.com/download/ -->
   <script src="javascripts/libs/modernizr-2.0.6.min.js"></script>
+  
 </head>
 
 <body>
+
+
 
   <div id="container">
     <header>
@@ -54,11 +59,16 @@
   <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
   <script>window.jQuery || document.write('<script src="js/libs/jquery-1.6.2.min.js"><\/script>')</script>
-
+  
+  <script src="javascripts/libs/jquery-ui/js/jquery-1.6.2.min.js"></script>
+  <script src="javascripts/libs/jquery-ui/js/jquery-ui-1.8.16.custom.min.js"></script>
+ 
 
   <!-- scripts concatenated and minified via ant build script-->
   <script defer src="javascripts/plugins.js"></script>
   <script defer src="javascripts/script.js"></script>
+  
+  <script>jQuery(document).ready(function() {$("#accordion").accordion();});</script> 
   <!-- end scripts-->
 
 	
