@@ -1,0 +1,20 @@
+<html>
+<head>
+
+<body>
+<form name="myform" action="/createTeam" method="POST">
+<div align="center">
+<select name="dropdown">
+<% for(var i=0; i < tourneys.length; i++) {%>
+   <option value="<%= tourneys[i].name%>"><li><%= tourneys[i].name%></li></option>
+<% } %>
+
+
+</select>
+</div>
+</form>
+
+
+
+</body>
+</html>

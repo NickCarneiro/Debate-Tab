@@ -46,7 +46,7 @@ exports.Competitor = new Schema({
 exports.Team = new Schema({
 	id			: ObjectId ,
 	members		: [exports.Competitor]	
-})
+});
 
 exports.Division = new Schema({
 	id				: ObjectId ,
@@ -62,7 +62,7 @@ exports.Division = new Schema({
 	prelims			: Number , //
 	prelim_matching : []
 	
-})
+});
 
 exports.Tournament = new Schema({
 	id			: ObjectId ,
@@ -71,7 +71,7 @@ exports.Tournament = new Schema({
 	end_date	: Date ,
 	divisions	: [exports.Division] ,
 	location	: String //eg: Austin, Texas
-})
+});
 
 exports.School = new Schema({
 	id			: ObjectId ,
@@ -79,4 +79,4 @@ exports.School = new Schema({
 	coaches		: [exports.Coach] ,
 	tournaments	: [exports.Tournament]
 	
-})
+});
