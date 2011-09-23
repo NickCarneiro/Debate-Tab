@@ -208,7 +208,7 @@ td { vertical-align: top; }
 
 
 /* ==|== primary styles =====================================================
-   Author: Nick Carneiro
+   Author: Nick Carneiro 
    ========================================================================== */
 
 body {
@@ -319,6 +319,11 @@ a:hover {
 	-webkit-box-shadow: rgba(0, 0, 0, 0.2) 0 5px 6px 0;
 	-o-box-shadow: rgba(0, 0, 0, 0.2) 0 5px 6px 0;
 	box-shadow: rgba(0, 0, 0, 0.2) 0 5px 6px 0;
+}
+
+.generic_error{
+	color: #B00000;
+	font-size: 20px;
 }
 .menu {
 	font-size: 30px;

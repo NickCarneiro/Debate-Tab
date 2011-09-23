@@ -45,7 +45,12 @@ exports.Competitor = new Schema({
 
 exports.Team = new Schema({
 	id			: ObjectId ,
-	members		: [exports.Competitor]	
+	team_code	: String , //An abbreviation like Round Rock AC or Hendrickson LK
+							//will be displayed on pairing, so must be unique
+
+	stop_scheduling	: Boolean , //true if team drops out of tournament 
+								//and needs to be taken off pairing.
+	members		: [exports.Competitor]
 });
 
 exports.Division = new Schema({
