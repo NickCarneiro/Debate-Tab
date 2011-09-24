@@ -25,6 +25,11 @@ Models for DebateTab registration
 	-Just use ObjectId for _id on every document.
 ================*/
 
+exports.Room = new Schema({
+	id			: ObjectId ,
+	room_number	: String ,
+	accessible	: Boolean
+})
 exports.Coach = new Schema({
 	id    		: ObjectId ,
 	email		: String ,
@@ -65,7 +70,8 @@ exports.Division = new Schema({
 	flighted_rounds : Boolean ,
 	combine_speaks	: Boolean ,
 	prelims			: Number , //
-	prelim_matching : []
+	prelim_matching : [] ,
+	rooms			: [exports.Room]
 	
 });
 
