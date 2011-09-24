@@ -31,15 +31,15 @@ module.exports.setRoutes = function(app) {
 	app.post('/register', function(req, res){
 		//insert user to database
 		
-			var coach = new Coach();
-			coach.email = req.body.email;
-			coach.password = req.body.password;
-			coach.first_name = req.body.first_name;
-			coach.last_name = req.body.last_name;
-			coach.cell_phone = req.body.cell_phone;
-			coach.save();
-			req.session.email = req.body.email;
-			res.redirect('/dashboard');
+		var coach = new Coach();
+		coach.email = req.body.email;
+		coach.password = req.body.password;
+		coach.first_name = req.body.first_name;
+		coach.last_name = req.body.last_name;
+		coach.cell_phone = req.body.cell_phone;
+		coach.save();
+		req.session.email = req.body.email;
+		res.redirect('/dashboard');
 		
 	});
 	
