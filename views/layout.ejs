@@ -23,7 +23,8 @@
 
   <!-- CSS: implied media=all -->
   <!-- CSS concatenated and minified via ant build script-->
-  <link rel="stylesheet" href="stylesheets/style.css">
+ <!-- <link rel="stylesheet" href="stylesheets/style.css"> -->
+  <link rel="stylesheet" href="stylesheets/style2.css" type="text/css" media="screen"/>
   <link href="javascripts/libs/jquery-ui/css/ui-lightness/jquery-ui-1.8.16.custom.css" rel="stylesheet" type="text/css"/>
   
   <!-- end CSS-->
@@ -58,15 +59,16 @@
 
   <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
-  <script>window.jQuery || document.write('<script src="js/libs/jquery-1.6.2.min.js"><\/script>')</script>
+  <script>window.jQuery || document.write('<script src="js/libs/jquery-1.6.2.min.js" charset="utf-8"><\/script>')</script>
   
-  <script src="javascripts/libs/jquery-ui/js/jquery-1.6.2.min.js"></script>
-  <script src="javascripts/libs/jquery-ui/js/jquery-ui-1.8.16.custom.min.js"></script>
- 
+  <script src="javascripts/libs/jquery-ui/js/jquery-1.6.2.min.js" ></script> 
+  <script src="javascripts/libs/jquery-ui/js/jquery-ui-1.8.16.custom.min.js"></script> 
+  
 
   <!-- scripts concatenated and minified via ant build script-->
   <script defer src="javascripts/plugins.js"></script>
   <script defer src="javascripts/script.js"></script>
+  <script type="text/javascript" src="javascripts/validate.js" charset="utf-8"></script>
   
   <script>jQuery(document).ready(function() {$("#accordion").accordion();});</script> 
   
@@ -75,6 +77,69 @@
 		$( "#draggable" ).draggable();
 	});
 	</script>
+	
+	
+  
+	
+	<!-- <script>
+	 jQuery("#jform").submit(function(event) {
+
+    event.preventDefault(); 
+        
+    var $form = $( this ),
+        email = $form.find( 'input[name="email"]' ).val(),
+		password = $form.find( 'input[name="password"]' ).val(),
+		first_name = $form.find( 'input[name="first_name"]' ).val(),
+		last_name = $form.find( 'input[name="last_name"]' ).val(),
+		cell_phone = $form.find( 'input[name="cell_phone"]' ).val(),
+        url = $form.attr( 'action' );
+
+    if(email == "" || email==null)
+	  {
+		$( "#loginError" ).empty().append( "Email must be filled out" );
+		$.post(url);
+		return false;
+	  }
+	
+	  else if(password == "" || password==null)
+	  {
+		$( "#loginError" ).empty().append( "Password must be filled out" );
+		$.post(url);
+		return false;
+	  }
+	  
+	  else if(first_name == "" || first_name==null)
+	  {
+		$( "#loginError" ).empty().append( "First name must be filled out" );
+		$.post(url);
+		return false;
+	  }
+	  
+	  else if(last_name == "" || last_name==null)
+	  {
+		$( "#loginError" ).empty().append( "Last name must be filled out" );
+		$.post(url);
+		return false;
+	  }
+	  
+	  else if(cell_phone == "" || cell_phone==null)
+	  {
+		$( "#loginError" ).empty().append( "Cell Phone must be filled out" );
+		$.post(url);
+		return false;
+	  }
+	  else
+	  {
+		$.post( url, { email: email, password: password, first_name: first_name, last_name: last_name, cell_phone: cell_phone });
+	  }
+	  
+	  
+	  
+	  
+	  
+  });
+
+	</script> -->
 
   
   <!-- end scripts-->

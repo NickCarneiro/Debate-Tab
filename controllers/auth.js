@@ -30,8 +30,16 @@ module.exports.setRoutes = function(app) {
 	
 	app.post('/register', function(req, res){
 		//insert user to database
-		
-			var coach = new Coach();
+		console.log("test");
+		Coach.find({'email': req.body.email},function(err, doc){
+			if(doc.length > 0){
+				console.log("email exists already");
+				console.log(req.body.email);
+				res.json(req.body.email);
+				
+			} else {
+			console.log("success");
+				var coach = new Coach();
 			coach.email = req.body.email;
 			coach.password = req.body.password;
 			coach.first_name = req.body.first_name;
@@ -40,6 +48,9 @@ module.exports.setRoutes = function(app) {
 			coach.save();
 			req.session.email = req.body.email;
 			res.redirect('/dashboard');
+			}
+		
+		});	
 		
 	});
 	
