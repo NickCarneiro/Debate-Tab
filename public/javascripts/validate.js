@@ -140,12 +140,14 @@ $(document).ready(function(){
 	    };
 	 
 	// ====================================================== //
-	 $("#jform").submit(function(event){
-	 //   $('#submit').click(function (event){
-	
-
+	 //$("#jform").submit(function(event){
+	 $('#submit').click(function (event){
+			console.log("submit button clicked");
+			
+			//wtf does the following line do?
 	        var obj = $.browser.webkit ? $('body') : $('html');
-	        obj.animate({ scrollTop: $('#jform').offset().top }, 750, function (){
+	        //obj.animate({ scrollTop: $('#jform').offset().top }, 750, function (){
+	            /*
 	            jVal.errors = false;
 	            jVal.first_name();
 				jVal.last_name();
@@ -153,8 +155,12 @@ $(document).ready(function(){
 	            jVal.email();
 	            jVal.cell_phone();
 			    jVal.sendIt();
+			    */
 			
-	        });
+	        //});
+	        //count is a global variable. this is dangerous and confusing. 
+	        // redefine at the top of this function
+	        /*
 			if (count==0)
 			{
 				//return false;
@@ -162,6 +168,7 @@ $(document).ready(function(){
 			}
 			else
 			{
+			*/
 			//	return true; 
 			console.log("post");
 				$.post( '/register', {email: $('#email').val(), 
@@ -171,13 +178,13 @@ $(document).ready(function(){
 				cell_phone: $('#cell_phone').val()}, 
 				function(data){
 
-				//console.log(data.email);
+				console.log("server response: " + email);
 				$('body').append("hsadfsdfasdfsdfi");
 				aboutInfo.removeClass('correct').addClass('error').html('&larr; 127 digits please').show();
 				
 				}, "json");
 				
-			}
+			//}
 			
 		  
 		 
