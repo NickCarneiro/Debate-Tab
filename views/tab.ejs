@@ -122,7 +122,17 @@ JS includes
 		</div>
 
 		<div id="schools_container" class="container">
-	
+			<div id="schools">
+				<input type="text" class="search_box" id="schools_search" /> <button class="search_button">Find</button>
+				<table id="schools_table">
+				</table>
+				<br />
+				<label>
+				School Name: <br />
+					<input id="new_school_name" />
+				</label> <br />
+				<button id="add_school_button">Add School</button>
+			</div>
 		</div>
 
 		<div id="settings_container" class="container">
@@ -153,24 +163,5 @@ JS includes
 </div>
 
 
-<!--
-======================
-Templates for backbone
-====================== 
--->
 
-<script id="team_table_tpl" type="text/template">
-	
-		<table id="teamTable" class="list">
-			<tr><td>Team Code</td><</tr>
-		</table>
-			
-</script>
-
-
-<script id="team_row_tpl" type="text/template">
-	<tr class="team">
-		<span class="team_code searchItem">{{ team_code }}</span>
-	</tr>
-</script>
 
