@@ -1,3 +1,13 @@
+<!--
+======================
+JS includes
+====================== 
+-->
+<% for(var i=0; i<scripts.length; i++) {%>
+    <script src="<%= scripts[i] %>"></script>
+<% } %>
+
+
 <div id="header"><!-- begin header -->
 	<h1>DebateTab.com</h1>
 </div><!-- end header -->
@@ -78,15 +88,22 @@
 				<input type="text" class="search_box" id="teams_search" /> <button class="search_button">Find</button>
 				<br />
 			</div>
-			<table class="teams_table">
-			<tr><td>Round Rock AC</td><td>Westwood BM</td><td>Colling</td></tr>
+			<table id="teams_table">
 			</table>
-			<br /> <br />
-			<h3>Add team</h3><br />
+			
+			
 			<span class="generic_error" id="add_team_error"></span><br />
 			<label>
 			Team name: <br />
 				<input id="new_team_name" />
+			</label> <br />
+			<label>
+			School: <br />
+				<input id="new_team_school" />
+			</label> <br />
+			<label>
+			Division: <br />
+				<input id="new_team_division" />
 			</label> <br />
 			
 
@@ -136,4 +153,24 @@
 </div>
 
 
+<!--
+======================
+Templates for backbone
+====================== 
+-->
+
+<script id="team_table_tpl" type="text/template">
+	
+		<table id="teamTable" class="list">
+			<tr><td>Team Code</td><</tr>
+		</table>
+			
+</script>
+
+
+<script id="team_row_tpl" type="text/template">
+	<tr class="team">
+		<span class="team_code searchItem">{{ team_code }}</span>
+	</tr>
+</script>
 

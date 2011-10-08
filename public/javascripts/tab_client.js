@@ -1,145 +1,236 @@
 /*
 ============================
-DebateTab.com
+DebateTab.com Tab Client
 (C) 2011 Trillworks LLC
-
+Nick Carneiro
 ============================
 */
+//configure templating
+_.templateSettings = {
+  interpolate : /\{\{(.+?)\}\}/g
+};
+Backbone.sync = function(method, model, success, error){ 
+    success();
+}
 
-//backbone models
-Competitor = new Backbone.Model.extend({
+
+//define global namespace and MVC containers
+var tab = {
+	model: {},
+	view: {},
+	router: {},
+	collection: {}
+};
+
+/*
+=========================================
+jQuery.ready everything below this point.
+=========================================
+*/
+$(function(){
+
+/*
+=========================================
+Define Backbone Models
+=========================================
+*/	
+tab.model.Competitor = new Backbone.Model.extend({
 	initialize: function(){
 	            console.log("initialized new competitor");
 	        }
 });
-	
-//backbone collections
-var Competitors = Backbone.Collection.extend({
-		model: Competitor
-});
 
-var Team = Backbone.Model.extend({
+tab.model.Team = Backbone.Model.extend({
 	default: {
-		id			: null ,
-		team_code	: "" ,
+		id			: new ObjectId().toString() ,
+		team_code	: "default team_code" ,
+		division	: null , //ObjectId of division
+		school		: null , //ObjectId
+
 		stop_scheduling : false ,
 		competitors : []
 
 	} ,
 	initialize: function() {
-		this.competitors = new Competitors;
+		this.competitors = new tab.collection.Competitors;
 	}
 });
 
-var Teams = Backbone.Collection.extend({
-	model: Team ,
-	search : function(letters){
-		if(letters == "") return this;
-
-		var pattern = new RegExp(letters,"gi");
-		return _(this.filter(function(data) {
-		  	return pattern.test(data.get("team_code"));
-		}));
-	}
-});	
-
-var team1 = new Team({team_code: "Round Rock AC"});
-var team2 = new Team({team_code: "Westwood LC"});
-var team3 = new Team({team_code: "Kerville JD"});
-
-//initialize free collections of objects
-var ActiveTeams = new Teams([team1, team2, team3]);
-
-
-Judge = new Backbone.Model.extend({
+tab.model.Judge = new Backbone.Model.extend({
 	initialize: function(){
 	            console.log("initialized new judge");
 	        }
 });
 
-Round = new Backbone.Model.extend({
+tab.model.Round = new Backbone.Model.extend({
 	initialize: function(){
 	            console.log("initialized new round");
 	        }
 });
 
-School = new Backbone.Model.extend({
+tab.model.School = new Backbone.Model.extend({
 	initialize: function(){
 	            console.log("initialized new school");
 	        }
 });
 
-Division = new Backbone.Model.extend({
+tab.model.Division = new Backbone.Model.extend({
 	initialize: function(){
 	            console.log("initialized division");
 	        }
 });
 
-				
+
+/*
+=========================================
+Define Backbone Collections
+=========================================
+*/	
+
+tab.collection.Competitors = Backbone.Collection.extend({
+		model: tab.model.Competitor
+});
 
 
-var Judges = Backbone.Collection.extend({
-		model: Judge
+
+tab.collection.Teams = Backbone.Collection.extend({
+	model: tab.model.Team
+});	
+
+
+tab.collection.Judges = Backbone.Collection.extend({
+		model: tab.model.Judge
+});	
+
+tab.collection.Schools = Backbone.Collection.extend({
+		model: tab.model.School
+});	
+
+tab.collection.Divisions = Backbone.Collection.extend({
+		model: tab.model.Division
 });	
 
 
 
-var Schools = Backbone.Collection.extend({
-		model: School
-});	
+/*
+=========================================
+Define Backbone Views
+=========================================
+*/
 
-var Divisions = Backbone.Collection.extend({
-		model: Division
-});	
+tab.view.Team = Backbone.View.extend({
+	tagName: "tr" ,
+	 events: { 
+      'click td.remove': 'remove'
+    },  
 
+	initialize: function(){
+		_.bindAll(this, "render", "unrender", "remove");
+	    this.model.bind('remove', this.unrender);
+		this.model.bind('change', this.render);
 
+	} ,
 
+	remove: function(team){
+		this.model.destroy();
+	} ,
+	render: function(){
+		$(this.el).html('<td>' + this.model.get("team_code") + '</td> <td class="remove">Remove</td>');
+		return this; //required for chainable call, .render().el ( in appendTeam)
+	} ,
+	unrender: function(){
+		$(this.el).remove();
+	}
+})
+tab.view.TeamsTable = Backbone.View.extend({
+	el: $("#teams") , // attaches `this.el` to an existing element.
+	events: {
+		"click #add_team_button": "addTeam"
+	} ,
+	initialize: function(){
+		_.bindAll(this, "render", "addTeam", "appendTeam");
+		
+		tab.collection.teams = new tab.collection.Teams();
+		tab.collection.teams.bind("add", this.appendTeam);
+		this.render();
+		
+	} ,
+	
+	render: function(){
+		_(tab.collection.teams.models).each(function(team){ // in case collection is not empty
+        	appendTeam(team);
+    	}, this);
+	} ,
 
-$(function(){
+	addTeam: function(){
+		//validate team code
+		var team_code = $("#new_team_name").val();
 
+		var team = new tab.model.Team();
+		team.set({team_code: team_code});
+		tab.collection.teams.add(team);
+	} ,
 
+	appendTeam: function(team){
+		var teamView = new tab.view.Team({
+			model: team
+		});
+		$("#teams_table", this.el).append(teamView.render().el);
+	} 
+	
+});
+
+/*
+=========================================
+Define Backbone Routers
+=========================================
+*/
+
+/*
+=========================================
+Initialize Backbone Collections, Routers
+=========================================
+*/	
+
+tab.view.teamsTable = new tab.view.TeamsTable(); 
+
+//initialize menu state
+
+$(".container").hide();
+$(".sub_menu").hide();
+$("#home_container").show();
+
+/*
+=========================================
+Main Menu Controls
+=========================================
+*/
+
+$("#menu_rounds").click(function(){
+	
 	$(".container").hide();
+	$("#rounds_container").show();
 	$(".sub_menu").hide();
-	$("#home_container").show();
-	
+	$("#sub_menu_rounds").show();
+});
 
-	$("#menu_rounds").click(function(){
-		
-		$(".container").hide();
-		$("#rounds_container").show();
-		$(".sub_menu").hide();
-		$("#sub_menu_rounds").show();
-	});
+$("#menu_teams").click(function(){
 	
-	$("#menu_teams").click(function(){
-		
-		$(".container").hide();
-		$("#teams_container").show();
-		$(".sub_menu").hide();
-		$("#sub_menu_teams").show();
-	});	
-	
-	$("#add_team_menu").click(function(){
-		$("#teams").hide();
-		$("#add_team").show();
-	});
-	
-	$("#add_team_button").click(function(){
-		
+	$(".container").hide();
+	$("#teams_container").show();
+	$(".sub_menu").hide();
+	$("#sub_menu_teams").show();
+});	
 
-			var team_name = $("#new_team_name").val();
-			console.log("adding team " + team_name);
-			if(team_name.length < 3){
-				throw new Error("Team name must be longer than 3 characters");
-			}
-			//TODO: make sure team name is unique
-			var team = new Team({team_code: team_name});
-			ActiveTeams.add(team);
-			$("#new_team_name").val();
-			
-		
-	});
-	
+
+
+/*
+=========================================
+Team Controls
+=========================================
+*/
+
+
 	
 
 });
