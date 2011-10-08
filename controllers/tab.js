@@ -7,6 +7,7 @@ module.exports.setRoutes = function(app) {
 			"javascripts/underscore-min.js", 
 			"javascripts/backbone.js", 
 			"javascripts/ObjectId.js",
+			"javascripts/autocomplete.js",
 			"javascripts/tab_client.js"]
 	});
 	

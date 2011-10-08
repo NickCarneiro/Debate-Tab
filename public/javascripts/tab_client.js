@@ -104,7 +104,16 @@ tab.collection.Competitors = Backbone.Collection.extend({
 
 
 tab.collection.Teams = Backbone.Collection.extend({
-	model: tab.model.Team
+	model: tab.model.Team ,
+
+	search : function(letters){
+		if(letters == "") return this;
+
+		var pattern = new RegExp(letters,"gi");
+		return _(this.filter(function(data) {
+		  	return pattern.test(data.get("team_code"));
+		}));
+	}
 });	
 
 
@@ -113,7 +122,15 @@ tab.collection.Judges = Backbone.Collection.extend({
 });	
 
 tab.collection.Schools = Backbone.Collection.extend({
-		model: tab.model.School
+		model: tab.model.School ,
+		search : function(letters){
+		if(letters == "") return this;
+
+		var pattern = new RegExp(letters,"gi");
+		return _(this.filter(function(data) {
+		  	return pattern.test(data.get("school_name"));
+		}));
+	}
 });	
 
 tab.collection.Divisions = Backbone.Collection.extend({
@@ -155,10 +172,11 @@ tab.view.Team = Backbone.View.extend({
 tab.view.teamTable = Backbone.View.extend({
 	el: $("#teams") , // attaches `this.el` to an existing element.
 	events: {
-		"click #add_team_button": "addTeam"
+		"click #add_team_button": "addTeam",
+		"keyup #teams_search": "search"
 	} ,
 	initialize: function(){
-		_.bindAll(this, "render", "addTeam", "appendTeam");
+		_.bindAll(this, "render", "addTeam", "appendTeam", "renderSearch", "search");
 		
 		tab.collection.teams = new tab.collection.Teams();
 		tab.collection.teams.bind("add", this.appendTeam);
@@ -167,18 +185,34 @@ tab.view.teamTable = Backbone.View.extend({
 	} ,
 	
 	render: function(){
-		_(tab.collection.teams.models).each(function(team){ // in case collection is not empty
+		_(tab.collection.teams).each(function(team){ // in case collection is not empty
         	appendTeam(team);
     	}, this);
 	} ,
 
+	renderSearch: function(results){
+		$("#teams_table").html("");
+
+		results.each(function(result){
+			var teamView = new tab.view.Team({
+				model: result
+			});
+			$("#teams_table", this.el).append(teamView.render().el);
+		});
+		return this;
+	} ,
+	
 	addTeam: function(){
 		//validate team code
 		var team_code = $("#new_team_name").val();
-
+		var school_id = $("#new_team_school").data("id");
+		console.log("school_id " + school_id);
 		var team = new tab.model.Team();
 		
-		team.set({team_code: team_code});
+		team.set({
+			team_code: team_code,
+			school_id: school_id
+		});
 		tab.collection.teams.add(team);
 		$("#new_team_name").val("");
 	} ,
@@ -188,7 +222,11 @@ tab.view.teamTable = Backbone.View.extend({
 			model: team
 		});
 		$("#teams_table", this.el).append(teamView.render().el);
-	} 
+	} ,
+	search: function(e){
+		var letters = $("#teams_search").val();
+		this.renderSearch(tab.collection.teams.search(letters));
+	}
 	
 });
 
@@ -221,7 +259,8 @@ tab.view.School = Backbone.View.extend({
 tab.view.schoolTable = Backbone.View.extend({
 	el: $("#schools") , // attaches `this.el` to an existing element.
 	events: {
-		"click #add_school_button": "addSchool"
+		"click #add_school_button": "addSchool" ,
+		"keyup #schools_search": "search"
 	} ,
 	initialize: function(){
 		_.bindAll(this, "render", "addSchool", "appendSchool");
@@ -254,6 +293,21 @@ tab.view.schoolTable = Backbone.View.extend({
 			model: school
 		});
 		$("#schools_table", this.el).append(schoolView.render().el);
+	} ,
+	search: function(e){
+		var letters = $("#schools_search").val();
+		this.renderSearch(tab.collection.schools.search(letters));
+	} ,
+	renderSearch: function(results){
+		$("#schools_table").html("");
+
+		results.each(function(result){
+			var schoolView = new tab.view.School({
+				model: result
+			});
+			$("#schools_table", this.el).append(schoolView.render().el);
+		});
+		return this;
 	} 
 	
 });
@@ -267,6 +321,15 @@ Initialize Backbone Views
 
 tab.view.teamTable = new tab.view.teamTable(); 
 tab.view.schoolTable = new tab.view.schoolTable(); 
+
+//initialize dropdowns
+$('#new_team_school').autocomplete({
+		collection: tab.collection.schools,
+		attr: 'school_name',
+		noCase: true,
+		ul_class: 'autocomplete shadow',
+		ul_css: {'z-index':1234}
+	});
 //initialize menu state
 
 $(".container").hide();
@@ -282,6 +345,10 @@ Main Menu Controls
 $("#menu_rounds").click(function(){
 	
 	$(".container").hide();
+
+	$(".menu_item").removeClass("menu_item_selected");
+	$("#menu_rounds").addClass("menu_item_selected");
+
 	$("#rounds_container").show();
 	$(".sub_menu").hide();
 	$("#sub_menu_rounds").show();
@@ -290,6 +357,10 @@ $("#menu_rounds").click(function(){
 $("#menu_teams").click(function(){
 	
 	$(".container").hide();
+
+	$(".menu_item").removeClass("menu_item_selected");
+	$("#menu_teams").addClass("menu_item_selected");
+
 	$("#teams_container").show();
 	$(".sub_menu").hide();
 	$("#sub_menu_teams").show();
@@ -298,6 +369,10 @@ $("#menu_teams").click(function(){
 $("#menu_schools").click(function(){
 	
 	$(".container").hide();
+
+	$(".menu_item").removeClass("menu_item_selected");
+	$("#menu_schools").addClass("menu_item_selected");
+
 	$("#schools_container").show();
 	$(".sub_menu").hide();
 	$("#sub_menu_schools").show();
