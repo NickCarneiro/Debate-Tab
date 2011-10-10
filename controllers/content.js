@@ -8,6 +8,7 @@ module.exports.setRoutes = function(app) {
 	var User = mongoose.model('User', Models.User);
 	var Tournament = mongoose.model('Tournament', Models.Tournament);
 	var Coach = mongoose.model('Coach', Models.Coach);
+	var Competitor = mongoose.model('Competitor', Models.Competitor);
 	
 	app.get('/help', function(req, res){
 		res.render('help', {
@@ -36,10 +37,65 @@ module.exports.setRoutes = function(app) {
 		}
 	});
 	
+	
+	app.get('/createTeam', function(req, res){
+		//get posts
+		
+		if(req.session.email === undefined){
+			console.log("redirecting");
+			res.redirect('/login');
+		} else {
+		
+			var query = BlogPost.find({},function(err, docs){
+				
+				res.render('createTeam', {
+					title: "Blog Dashboard" ,
+					email: req.session.email 
+					
+				
+					
+				});
+			});
+		}
+	});
+	
+	app.post('/createTeam', function(req, res){
+		//get posts
+		
+		if(req.session.email === undefined){
+			console.log("redirecting");
+			res.redirect('/login');
+		} 
+		else{
+		
+			Competitor.find({'email': req.body.email},function(err, doc){
+			if(doc.length > 0){
+				console.log("email exists already");
+				console.log(req.body.email);
+				res.json(null);
+				
+			} else {
+			console.log("success");
+				var competitor = new Competitor();
+			competitor.email = req.body.email;
+			competitor.first_name = req.body.first_name;
+			competitor.last_name = req.body.last_name;
+			competitor.cell_phone = req.body.cell_phone;
+			competitor.save();
+			
+			req.session.email = req.body.email;
+			res.json(competitor);
+		//	res.redirect('/dashboard');
+			}
+		
+		});
+		}
+	});
+	
 	app.get('/tourneys', function(req, res){
 		//get tourneys
 		
-		if(req.session.username === undefined){
+		if(req.session.email === undefined){
 			console.log("redirecting to login");
 			res.redirect('/login');
 		} else {

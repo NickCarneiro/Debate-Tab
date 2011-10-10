@@ -1,20 +1,30 @@
-<html>
-<head>
-
-<body>
-<form name="myform" action="/createTeam" method="POST">
-<div align="center">
-<select name="dropdown">
-<% for(var i=0; i < tourneys.length; i++) {%>
-   <option value="<%= tourneys[i].name%>"><li><%= tourneys[i].name%></li></option>
-<% } %>
-
-
-</select>
-</div>
-</form>
-
-
-
-</body>
-</html>
+<style>
+	#accordion { width: 550px; height: 450px; padding: 0.5em; }
+	</style>
+	
+	
+	<div id="content">
+	<fieldset>
+	            <legend>Team Registration</legend>
+	            <p>
+	                <label for="email" class="block">Email:</label>
+	                <input type="text" name="email" id="email" />
+	            </p>
+	
+	           <p>
+	                <label for="first_name" class="block">First Name</label>
+	                <input type="text" name="first_name" id="first_name" />
+	            </p>
+				<p>
+	                <label for="last_name" class="block">Last Name</label>
+	                <input type="text" name="last_name" id="last_name" />
+	            </p>
+				<p>
+	                <label for="cell_phone" class="block">Cell Phone<small>(111-111-1111)</small></label>
+	                <input type="text" name="cell_phone" id="cell_phone" />
+	            </p>
+	        </fieldset>
+			
+			<button type="submit" id="addMember">Add member!</button>
+				
+	</div>
