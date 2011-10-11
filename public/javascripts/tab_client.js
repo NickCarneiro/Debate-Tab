@@ -52,7 +52,7 @@ tab.model.Team = Backbone.Model.extend({
 	initialize: function() {
 		this.set({
 			competitors: new tab.collection.Competitors() ,
-			id: new ObjectId().toString()
+			id: (new ObjectId()).toString()
 		});
 	}
 });
@@ -65,7 +65,7 @@ tab.model.School = Backbone.Model.extend({
 	} ,
 	initialize: function() {
 		this.set({
-			id: new ObjectId().toString()
+			id: (new ObjectId()).toString()
 		});
 	}
 });
@@ -136,8 +136,8 @@ tab.collection.Judges = Backbone.Collection.extend({
 });	
 
 tab.collection.Schools = Backbone.Collection.extend({
-		model: tab.model.School ,
-		search : function(letters){
+	model: tab.model.School ,
+	search : function(letters){
 		if(letters == "") return this;
 
 		var pattern = new RegExp(letters,"gi");
@@ -184,6 +184,8 @@ tab.view.Team = Backbone.View.extend({
 	}
 });
 
+//An individual division option in the select on the Add New Team form.
+//managed by tab.view.TeamTable
 tab.view.DivisionOption = Backbone.View.extend({
 	tagName: "option",
 	initialize: function(){
@@ -208,11 +210,40 @@ tab.view.DivisionOption = Backbone.View.extend({
 		$(this.el).remove();
 	}
 });
+
+//An individual school option in the select on the Add New Team form.
+//managed by tab.view.TeamTable
+tab.view.SchoolOption = Backbone.View.extend({
+	tagName: "option",
+	initialize: function(){
+		_.bindAll(this, "render", "unrender", "remove");
+	    this.model.bind('remove', this.unrender);
+		this.model.bind('change', this.render);
+
+	} ,
+	remove: function(division){
+		this.model.destroy();
+	} ,
+	render: function(){
+		//associate data element "id" with ObjectId in case we want to use this later
+		$(this.el).data("id", this.model.get("id"));
+		//set the value attr to the ObjectId
+		//This will be read by jQuery to figure out which division was selected
+		$(this.el).attr("value", this.model.get("id"));
+		$(this.el).html(this.model.get("school_name"));
+		return this; //required for chainable call, .render().el ( in appendTeam)
+	} ,
+	unrender: function(){
+		$(this.el).remove();
+	}
+});
+
 tab.view.TeamTable = Backbone.View.extend({
 	el: $("#teams") , // attaches `this.el` to an existing element.
 	events: {
 		"click #add_team_button": "addTeam",
-		"keyup #teams_search": "search"
+		"keyup #teams_search": "search",
+		"change #newteam_division": "showCompetitors"
 	} ,
 	initialize: function(){
 		_.bindAll(this, "render", "addTeam", "appendTeam", 
@@ -220,11 +251,37 @@ tab.view.TeamTable = Backbone.View.extend({
 		
 		
 		tab.collection.teams.bind("add", this.appendTeam);
+		
 
-		//keep division dropdown box up to date
+		//keep division and schools dropdown boxes up to date
 		tab.collection.divisions.bind("add", this.addDivSelect);
+		tab.collection.schools.bind("add", this.addSchoolSelect);
 		this.render();
 		
+	} ,
+
+	showCompetitors: function(){
+		$("#newteam_competitors").html("");
+		var division_id = $("#newteam_division").val();
+		console.log("looking for division_id " + division_id);
+		var comp_per_team = null;
+		console.log("divisions " + tab.collection.divisions.length);
+		_.each(tab.collection.divisions.models, 
+			function(division){
+				if(division.get("id") == division_id){
+					comp_per_team = division.get("comp_per_team");
+					console.log("set comp per team to " + comp_per_team)
+				}
+			}
+		); 
+		if(comp_per_team === null){
+				comp_per_team = 1;
+		}
+
+		for(var i = 0; i < comp_per_team; i++){
+
+			$("#newteam_competitors").append('<input type="text" /> <br />');
+		}
 	} ,
 	//add new division to dropdown box
 	addDivSelect: function(division){
@@ -233,6 +290,13 @@ tab.view.TeamTable = Backbone.View.extend({
 		});
 		$("#newteam_division", this.el).append(divOptionView.render().el);
 	} ,
+	//add new school to dropdown box
+	addSchoolSelect: function(school){
+		var schoolOptionView = new tab.view.SchoolOption({
+			model: school
+		});
+		$("#newteam_school", this.el).append(schoolOptionView.render().el);
+	} ,
 	render: function(){
 		_(tab.collection.teams).each(function(team){ // for pre-existing teams
         	appendTeam(team);
@@ -240,6 +304,10 @@ tab.view.TeamTable = Backbone.View.extend({
 
     	_(tab.collection.divisions).each(function(division){ // pre-existing divisions
         	addDivSelect(division);
+    	}, this);
+
+    	_(tab.collection.schools).each(function(school){ // pre-existing schools
+        	addSchoolSelect(school);
     	}, this);
 
 	} ,
@@ -258,17 +326,23 @@ tab.view.TeamTable = Backbone.View.extend({
 	
 	addTeam: function(){
 		//validate team code
-		var team_code = $("#new_team_name").val();
-		var school_id = $("#new_team_school").data("id");
+		var team_code = $("#newteam_name").val();
+		var school_id = $("#newteam_school").data("id");
 		console.log("school_id " + school_id);
 		var team = new tab.model.Team();
-		
+
+		var competitors = [];
+		//populate competitors based on form entries
+		$("#newteam_competitors").children().each(function(){
+			console.log($(this).val());
+		});
+
 		team.set({
 			team_code: team_code,
 			school_id: school_id
 		});
 		tab.collection.teams.add(team);
-		$("#new_team_name").val("");
+		$("#newteam_name").val("");
 	} ,
 
 	appendTeam: function(team){
@@ -516,13 +590,17 @@ Initialize Backbone Collections with test data
 	school4.set({
 		school_name: "McNeil"
 	});
-
+	_(tab.collection.schools).each(function(school){ // pre-existing schools
+        	console.log(school);
+    	}, this);
+    //tab.collection.schools.add(school1);
 	tab.collection.schools.add([school1, school2, school3, school4]);
 })();
 
 
 
 //initialize dropdowns
+/*
 $('#new_team_school').autocomplete({
 		collection: tab.collection.schools,
 		attr: 'school_name',
@@ -530,6 +608,7 @@ $('#new_team_school').autocomplete({
 		ul_class: 'autocomplete shadow',
 		ul_css: {'z-index':1234}
 	});
+*/
 //initialize menu state
 
 $(".container").hide();
