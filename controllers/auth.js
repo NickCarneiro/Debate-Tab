@@ -48,7 +48,11 @@ module.exports.setRoutes = function(app) {
 			coach.save();
 			
 			req.session.email = req.body.email;
-			res.json(coach.email);
+			req.session.first_name = req.body.first_name;
+			req.session.last_name = req.body.last_name;
+			req.session.cell_phone = req.body.cell_phone;
+			req.session.password = req.body.password
+			res.json(coach);
 		//	res.redirect('/dashboard');
 			}
 		

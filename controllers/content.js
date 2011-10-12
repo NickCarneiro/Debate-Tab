@@ -9,6 +9,7 @@ module.exports.setRoutes = function(app) {
 	var Tournament = mongoose.model('Tournament', Models.Tournament);
 	var Coach = mongoose.model('Coach', Models.Coach);
 	var Competitor = mongoose.model('Competitor', Models.Competitor);
+	var School = mongoose.model('School', Models.School);
 	
 	app.get('/help', function(req, res){
 		res.render('help', {
@@ -58,6 +59,27 @@ module.exports.setRoutes = function(app) {
 			});
 		}
 	});
+
+	app.get('/createSchool', function(req, res){
+		//get posts
+		
+		if(req.session.email === undefined){
+			console.log("redirecting");
+			res.redirect('/login');
+		} else {
+		
+			var query = BlogPost.find({},function(err, docs){
+				
+				res.render('createSchool', {
+					title: "Blog Dashboard" ,
+					email: req.session.email 
+					
+				
+					
+				});
+			});
+		}
+	});
 	
 	app.post('/createTeam', function(req, res){
 		//get posts
@@ -89,6 +111,43 @@ module.exports.setRoutes = function(app) {
 			}
 		
 		});
+		}
+	});
+
+
+	app.post('/createSchool', function(req, res){
+		
+		
+		if(req.session.email === undefined){
+			console.log("redirecting");
+			res.redirect('/login');
+		} 
+		else{
+
+			console.log("success");
+			var school = new School();
+			console.log(req.body.school);
+			school.name = req.body.school;
+
+			school.coaches.push({email: req.session.email,
+								 first_name: req.session.first_name,
+								 last_name: req.session.last_name,
+								 cell_phone: req.session.cell_phone,
+								 password: req.session.password});
+
+			school.save();
+			console.log(req.session.id);
+			console.log(req.params.id)
+			Coach.findOne({'email': req.session.email},function(err, doc){
+				doc.remove();
+
+			});
+			console.log(school);
+			res.json(school);
+		//	res.redirect('/dashboard');
+			
+		
+		
 		}
 	});
 	

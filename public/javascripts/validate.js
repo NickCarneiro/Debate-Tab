@@ -440,7 +440,7 @@ $(document).ready(function(){
 				else
 				{
 					console.log("success?");
-					window.location.href = "/dashboard";
+					window.location.href = "/createSchool";
 				}
 				
 				}, "json");
@@ -635,6 +635,92 @@ $(document).ready(function(){
 
 
 
+		
+		$('#addSchool').click(function (event){
+	
+		
+	        var error = 0;
+	    var school = $('#school').val();
+		
+			
+		$('body').append('<div id="schoolInfo" class="info"></div>');
+	 
+	            var schoolInfo = $('#schoolInfo');
+	            var ele = $('#school');
+	            var pos = ele.offset();
+	 
+	            schoolInfo.css({
+	                top: pos.top-3,
+	                left: pos.left+ele.width()+15
+	            });
+		
+
+		var msg = checkSchool(school);
+		if(msg === true) 
+		{
+			schoolInfo.removeClass('error').addClass('correct').html('&radic;').show();
+	                ele.removeClass('wrong').addClass('normal');
+
+		}
+
+		else
+		{
+			 error++;
+	
+			   schoolInfo.removeClass('correct').addClass('error').html('&larr; you suck').show();
+	                   ele.removeClass('normal').addClass('wrong').css({'font-weight': 'normal'});
+
+			
+		}
+
+
+		if (error == 0)
+		{
+
+				$.post( '/createSchool', {school: $('#school').val()}, 
+				function(data){
+				
+				console.log("server response: " + data.email);
+				
+				if(data == null)
+				{
+				//	$('body').append($('#email').val() + " already exists");
+					
+					$('body').append('<div id="schoolInfo" class="info"></div>');
+ 
+					var schoolInfo = $('#schoolInfo');
+					var ele = $('#school');
+					var pos = ele.offset();
+	 
+            	schoolInfo.css({
+	                top: pos.top-3,
+	                left: pos.left+ele.width()+15
+	            });
+
+					schoolInfo.removeClass('correct').addClass('error').html('&larr; Email exists already!').show();
+					ele.removeClass('normal').addClass('wrong');
+				}
+				
+				else
+				{
+					console.log("success?");
+					console.log(data);
+					//$('body').append(data);
+					window.location.href = "/dashboard";
+				}
+				
+				}, "json");
+
+		}
+
+
+
+ 
+		 
+	    });
+
+
+
 });
 		
 	 	function checkfirstName(fname)
@@ -718,6 +804,19 @@ $(document).ready(function(){
 
 
 		}
+		function checkSchool(school)
+		{
+			if(school.length < 6) 
+				{
+	               			 return "at least 6 characters";
+				}
+			else
+				{
+					return true;
+				}
+
+
+		}	
 
 
 		
