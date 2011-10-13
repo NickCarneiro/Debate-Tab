@@ -42,7 +42,7 @@ app.configure(function(){
 	
 });
 
- fs.readdirSync('./controllers').forEach(function(file){
+ fs.readdirSync(__dirname + '/controllers').forEach(function(file){
     if(file.match(/\.js$/)) {
       require('./controllers/' + file).setRoutes(app, express);
     }
