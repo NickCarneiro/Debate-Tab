@@ -71,9 +71,17 @@ tab.model.School = Backbone.Model.extend({
 });
 
 tab.model.Judge = Backbone.Model.extend({
-	initialize: function(){
-	            console.log("initialized new judge");
-	        }
+	default: {
+		id			: null,
+		name		: null,
+		school		: null
+	} ,
+	initialize: function() {
+		this.set({
+			id: (new ObjectId()).toString()
+		});
+	}
+    
 });
 
 tab.model.Round = Backbone.Model.extend({
@@ -132,7 +140,16 @@ tab.collection.Teams = Backbone.Collection.extend({
 
 
 tab.collection.Judges = Backbone.Collection.extend({
-		model: tab.model.Judge
+		model: tab.model.Judge ,
+
+		search : function(letters){
+			if(letters == "") return this;
+
+			var pattern = new RegExp(letters,"gi");
+			return _(this.filter(function(data) {
+			  	return pattern.test(data.get("name"));
+			}));
+		}
 });	
 
 tab.collection.Schools = Backbone.Collection.extend({
@@ -159,30 +176,6 @@ Define Backbone Views
 =========================================
 */
 
-tab.view.Team = Backbone.View.extend({
-	tagName: "tr" ,
-	events: { 
-      'click td.remove': 'remove'
-    },  
-
-	initialize: function(){
-		_.bindAll(this, "render", "unrender", "remove");
-	    this.model.bind('remove', this.unrender);
-		this.model.bind('change', this.render);
-
-	} ,
-
-	remove: function(team){
-		this.model.destroy();
-	} ,
-	render: function(){
-		$(this.el).html('<td>' + this.model.get("team_code") + '</td> <td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
-		return this; //required for chainable call, .render().el ( in appendTeam)
-	} ,
-	unrender: function(){
-		$(this.el).remove();
-	}
-});
 
 //An individual division option in the select on the Add New Team form.
 //managed by tab.view.TeamTable
@@ -406,6 +399,112 @@ tab.view.TeamTable = Backbone.View.extend({
 	
 });
 
+tab.view.Team = Backbone.View.extend({
+	tagName: "tr" ,
+	events: { 
+      'click td.remove': 'remove'
+    },  
+
+	initialize: function(){
+		_.bindAll(this, "render", "unrender", "remove");
+	    this.model.bind('remove', this.unrender);
+		this.model.bind('change', this.render);
+
+	} ,
+
+	remove: function(team){
+		this.model.destroy();
+	} ,
+	render: function(){
+		$(this.el).html('<td>' + this.model.get("team_code") + '</td> <td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
+		return this; //required for chainable call, .render().el ( in appendTeam)
+	} ,
+	unrender: function(){
+		$(this.el).remove();
+	}
+});
+
+tab.view.Judge = Backbone.View.extend({
+	tagName: "tr" ,
+	events: { 
+      'click td.remove': 'remove'
+    },  
+
+	initialize: function(){
+		_.bindAll(this, "render", "unrender", "remove");
+	    this.model.bind('remove', this.unrender);
+		this.model.bind('change', this.render);
+
+	} ,
+
+	remove: function(judge){
+		this.model.destroy();
+	} ,
+	render: function(){
+		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
+		return this; //required for chainable call, .render().el ( in appendJudge)
+	} ,
+	unrender: function(){
+		$(this.el).remove();
+	}
+});
+
+tab.view.JudgeTable = Backbone.View.extend({
+	el: $("#judges") , // attaches `this.el` to an existing element.
+	events: {
+		"click #add_judge_button": "addJudge" ,
+		"keyup #judges_search": "search"
+	} ,
+	initialize: function(){
+		_.bindAll(this, "render", "addJudge", "appendJudge");
+		
+		tab.collection.judges.bind("add", this.appendJudge);
+		this.render();
+		
+	} ,
+	
+	render: function(){
+		_(tab.collection.judges.models).each(function(judge){ // in case collection is not empty
+        	appendJudge(judge);
+    	}, this);
+	} ,
+
+	addJudge: function(){
+		console.log("judge");
+		//TODO: validate judge name
+		var judge_name = $("#new_judge_name").val();
+
+		var judge = new tab.model.Judge();
+		judge.set({name: judge_name});
+
+		tab.collection.judges.add(judge);
+		$("#new_judge_name").val("");
+	} ,
+
+	appendJudge: function(judge){
+		var judgeView = new tab.view.Judge({
+			model: judge
+		});
+		$("#judges_table", this.el).append(judgeView.render().el);
+	} ,
+	search: function(e){
+		var letters = $("#judges_search").val();
+		this.renderSearch(tab.collection.judges.search(letters));
+	} ,
+	renderSearch: function(results){
+		$("#judges_table").html("");
+
+		results.each(function(result){
+			var judgeView = new tab.view.Judge({
+				model: result
+			});
+			$("#judges_table", this.el).append(judgeView.render().el);
+		});
+		return this;
+	} 
+	
+});
+
 
 tab.view.School = Backbone.View.extend({
 	tagName: "tr" ,
@@ -580,11 +679,13 @@ Initialize Backbone Collections, then Views
 tab.collection.divisions = new tab.collection.Divisions();
 tab.collection.teams = new tab.collection.Teams();
 tab.collection.schools = new tab.collection.Schools();
-
+tab.collection.judges = new tab.collection.Judges();
 
 tab.view.teamTable = new tab.view.TeamTable(); 
 tab.view.schoolTable = new tab.view.SchoolTable(); 
 tab.view.divisionTable = new tab.view.DivisionTable(); 
+tab.view.judgeTable = new tab.view.JudgeTable(); 
+
 /*
 =========================================
 Initialize Backbone Collections with test data
@@ -668,53 +769,45 @@ $("#home_container").show();
 Main Menu Controls
 =========================================
 */
+/*
+Valid values for menu_item:
+	rounds
+	teams
+	judges
+	rooms
+	schools
+	divisions
+	settings
+*/
+function showMenu(menu_item){
 
-$("#menu_rounds").click(function(){
-	
 	$(".container").hide();
 
 	$(".menu_item").removeClass("menu_item_selected");
-	$("#menu_rounds").addClass("menu_item_selected");
+	$("#menu_" + menu_item).addClass("menu_item_selected");
 
-	$("#rounds_container").show();
+	$("#" + menu_item + "_container").show();
 	$(".sub_menu").hide();
-	$("#sub_menu_rounds").show();
+	$("#sub_menu_" + menu_item).show();	
+}
+$("#menu_rounds").click(function(){
+	showMenu("rounds");
 });
 
 $("#menu_teams").click(function(){
-	
-	$(".container").hide();
+	showMenu("teams");
+});	
 
-	$(".menu_item").removeClass("menu_item_selected");
-	$("#menu_teams").addClass("menu_item_selected");
-
-	$("#teams_container").show();
-	$(".sub_menu").hide();
-	$("#sub_menu_teams").show();
+$("#menu_judges").click(function(){
+	showMenu("judges");
 });	
 
 $("#menu_schools").click(function(){
-	
-	$(".container").hide();
-
-	$(".menu_item").removeClass("menu_item_selected");
-	$("#menu_schools").addClass("menu_item_selected");
-
-	$("#schools_container").show();
-	$(".sub_menu").hide();
-	$("#sub_menu_schools").show();
+	showMenu("schools");
 });	
 
 $("#menu_divisions").click(function(){
-	
-	$(".container").hide();
-
-	$(".menu_item").removeClass("menu_item_selected");
-	$("#menu_divisions").addClass("menu_item_selected");
-
-	$("#divisions_container").show();
-	$(".sub_menu").hide();
-	$("#sub_menu_divisions").show();
+	showMenu("divisions");
 });	
 
 /*
