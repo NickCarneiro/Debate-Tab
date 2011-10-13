@@ -131,7 +131,25 @@ JS includes
 		</div>
 
 		<div id="rooms_container" class="container">
-			
+			<div id="rooms">
+				<input type="text" class="search_box" id="rooms" /> 
+				<button id="rooms_search" class="search_button">Find</button>
+				<table id="rooms_table">
+				</table>
+				<br />
+				<label>
+				Room Name: <br />
+					<input id="newroom_name" type="text"/>
+				</label> <br />
+				<label>
+				Division: <br />
+					<select id="newroom_division" type="text">
+					</select>
+				</label> <br />
+				
+
+				<button id="add_room_button">Add Room</button>
+			</div>
 		</div>
 
 		<div id="schools_container" class="container">
@@ -143,7 +161,7 @@ JS includes
 				<br />
 				<label>
 				School Name: <br />
-					<input id="new_school_name" />
+					<input id="newschool_name" />
 				</label> <br />
 				<button id="add_school_button">Add School</button>
 			</div>

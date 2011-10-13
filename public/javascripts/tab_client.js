@@ -70,6 +70,19 @@ tab.model.School = Backbone.Model.extend({
 	}
 });
 
+tab.model.Room = Backbone.Model.extend({
+	default: {
+		id: null,
+		school_name: "DEFAULT_ROOM_NAME"
+
+	} ,
+	initialize: function() {
+		this.set({
+			id: (new ObjectId()).toString()
+		});
+	}
+});
+
 tab.model.Judge = Backbone.Model.extend({
 	default: {
 		id			: null,
@@ -160,6 +173,18 @@ tab.collection.Schools = Backbone.Collection.extend({
 		var pattern = new RegExp(letters,"gi");
 		return _(this.filter(function(data) {
 		  	return pattern.test(data.get("school_name"));
+		}));
+	}
+});	
+
+tab.collection.Rooms = Backbone.Collection.extend({
+	model: tab.model.Room ,
+	search : function(letters){
+		if(letters == "") return this;
+
+		var pattern = new RegExp(letters,"gi");
+		return _(this.filter(function(data) {
+		  	return pattern.test(data.get("room_name"));
 		}));
 	}
 });	
@@ -506,6 +531,122 @@ tab.view.JudgeTable = Backbone.View.extend({
 });
 
 
+tab.view.Room = Backbone.View.extend({
+	tagName: "tr" ,
+	events: { 
+      'click td.remove': 'remove'
+    },  
+
+	initialize: function(){
+		_.bindAll(this, "render", "unrender", "remove");
+	    this.model.bind('remove', this.unrender);
+		this.model.bind('change', this.render);
+
+	} ,
+
+	remove: function(room){
+		this.model.destroy();
+	} ,
+	render: function(){
+		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
+		return this; //required for chainable call, .render().el ( in appendRoom)
+	} ,
+	unrender: function(){
+		$(this.el).remove();
+	}
+});
+
+tab.view.RoomTable = Backbone.View.extend({
+	el: $("#rooms") , // attaches `this.el` to an existing element.
+	events: {
+		"click #add_room_button": "addRoom" ,
+		"keyup #rooms_search": "search"
+	} ,
+	initialize: function(){
+		_.bindAll(this, "render", "addRoom", "appendRoom");
+		
+		tab.collection.rooms.bind("add", this.appendRoom);
+		tab.collection.divisions.bind("add", this.addDivSelect);
+		this.render();
+		
+	} ,
+	
+	render: function(){
+		_(tab.collection.rooms.models).each(function(room){ // in case collection is not empty
+        	appendRoom(room);
+    	}, this);
+	} ,
+
+	//add new division to dropdown box
+	addDivSelect: function(division){
+		var divOptionView = new tab.view.DivisionOption({
+			model: division
+		});
+		$("#newroom_division", this.el).append(divOptionView.render().el);
+	} ,
+	addRoom: function(){
+		console.log("room");
+		//TODO: validate room name
+		var room_name = $("#newroom_name").val();
+
+		var room = new tab.model.Room();
+		room.set({name: room_name});
+
+		tab.collection.rooms.add(room);
+		$("#newroom_name").val("");
+	} ,
+
+	appendRoom: function(room){
+		var roomView = new tab.view.Room({
+			model: room
+		});
+		$("#rooms_table", this.el).append(roomView.render().el);
+	} ,
+	search: function(e){
+		var letters = $("#rooms_search").val();
+		this.renderSearch(tab.collection.rooms.search(letters));
+	} ,
+	renderSearch: function(results){
+		$("#rooms_table").html("");
+
+		results.each(function(result){
+			var roomView = new tab.view.Room({
+				model: result
+			});
+			$("#rooms_table", this.el).append(roomView.render().el);
+		});
+		return this;
+	} 
+	
+});
+
+//An individual room option in the select on the Add New Room form.
+//managed by tab.view.RoomTable
+tab.view.RoomOption = Backbone.View.extend({
+	tagName: "option",
+	initialize: function(){
+		_.bindAll(this, "render", "unrender", "remove");
+	    this.model.bind('remove', this.unrender);
+		this.model.bind('change', this.render);
+
+	} ,
+	remove: function(division){
+		this.model.destroy();
+	} ,
+	render: function(){
+		//associate data element "id" with ObjectId in case we want to use this later
+		$(this.el).data("id", this.model.get("id"));
+		//set the value attr to the ObjectId
+		//This will be read by jQuery to figure out which division was selected
+		$(this.el).attr("value", this.model.get("id"));
+		$(this.el).html(this.model.get("school_name"));
+		return this; //required for chainable call, .render().el ( in appendTeam)
+	} ,
+	unrender: function(){
+		$(this.el).remove();
+	}
+});
+
 tab.view.School = Backbone.View.extend({
 	tagName: "tr" ,
 	events: { 
@@ -553,13 +694,13 @@ tab.view.SchoolTable = Backbone.View.extend({
 
 	addSchool: function(){
 		//TODO: validate school name
-		var school_name = $("#new_school_name").val();
+		var school_name = $("#newschool_name").val();
 
 		var school = new tab.model.School();
 		school.set({school_name: school_name});
 
 		tab.collection.schools.add(school);
-		$("#new_school_name").val("");
+		$("#newschool_name").val("");
 	} ,
 
 	appendSchool: function(school){
@@ -680,11 +821,13 @@ tab.collection.divisions = new tab.collection.Divisions();
 tab.collection.teams = new tab.collection.Teams();
 tab.collection.schools = new tab.collection.Schools();
 tab.collection.judges = new tab.collection.Judges();
+tab.collection.rooms = new tab.collection.Rooms();
 
 tab.view.teamTable = new tab.view.TeamTable(); 
 tab.view.schoolTable = new tab.view.SchoolTable(); 
 tab.view.divisionTable = new tab.view.DivisionTable(); 
 tab.view.judgeTable = new tab.view.JudgeTable(); 
+tab.view.roomTable = new tab.view.RoomTable(); 
 
 /*
 =========================================
@@ -739,11 +882,28 @@ Initialize Backbone Collections with test data
 	school4.set({
 		school_name: "McNeil"
 	});
-	_(tab.collection.schools).each(function(school){ // pre-existing schools
-        	console.log(school);
-    	}, this);
-    //tab.collection.schools.add(school1);
+	
 	tab.collection.schools.add([school1, school2, school3, school4]);
+
+	//create some judges
+	var judge1 = new tab.model.Judge();
+	judge1.set({
+		name: "Alexis O'Hanahan"
+	});
+
+	var judge2 = new tab.model.Judge();
+	judge2.set({
+		name: "Ralph Bollinger"
+	});
+
+	var judge2 = new tab.model.Judge();
+	judge2.set({
+		name: "Ralph Bollinger"
+	});
+
+	tab.collection.judges.add([judge1, judge2])
+
+
 })();
 
 
@@ -790,25 +950,13 @@ function showMenu(menu_item){
 	$(".sub_menu").hide();
 	$("#sub_menu_" + menu_item).show();	
 }
-$("#menu_rounds").click(function(){
-	showMenu("rounds");
+$(".menu_item").click(function(){
+	//menu item ids are like: menu_judges
+	var menu_item_name = $(this).attr("id").substr(5);
+	showMenu(menu_item_name);
 });
 
-$("#menu_teams").click(function(){
-	showMenu("teams");
-});	
 
-$("#menu_judges").click(function(){
-	showMenu("judges");
-});	
-
-$("#menu_schools").click(function(){
-	showMenu("schools");
-});	
-
-$("#menu_divisions").click(function(){
-	showMenu("divisions");
-});	
 
 /*
 =========================================
