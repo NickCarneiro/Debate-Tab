@@ -243,7 +243,8 @@ tab.view.TeamTable = Backbone.View.extend({
 	events: {
 		"click #add_team_button": "addTeam",
 		"keyup #teams_search": "search",
-		"change #newteam_division": "showCompetitors"
+		"change #newteam_division": "showCompetitors",
+		"blur .newteam_competitor": "generateTeamName"
 	} ,
 	initialize: function(){
 		_.bindAll(this, "render", "addTeam", "appendTeam", 
@@ -260,6 +261,53 @@ tab.view.TeamTable = Backbone.View.extend({
 		
 	} ,
 
+	//called when a competitor name box is modified.
+	//generate a team name if every competitor name has been entered.
+	generateTeamName: function(){
+		var competitors =  $("#newteam_competitors").find("input");
+
+		//count number of filled in competitor names to see if they are all complete
+		var i = 0;
+		$("#newteam_competitors").find("input").each(function(index, comp_name){
+			if($(comp_name).val().length > 0){
+				i++;
+			}
+		});
+		if(i === competitors.length){
+			//generate team name and place in box
+			var team_code = $("#newteam_school option:selected").text().trim();
+
+			//case 1: 1 competitor. Use initials like
+			//Nick Carneiro => Round Rock NC
+			if(competitors.length === 1){
+				var whole_name = competitors.get(0).val();
+				var names = whole_name.split(" ");
+				if(names.length >= 2){
+					
+					team_code += " " + names[0].substr(0,1) + names[1].substr(0,1);
+				}
+			} else if(competitors.length >=2){
+				var whole_name = $(competitors.get(1)).val();
+				var names = whole_name.split(" ");
+				var last_name = names[names.length-1];
+
+				var whole_name_2 = $(competitors.get(0)).val();
+				var names_2 = whole_name_2.split(" ");
+				var last_name_2 = names_2[names_2.length-1];
+
+				team_code += " " + last_name.substr(0,1) + last_name_2.substr(0,1);
+				
+			} else {
+				//can't generate team code
+			}
+
+			$("#newteam_name").val(team_code);
+			
+		} else {
+			return;
+		}
+
+	} ,
 	showCompetitors: function(){
 		$("#newteam_competitors").html("");
 		var division_id = $("#newteam_division").val();
@@ -280,7 +328,7 @@ tab.view.TeamTable = Backbone.View.extend({
 
 		for(var i = 0; i < comp_per_team; i++){
 
-			$("#newteam_competitors").append('<input type="text" /> <br />');
+			$("#newteam_competitors").append('<input class="newteam_competitor" type="text" /> <br />');
 		}
 	} ,
 	//add new division to dropdown box
