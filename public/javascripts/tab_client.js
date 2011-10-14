@@ -6,11 +6,13 @@ Nick Carneiro
 ============================
 */
 
+/*
+//override sync
 Backbone.sync = function(method, model, success, error){ 
 
     success.success();
   }
-
+*/
 
 //define global namespace and MVC containers
 var tab = {
@@ -54,7 +56,7 @@ tab.model.Team = Backbone.Model.extend({
 			competitors: new tab.collection.Competitors() ,
 			id: (new ObjectId()).toString()
 		});
-	}
+	} 
 });
 
 tab.model.School = Backbone.Model.extend({
@@ -148,7 +150,8 @@ tab.collection.Teams = Backbone.Collection.extend({
 		return _(this.filter(function(data) {
 		  	return pattern.test(data.get("team_code"));
 		}));
-	}
+	} ,
+	localStorage: new Store("Teams")
 });	
 
 
@@ -270,7 +273,7 @@ tab.view.TeamTable = Backbone.View.extend({
 		
 		
 		tab.collection.teams.bind("add", this.appendTeam);
-		
+		tab.collection.teams.bind("reset", this.render, this);
 
 		//keep division and schools dropdown boxes up to date
 		tab.collection.divisions.bind("add", this.addDivSelect);
@@ -364,10 +367,12 @@ tab.view.TeamTable = Backbone.View.extend({
 		$("#newteam_school", this.el).append(schoolOptionView.render().el);
 	} ,
 	render: function(){
-		_(tab.collection.teams).each(function(team){ // for pre-existing teams
-        	appendTeam(team);
+		//populate table
+		_(tab.collection.teams.models).each(function(team){ // for pre-existing teams
+        	this.appendTeam(team);
     	}, this);
 
+    	//populate form
     	_(tab.collection.divisions).each(function(division){ // pre-existing divisions
         	addDivSelect(division);
     	}, this);
@@ -393,22 +398,25 @@ tab.view.TeamTable = Backbone.View.extend({
 	addTeam: function(){
 		//validate team code
 		var team_code = $("#newteam_name").val();
-		var school_id = $("#newteam_school").data("id");
+		var school_id = $("#newteam_school").val();
 		console.log("school_id " + school_id);
 		var team = new tab.model.Team();
 
 		var competitors = [];
 		//populate competitors based on form entries
 		$("#newteam_competitors").children().each(function(){
-			console.log($(this).val());
+			competitors.push($(this).val());
 		});
 
 		team.set({
 			team_code: team_code,
-			school_id: school_id
+			school_id: school_id,
+			competitors: competitors
 		});
 		tab.collection.teams.add(team);
+		team.save();
 		$("#newteam_name").val("");
+		this.render();
 	} ,
 
 	appendTeam: function(team){
@@ -438,6 +446,7 @@ tab.view.Team = Backbone.View.extend({
 	} ,
 
 	remove: function(team){
+		console.log("destroying team" + team);
 		this.model.destroy();
 	} ,
 	render: function(){
@@ -831,6 +840,13 @@ tab.view.roomTable = new tab.view.RoomTable();
 
 /*
 =========================================
+Load localStorage into Collections
+=========================================
+*/	
+tab.collection.teams.fetch();
+
+/*
+=========================================
 Initialize Backbone Collections with test data
 =========================================
 */	
@@ -964,7 +980,21 @@ Team Controls
 =========================================
 */
 
+/*
+=========================================
+Debug Controls
+=========================================
+*/
+$("#save_state").click(function(){
+});
 
-	
+$("#clear_storage").click(function(){
+	localStorage.clear();
+});
+
+$("#fetch_teams").click(function(){
+	console.log("fetching teams")
+	tab.collection.teams.fetch();
+});
 
 });
