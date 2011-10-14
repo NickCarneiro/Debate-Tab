@@ -52,10 +52,13 @@ tab.model.Team = Backbone.Model.extend({
 
 	} ,
 	initialize: function() {
-		this.set({
-			competitors: new tab.collection.Competitors() ,
-			id: (new ObjectId()).toString()
-		});
+		if(this.id === undefined){
+			this.set({
+				competitors: new tab.collection.Competitors() ,
+				id: (new ObjectId()).toString()
+			});
+		}
+		
 	} 
 });
 
@@ -66,9 +69,11 @@ tab.model.School = Backbone.Model.extend({
 
 	} ,
 	initialize: function() {
-		this.set({
-			id: (new ObjectId()).toString()
-		});
+		if(this.id === undefined){
+			this.set({
+				id: (new ObjectId()).toString()
+			});
+		}
 	}
 });
 
@@ -79,9 +84,11 @@ tab.model.Room = Backbone.Model.extend({
 
 	} ,
 	initialize: function() {
-		this.set({
-			id: (new ObjectId()).toString()
-		});
+		if(this.id === undefined){
+			this.set({
+				id: (new ObjectId()).toString()
+			});
+		}
 	}
 });
 
@@ -92,9 +99,11 @@ tab.model.Judge = Backbone.Model.extend({
 		school		: null
 	} ,
 	initialize: function() {
-		this.set({
-			id: (new ObjectId()).toString()
-		});
+		if(this.id === undefined){
+			this.set({
+				id: (new ObjectId()).toString()
+			});
+		}	
 	}
     
 });
@@ -121,9 +130,11 @@ tab.model.Division = Backbone.Model.extend({
 		prelim_matching : []
 	} ,
 	initialize: function(){
-		this.set({
-			id: new ObjectId().toString()
-		});
+		if(!this.id == undefined){
+			this.set({
+				id: new ObjectId().toString()
+			});
+		}
 	}
 });
 
@@ -165,7 +176,8 @@ tab.collection.Judges = Backbone.Collection.extend({
 			return _(this.filter(function(data) {
 			  	return pattern.test(data.get("name"));
 			}));
-		}
+		} ,
+		localStorage: new Store("Judges")
 });	
 
 tab.collection.Schools = Backbone.Collection.extend({
@@ -177,7 +189,8 @@ tab.collection.Schools = Backbone.Collection.extend({
 		return _(this.filter(function(data) {
 		  	return pattern.test(data.get("school_name"));
 		}));
-	}
+	} ,
+	localStorage: new Store("Schools")
 });	
 
 tab.collection.Rooms = Backbone.Collection.extend({
@@ -189,11 +202,13 @@ tab.collection.Rooms = Backbone.Collection.extend({
 		return _(this.filter(function(data) {
 		  	return pattern.test(data.get("room_name"));
 		}));
-	}
+	} ,
+	localStorage: new Store("Rooms")
 });	
 
 tab.collection.Divisions = Backbone.Collection.extend({
-		model: tab.model.Division
+		model: tab.model.Division ,
+		localStorage: new Store("Divisions")
 });	
 
 
@@ -278,6 +293,10 @@ tab.view.TeamTable = Backbone.View.extend({
 		//keep division and schools dropdown boxes up to date
 		tab.collection.divisions.bind("add", this.addDivSelect);
 		tab.collection.schools.bind("add", this.addSchoolSelect);
+
+		//populate dropdowns with initial divisions and schools
+		tab.collection.divisions.bind("reset", this.render, this);
+		tab.collection.schools.bind("reset", this.render, this);
 		this.render();
 		
 	} ,
@@ -332,14 +351,11 @@ tab.view.TeamTable = Backbone.View.extend({
 	showCompetitors: function(){
 		$("#newteam_competitors").html("");
 		var division_id = $("#newteam_division").val();
-		console.log("looking for division_id " + division_id);
 		var comp_per_team = null;
-		console.log("divisions " + tab.collection.divisions.length);
 		_.each(tab.collection.divisions.models, 
 			function(division){
 				if(division.get("id") == division_id){
 					comp_per_team = division.get("comp_per_team");
-					console.log("set comp per team to " + comp_per_team)
 				}
 			}
 		); 
@@ -366,19 +382,27 @@ tab.view.TeamTable = Backbone.View.extend({
 		});
 		$("#newteam_school", this.el).append(schoolOptionView.render().el);
 	} ,
+	clearView: function(){
+		//clear table
+		$("#teams_table").empty();
+		$("#newteam_division").empty();
+		$("#newteam_school").empty();
+	} ,
 	render: function(){
+		//clear everything and re-render from collections
+		this.clearView();
 		//populate table
 		_(tab.collection.teams.models).each(function(team){ // for pre-existing teams
         	this.appendTeam(team);
     	}, this);
 
     	//populate form
-    	_(tab.collection.divisions).each(function(division){ // pre-existing divisions
-        	addDivSelect(division);
+    	_(tab.collection.divisions.models).each(function(division){ // pre-existing divisions
+        	this.addDivSelect(division);
     	}, this);
 
-    	_(tab.collection.schools).each(function(school){ // pre-existing schools
-        	addSchoolSelect(school);
+    	_(tab.collection.schools.models).each(function(school){ // pre-existing schools
+        	this.addSchoolSelect(school);
     	}, this);
 
 	} ,
@@ -399,7 +423,6 @@ tab.view.TeamTable = Backbone.View.extend({
 		//validate team code
 		var team_code = $("#newteam_name").val();
 		var school_id = $("#newteam_school").val();
-		console.log("school_id " + school_id);
 		var team = new tab.model.Team();
 
 		var competitors = [];
@@ -416,7 +439,6 @@ tab.view.TeamTable = Backbone.View.extend({
 		tab.collection.teams.add(team);
 		team.save();
 		$("#newteam_name").val("");
-		this.render();
 	} ,
 
 	appendTeam: function(team){
@@ -493,13 +515,14 @@ tab.view.JudgeTable = Backbone.View.extend({
 		_.bindAll(this, "render", "addJudge", "appendJudge");
 		
 		tab.collection.judges.bind("add", this.appendJudge);
+		tab.collection.judges.bind("reset", this.render, this);
 		this.render();
 		
 	} ,
 	
 	render: function(){
 		_(tab.collection.judges.models).each(function(judge){ // in case collection is not empty
-        	appendJudge(judge);
+        	this.appendJudge(judge);
     	}, this);
 	} ,
 
@@ -512,6 +535,7 @@ tab.view.JudgeTable = Backbone.View.extend({
 		judge.set({name: judge_name});
 
 		tab.collection.judges.add(judge);
+		judge.save();
 		$("#new_judge_name").val("");
 	} ,
 
@@ -575,14 +599,22 @@ tab.view.RoomTable = Backbone.View.extend({
 		_.bindAll(this, "render", "addRoom", "appendRoom");
 		
 		tab.collection.rooms.bind("add", this.appendRoom);
+		tab.collection.rooms.bind("reset", this.render, this);
 		tab.collection.divisions.bind("add", this.addDivSelect);
+		tab.collection.divisions.bind("reset", this.render);
 		this.render();
 		
 	} ,
 	
 	render: function(){
+		$("#newroom_division").empty();
+		$("#room_table").empty();
 		_(tab.collection.rooms.models).each(function(room){ // in case collection is not empty
-        	appendRoom(room);
+        	this.appendRoom(room);
+    	}, this);
+
+    	_(tab.collection.divisions.models).each(function(division){ // in case collection is not empty
+        	this.addDivSelect(division);
     	}, this);
 	} ,
 
@@ -602,6 +634,7 @@ tab.view.RoomTable = Backbone.View.extend({
 		room.set({name: room_name});
 
 		tab.collection.rooms.add(room);
+		room.save();
 		$("#newroom_name").val("");
 	} ,
 
@@ -691,13 +724,14 @@ tab.view.SchoolTable = Backbone.View.extend({
 		_.bindAll(this, "render", "addSchool", "appendSchool");
 		
 		tab.collection.schools.bind("add", this.appendSchool);
+		tab.collection.schools.bind("reset", this.render, this);
 		this.render();
 		
 	} ,
 	
 	render: function(){
 		_(tab.collection.schools.models).each(function(school){ // in case collection is not empty
-        	appendSchool(school);
+        	this.appendSchool(school);
     	}, this);
 	} ,
 
@@ -709,6 +743,7 @@ tab.view.SchoolTable = Backbone.View.extend({
 		school.set({school_name: school_name});
 
 		tab.collection.schools.add(school);
+		school.save();
 		$("#newschool_name").val("");
 	} ,
 
@@ -770,13 +805,14 @@ tab.view.DivisionTable = Backbone.View.extend({
 		_.bindAll(this, "render", "addDivision", "appendDivision");
 		
 		tab.collection.divisions.bind("add", this.appendDivision);
+		tab.collection.divisions.bind("reset", this.render, this);
 		this.render();
 		
 	} ,
 	
 	render: function(){
 		_(tab.collection.divisions.models).each(function(division){ // in case collection is not empty
-        	appendDivision(division);
+        	this.appendDivision(division);
     	}, this);
 	} ,
 
@@ -806,6 +842,7 @@ tab.view.DivisionTable = Backbone.View.extend({
 		});
 
 		tab.collection.divisions.add(division);
+		division.save();
 		$("#newdiv_division_name").val("");
 		$("#newdiv_comp_per_team").val("");
 		$("#newdiv_division_name").val("");
@@ -843,7 +880,12 @@ tab.view.roomTable = new tab.view.RoomTable();
 Load localStorage into Collections
 =========================================
 */	
+//note: calling fetch runs the constructors of the models.
 tab.collection.teams.fetch();
+tab.collection.divisions.fetch();
+tab.collection.schools.fetch();
+tab.collection.judges.fetch();
+tab.collection.rooms.fetch();
 
 /*
 =========================================
@@ -852,6 +894,7 @@ Initialize Backbone Collections with test data
 */	
 //creating a lot of one-time variables, so putting them in
 //anonymous self executing function
+/*
 (function(){
 	var div1 = new tab.model.Division();
 	div1.set({
@@ -921,7 +964,7 @@ Initialize Backbone Collections with test data
 
 
 })();
-
+*/
 
 
 //initialize dropdowns
