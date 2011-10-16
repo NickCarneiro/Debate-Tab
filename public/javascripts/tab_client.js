@@ -1040,4 +1040,29 @@ $("#fetch_teams").click(function(){
 	tab.collection.teams.fetch();
 });
 
+$("#export_tournament").click(function(){
+	console.log("exporting teams")
+	exportTournament();
+});
+
+
+//TODO: finish this
+//consider this: sync local models, then have server generate file
+function exportTournament(){
+	//turn all collections into JSON and send to server
+	//server sends back text file
+	
+	var trn_obj = {
+		divisions: tab.collection.divisions.toJSON(),
+		rooms: tab.collection.rooms.toJSON(),
+		schools: tab.collection.schools.toJSON(),
+		judges: tab.collection.judges.toJSON()
+		//TODO: add rounds
+	}
+	
+	
+}
+
+
+
 });
