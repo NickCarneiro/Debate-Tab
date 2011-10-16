@@ -10,11 +10,11 @@ module.exports.setRoutes = function(app) {
 	var Tournament = mongoose.model('Tournament', Models.Tournament);
 	var Coach = mongoose.model('Coach', Models.Coach);
 	app.post('/login', function(req, res){
-	
+	console.log(req.body.email);
 		Coach.find({'email': req.body.email, 'password': req.body.password},function(err, doc){
 			if(doc.length > 0){
 				console.log(req.body);
-				req.session.first_name = req.body.first_name;
+				req.session.email = req.body.email;
 				res.redirect('/dashboard');
 			} else {
 				res.render('login', {
@@ -30,16 +30,33 @@ module.exports.setRoutes = function(app) {
 	
 	app.post('/register', function(req, res){
 		//insert user to database
+		console.log("test");
+		Coach.find({'email': req.body.email},function(err, doc){
+			if(doc.length > 0){
+				console.log("email exists already");
+				console.log(req.body.email);
+				res.json(null);
+				
+			} else {
+			console.log("success");
+				var coach = new Coach();
+			coach.email = req.body.email;
+			coach.password = req.body.password;
+			coach.first_name = req.body.first_name;
+			coach.last_name = req.body.last_name;
+			coach.cell_phone = req.body.cell_phone;
+			coach.save();
+			
+			req.session.email = req.body.email;
+			req.session.first_name = req.body.first_name;
+			req.session.last_name = req.body.last_name;
+			req.session.cell_phone = req.body.cell_phone;
+			req.session.password = req.body.password
+			res.json(coach);
+		//	res.redirect('/dashboard');
+			}
 		
-		var coach = new Coach();
-		coach.email = req.body.email;
-		coach.password = req.body.password;
-		coach.first_name = req.body.first_name;
-		coach.last_name = req.body.last_name;
-		coach.cell_phone = req.body.cell_phone;
-		coach.save();
-		req.session.email = req.body.email;
-		res.redirect('/dashboard');
+		});	
 		
 	});
 	
