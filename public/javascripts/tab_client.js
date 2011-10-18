@@ -563,6 +563,103 @@ tab.view.JudgeTable = Backbone.View.extend({
 	
 });
 
+tab.view.Round = Backbone.View.extend({
+	tagName: "tr" ,
+	events: { 
+      'click td.remove': 'remove'
+    },  
+
+	initialize: function(){
+		_.bindAll(this, "render", "unrender", "remove");
+	    this.model.bind('remove', this.unrender);
+		this.model.bind('change', this.render);
+
+	} ,
+
+	remove: function(round){
+		this.model.destroy();
+	} ,
+	render: function(){
+		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
+		return this; //required for chainable call, .render().el ( in appendround)
+	} ,
+	unrender: function(){
+		$(this.el).remove();
+	}
+});
+
+tab.view.RoundTable = Backbone.View.extend({
+	el: $("#rounds") , // attaches `this.el` to an existing element.
+	events: {
+		"click #add_round_button": "addRound" ,
+		"keyup #rounds_search": "search"
+	} ,
+	initialize: function(){
+		_.bindAll(this, "render", "addRound", "appendRound");
+		
+		tab.collection.rounds.bind("add", this.appendRound);
+		tab.collection.rounds.bind("reset", this.render, this);
+		tab.collection.divisions.bind("add", this.addDivSelect);
+		tab.collection.divisions.bind("reset", this.render);
+		this.render();
+		
+	} ,
+	
+	render: function(){
+		$("#newround_division").empty();
+		$("#round_table").empty();
+		_(tab.collection.rounds.models).each(function(round){ // in case collection is not empty
+        	this.appendRound(round);
+    	}, this);
+
+    	_(tab.collection.divisions.models).each(function(division){ // in case collection is not empty
+        	this.addDivSelect(division);
+    	}, this);
+	} ,
+
+	//add new division to dropdown box
+	addDivSelect: function(division){
+		var divOptionView = new tab.view.DivisionOption({
+			model: division
+		});
+		$("#newround_division", this.el).append(divOptionView.render().el);
+	} ,
+	addRound: function(){
+		console.log("round");
+		//TODO: validate round name
+		var round_name = $("#newround_name").val();
+
+		var round = new tab.model.Round();
+		round.set({name: round_name});
+
+		tab.collection.rounds.add(round);
+		round.save();
+		$("#newround_name").val("");
+	} ,
+
+	appendRound: function(round){
+		var roundView = new tab.view.Round({
+			model: round
+		});
+		$("#rounds_table", this.el).append(roundView.render().el);
+	} ,
+	search: function(e){
+		var letters = $("#rounds_search").val();
+		this.renderSearch(tab.collection.rounds.search(letters));
+	} ,
+	renderSearch: function(results){
+		$("#rounds_table").html("");
+
+		results.each(function(result){
+			var roundView = new tab.view.Round({
+				model: result
+			});
+			$("#rounds_table", this.el).append(roundView.render().el);
+		});
+		return this;
+	} 
+	
+});
 
 tab.view.Room = Backbone.View.extend({
 	tagName: "tr" ,
