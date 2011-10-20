@@ -1,7 +1,7 @@
 /**
  * Module dependencies..
  */
-
+ 
 var express = require('express');
 var fs = require('fs');
 var app = module.exports = express.createServer();
@@ -42,7 +42,7 @@ app.configure(function(){
 	
 });
 
- fs.readdirSync('./controllers').forEach(function(file){
+ fs.readdirSync(__dirname + '/controllers').forEach(function(file){
     if(file.match(/\.js$/)) {
       require('./controllers/' + file).setRoutes(app, express);
     }
@@ -61,5 +61,3 @@ app.configure('production', function(){
 
 app.listen(port);
 console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
-
-

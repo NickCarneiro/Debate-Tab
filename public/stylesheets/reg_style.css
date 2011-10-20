@@ -1,0 +1,112 @@
+body {
+	    background: #efefef;
+	    margin: 0;
+	    padding: 0;
+	    border: none;
+	    text-align: center;
+    font: normal 13px Georgia, "Times New Roman", Times, serif;
+    color: #222;
+}
+	 
+	#content {
+	    width: 500px;
+	    margin: 0 auto;
+	    margin-bottom: 25px;
+	    padding: 0;
+	    text-align: left;
+	}
+	 
+	fieldset {
+	    margin-top: 25px;
+	    padding: 15px;
+	    border: 1px solid #d1d1d1;
+	    -webkit-border-radius: 7px;
+	    -moz-border-radius: 7px;
+	    border-radius: 7px;
+	 
+	}
+	 
+	fieldset legend {
+	    font: normal 30px Verdana, Arial, Helvetica, sans-serif;
+	    text-shadow: 0 1px 1px #fff;
+	    letter-spacing: -1px;
+	    color: #273953;
+	}
+	 
+	input, textarea {
+	    padding: 3px;
+	}
+	 
+	label {
+	    cursor: pointer;
+	}
+	 
+	.block {
+	    display: block;
+	}
+	 
+	small {
+	    letter-spacing: 1px;
+	    font-size: 11px;
+	    font-style: italic;
+	    color: #9e9e9e;
+	}
+	 
+	.info {
+	    text-align: left;
+	    padding: 5px;
+	    font-size: 11px;
+	    color: #fff;
+	    position: absolute;
+		opacity: 0.6;
+	    display: none;
+	    -webkit-border-radius: 5px;
+	    -moz-border-radius: 5px;
+	    border-radius: 5px;
+	    -webkit-box-shadow: -1px 1px 2px #a9a9a9;
+	    -moz-box-shadow: -1px 1px 2px #a9a9a9;
+	    box-shadow: -1px 1px 2px #a9a9a9;
+	}
+	 
+	.error {
+	    background: #f60000;
+	    border: 3px solid #d50000;
+	 
+	}
+	 
+	.correct {
+	    background: #56d800;
+	    border: 3px solid #008000;
+	}
+	 
+	.wrong {
+	    font-weight: bold;
+	    color: #e90000;
+	}
+	 
+	.normal {
+	    font-weight: normal;
+	    color: #222;
+	}
+	 
+	#submit {
+	    background: #3ea99f;
+	    width: 100%;
+	    border: 5px solid #4c787e;
+	    font: bold 20px Verdana, sans-serif;
+	    color: #fafafa;
+	    text-shadow: 1px 1px 1px #0F1620;
+	    -webkit-border-radius: 7px;
+    -moz-border-radius: 7px;
+	    border-radius: 7px;
+	}
+	 
+	#submit:hover {
+	    background: #43bfc7;
+	    border: 5px solid #4c787e;
+	    color: #fff;
+	}
+	 
+	#submit:active {
+	    text-indent: -5px;
+	}
