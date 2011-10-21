@@ -22,9 +22,6 @@ JS includes
 					
 					
 					<li class="menu_item" id="menu_teams">Teams</li>
-					
-					
-					
 					<li class="menu_item" id="menu_judges">Judges</li>
 					<li class="menu_item" id="menu_rooms">Rooms</li>
 					<li class="menu_item" id="menu_schools">Schools</li>
@@ -43,15 +40,16 @@ JS includes
 			<div id="center_col"><!-- begin centercol -->
 			
 		<div id="rounds_container" class="container">
-			<div class="search_container">
-			<input type="text" class="search_box" id="rounds_search" /> <button class="search_button">Find</button>
-			</div>
-			<br />
-			<select id="round_select">
-
-			</select>
-			<table id="rounds">
-			</table>
+			<div id="rounds">
+			<input type="text" class="search_box" id="rounds_search_box" /> 
+				<button id="rounds_search" class="search_button">Find</button>
+				<table id="rounds_table">
+				</table>
+				<br />
+				
+				<button id="add_round_button">Add Round</button>
+				<button id="pair_round_button">Pair Round</button>
+				</div>
 		</div>
 
 		<div id="teams_container" class="container">
@@ -62,6 +60,7 @@ JS includes
 				<br />
 			</div>
 			<table id="teams_table">
+
 			</table>
 			
 			

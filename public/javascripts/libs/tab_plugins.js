@@ -107,4 +107,27 @@ function S4(){return(((1+Math.random())*65536)|0).toString(16).substring(1)}func
  * Javascript class that mimics how WCF serializes a object of type MongoDB.Bson.ObjectId
  * and converts between that format and the standard 24 character representation.
 */
-var ObjectId=function(){var a=0;var b=Math.floor(Math.random()*32767);var c=Math.floor(Math.random()*16777216);if(typeof localStorage!="undefined"){var d=parseInt(localStorage["mongoMachineId"]);if(d>=0&&d<=16777215){c=Math.floor(localStorage["mongoMachineId"])}localStorage["mongoMachineId"]=c;document.cookie="mongoMachineId="+c+";expires=Tue, 19 Jan 2038 05:00:00 GMT"}else{var e=document.cookie.split("; ");for(var f in e){var g=e[f].split("=");if(g[0]=="mongoMachineId"&&g[1]>=0&&g[1]<=16777215){c=g[1];break}}document.cookie="mongoMachineId="+c+";expires=Tue, 19 Jan 2038 05:00:00 GMT"}return function(){if(!(this instanceof ObjectId)){return(new ObjectId(arguments[0],arguments[1],arguments[2],arguments[3])).toString()}if(typeof arguments[0]=="object"){this.timestamp=arguments[0].timestamp;this.machine=arguments[0].machine;this.pid=arguments[0].pid;this.increment=arguments[0].increment}else if(typeof arguments[0]=="string"&&arguments[0].length==24){this.timestamp=Number("0x"+arguments[0].substr(0,8)),this.machine=Number("0x"+arguments[0].substr(8,6)),this.pid=Number("0x"+arguments[0].substr(14,4)),this.increment=Number("0x"+arguments[0].substr(18,6))}else if(arguments.length==4&&arguments[0]!=null){this.timestamp=arguments[0];this.machine=arguments[1];this.pid=arguments[2];this.increment=arguments[3]}else{this.timestamp=Math.floor((new Date).valueOf()/1e3);this.machine=c;this.pid=b;if(a>16777215){a=0}this.increment=a++}}}();ObjectId.prototype.getDate=function(){return new Date(this.timestamp*1e3)};ObjectId.prototype.toString=function(){var a=this.timestamp.toString(16);var b=this.machine.toString(16);var c=this.pid.toString(16);var d=this.increment.toString(16);return"00000000".substr(0,6-a.length)+a+"000000".substr(0,6-b.length)+b+"0000".substr(0,4-c.length)+c+"000000".substr(0,6-d.length)+d}
+var ObjectId=function(){var a=0;var b=Math.floor(Math.random()*32767);var c=Math.floor(Math.random()*16777216);if(typeof localStorage!="undefined"){var d=parseInt(localStorage["mongoMachineId"]);if(d>=0&&d<=16777215){c=Math.floor(localStorage["mongoMachineId"])}localStorage["mongoMachineId"]=c;document.cookie="mongoMachineId="+c+";expires=Tue, 19 Jan 2038 05:00:00 GMT"}else{var e=document.cookie.split("; ");for(var f in e){var g=e[f].split("=");if(g[0]=="mongoMachineId"&&g[1]>=0&&g[1]<=16777215){c=g[1];break}}document.cookie="mongoMachineId="+c+";expires=Tue, 19 Jan 2038 05:00:00 GMT"}return function(){if(!(this instanceof ObjectId)){return(new ObjectId(arguments[0],arguments[1],arguments[2],arguments[3])).toString()}if(typeof arguments[0]=="object"){this.timestamp=arguments[0].timestamp;this.machine=arguments[0].machine;this.pid=arguments[0].pid;this.increment=arguments[0].increment}else if(typeof arguments[0]=="string"&&arguments[0].length==24){this.timestamp=Number("0x"+arguments[0].substr(0,8)),this.machine=Number("0x"+arguments[0].substr(8,6)),this.pid=Number("0x"+arguments[0].substr(14,4)),this.increment=Number("0x"+arguments[0].substr(18,6))}else if(arguments.length==4&&arguments[0]!=null){this.timestamp=arguments[0];this.machine=arguments[1];this.pid=arguments[2];this.increment=arguments[3]}else{this.timestamp=Math.floor((new Date).valueOf()/1e3);this.machine=c;this.pid=b;if(a>16777215){a=0}this.increment=a++}}}();ObjectId.prototype.getDate=function(){return new Date(this.timestamp*1e3)};ObjectId.prototype.toString=function(){var a=this.timestamp.toString(16);var b=this.machine.toString(16);var c=this.pid.toString(16);var d=this.increment.toString(16);return"00000000".substr(0,6-a.length)+a+"000000".substr(0,6-b.length)+b+"0000".substr(0,4-c.length)+c+"000000".substr(0,6-d.length)+d};
+/**
+jQuery Array Shuffle Plugin
+http://www.yelotofu.com/2008/08/jquery-shuffle-plugin/
+**/
+(function($){
+  $.fn.shuffle = function() {
+    return this.each(function(){
+      var items = $(this).children();
+      return (items.length)
+        ? $(this).html($.shuffle(items))
+        : this;
+    });
+  }
+ 
+  $.shuffle = function(arr) {
+    for(
+      var j, x, i = arr.length; i;
+      j = parseInt(Math.random() * i),
+      x = arr[--i], arr[i] = arr[j], arr[j] = x
+    );
+    return arr;
+  }
+})(jQuery);
