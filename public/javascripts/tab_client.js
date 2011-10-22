@@ -19,7 +19,8 @@ var tab = {
 	model: {},
 	view: {},
 	router: {},
-	collection: {}
+	collection: {},
+	helpers: {}
 };
 
 /*
@@ -45,7 +46,7 @@ tab.model.Team = Backbone.Model.extend({
 		id			: null ,
 		team_code	: "default team_code" ,
 		division	: null , //ObjectId of division
-		school		: null , //ObjectId
+		school_id	: null , //ObjectId
 
 		stop_scheduling : false ,
 		competitors : []
@@ -109,9 +110,32 @@ tab.model.Judge = Backbone.Model.extend({
 });
 
 tab.model.Round = Backbone.Model.extend({
+	default: {
+		team1		: null, //reference to team1 in teams collection
+		team2		: null, //
+		aff			: null, //team1 or team2
+		result		: null
+		/*
+		result can be:
+		AFF_WIN_NEG_LOSS
+		NEG_WIN_AFF_LOSS
+		AFF_BYE_NEG_FORFEIT
+		NEG_BYE_AFF_FORFEIT
+		DOUBLE_WIN
+		DOUBLE_LOSS
+		DOUBLE_BYE
+		DOUBLE_FORFEIT
+		*/
+
+
+	} ,
 	initialize: function(){
-	            console.log("initialized new round");
-	        }
+		if(this.id === undefined){
+			this.set({
+			id: (new ObjectId()).toString()
+			});
+		}	
+	}
 });
 
 
@@ -211,7 +235,10 @@ tab.collection.Divisions = Backbone.Collection.extend({
 		localStorage: new Store("Divisions")
 });	
 
-
+tab.collection.Rounds = Backbone.Collection.extend({
+		model: tab.model.Round ,
+		localStorage: new Store("Rounds")
+});	
 
 /*
 =========================================
@@ -424,17 +451,19 @@ tab.view.TeamTable = Backbone.View.extend({
 		var team_code = $("#newteam_name").val();
 		var school_id = $("#newteam_school").val();
 		var team = new tab.model.Team();
-
+		var division_id = $("#newteam_division").val();
 		var competitors = [];
 		//populate competitors based on form entries
 		$("#newteam_competitors").children().each(function(){
 			competitors.push($(this).val());
+			$(this).val("");
 		});
 
 		team.set({
 			team_code: team_code,
 			school_id: school_id,
-			competitors: competitors
+			competitors: competitors,
+			division_id: division_id
 		});
 		tab.collection.teams.add(team);
 		team.save();
@@ -472,7 +501,7 @@ tab.view.Team = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("team_code") + '</td> <td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
+		$(this.el).html('<td>' + this.model.get("team_code") + '</td> <td>'+this.model.get("division_id") +'</td><td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el ( in appendTeam)
 	} ,
 	unrender: function(){
@@ -563,103 +592,6 @@ tab.view.JudgeTable = Backbone.View.extend({
 	
 });
 
-tab.view.Round = Backbone.View.extend({
-	tagName: "tr" ,
-	events: { 
-      'click td.remove': 'remove'
-    },  
-
-	initialize: function(){
-		_.bindAll(this, "render", "unrender", "remove");
-	    this.model.bind('remove', this.unrender);
-		this.model.bind('change', this.render);
-
-	} ,
-
-	remove: function(round){
-		this.model.destroy();
-	} ,
-	render: function(){
-		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
-		return this; //required for chainable call, .render().el ( in appendround)
-	} ,
-	unrender: function(){
-		$(this.el).remove();
-	}
-});
-
-tab.view.RoundTable = Backbone.View.extend({
-	el: $("#rounds") , // attaches `this.el` to an existing element.
-	events: {
-		"click #add_round_button": "addRound" ,
-		"keyup #rounds_search": "search"
-	} ,
-	initialize: function(){
-		_.bindAll(this, "render", "addRound", "appendRound");
-		
-		tab.collection.rounds.bind("add", this.appendRound);
-		tab.collection.rounds.bind("reset", this.render, this);
-		tab.collection.divisions.bind("add", this.addDivSelect);
-		tab.collection.divisions.bind("reset", this.render);
-		this.render();
-		
-	} ,
-	
-	render: function(){
-		$("#newround_division").empty();
-		$("#round_table").empty();
-		_(tab.collection.rounds.models).each(function(round){ // in case collection is not empty
-        	this.appendRound(round);
-    	}, this);
-
-    	_(tab.collection.divisions.models).each(function(division){ // in case collection is not empty
-        	this.addDivSelect(division);
-    	}, this);
-	} ,
-
-	//add new division to dropdown box
-	addDivSelect: function(division){
-		var divOptionView = new tab.view.DivisionOption({
-			model: division
-		});
-		$("#newround_division", this.el).append(divOptionView.render().el);
-	} ,
-	addRound: function(){
-		console.log("round");
-		//TODO: validate round name
-		var round_name = $("#newround_name").val();
-
-		var round = new tab.model.Round();
-		round.set({name: round_name});
-
-		tab.collection.rounds.add(round);
-		round.save();
-		$("#newround_name").val("");
-	} ,
-
-	appendRound: function(round){
-		var roundView = new tab.view.Round({
-			model: round
-		});
-		$("#rounds_table", this.el).append(roundView.render().el);
-	} ,
-	search: function(e){
-		var letters = $("#rounds_search").val();
-		this.renderSearch(tab.collection.rounds.search(letters));
-	} ,
-	renderSearch: function(results){
-		$("#rounds_table").html("");
-
-		results.each(function(result){
-			var roundView = new tab.view.Round({
-				model: result
-			});
-			$("#rounds_table", this.el).append(roundView.render().el);
-		});
-		return this;
-	} 
-	
-});
 
 tab.view.Room = Backbone.View.extend({
 	tagName: "tr" ,
@@ -786,6 +718,106 @@ tab.view.RoomOption = Backbone.View.extend({
 	}
 });
 
+tab.view.Round = Backbone.View.extend({
+	tagName: "tr" ,
+	events: { 
+      'click td.remove': 'remove'
+    },  
+
+	initialize: function(){
+		_.bindAll(this, "render", "unrender", "remove");
+	    this.model.bind('remove', this.unrender);
+		this.model.bind('change', this.render);
+
+	} ,
+	remove: function(round){
+		this.model.destroy();
+	} ,
+	render: function(){
+		var team1 = this.model.get("team1");
+		var team2 = this.model.get("team2");
+		if(team1 != null){
+			var team1_cd = team1.get("team_code");
+		} else {
+			team1_cd = "BYE";
+		}
+		if(team2 != null){
+			var team2_cd = team2.get("team_code");
+		} else {
+			team2_cd = "BYE";
+		}
+		$(this.el).html('<td>' + team1_cd + '</td> <td>' + team2_cd + '</td><td class="remove">Remove</td>');
+		return this; //required for chainable call, .render().el
+	} ,
+	unrender: function(){
+		$(this.el).remove();
+	}
+});
+
+
+tab.view.RoundTable = Backbone.View.extend({
+	el: $("#rounds") , // attaches `this.el` to an existing element.
+	events: {
+		
+		"keyup #rounds_search": "search",
+		"click #pair_round_button" : "pairRound"
+	} ,
+	initialize: function(){
+		_.bindAll(this, "render", "addRound", "appendRound");
+		
+		tab.collection.rounds.bind("add", this.appendRound);
+		tab.collection.rounds.bind("reset", this.render, this);
+		tab.collection.rounds.bind("change", this.render, this);
+		this.render();
+		
+	} ,
+	pairRound: function(){
+		tab.helpers.pairPrelimRound(1, "4e97dd13bd123514f7000000", false);
+	},
+	render: function(){
+		console.log("rendering rounds");
+		$("#rounds_table").empty();
+		_(tab.collection.rounds.models).each(function(round){ // in case collection is not empty
+        	this.appendRound(round);
+    	}, this);
+	} ,
+
+	addRound: function(){
+		//TODO: validate round name
+		var round_name = $("#newround_name").val();
+
+		var round = new tab.model.Round();
+		round.set({round_name: round_name});
+
+		tab.collection.rounds.add(round);
+		round.save();
+		$("#newround_name").val("");
+	} ,
+
+	appendRound: function(round){
+		var roundView = new tab.view.Round({
+			model: round
+		});
+		$("#rounds_table", this.el).append(roundView.render().el);
+	} ,
+	search: function(e){
+		var letters = $("#rounds_search").val();
+		this.renderSearch(tab.collection.rounds.search(letters));
+	} ,
+	renderSearch: function(results){
+		$("#rounds_table").html("");
+
+		results.each(function(result){
+			var roundView = new tab.view.Round({
+				model: result
+			});
+			$("#rounds_table", this.el).append(roundView.render().el);
+		});
+		return this;
+	} 
+	
+});
+
 tab.view.School = Backbone.View.extend({
 	tagName: "tr" ,
 	events: { 
@@ -803,7 +835,7 @@ tab.view.School = Backbone.View.extend({
 	} ,
 	render: function(){
 		$(this.el).html('<td>' + this.model.get("school_name") + '</td> <td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
-		return this; //required for chainable call, .render().el ( in appendTeam)
+		return this; //required for chainable call, .render().el
 	} ,
 	unrender: function(){
 		$(this.el).remove();
@@ -937,7 +969,6 @@ tab.view.DivisionTable = Backbone.View.extend({
 			prelims			: prelims
 
 		});
-
 		tab.collection.divisions.add(division);
 		division.save();
 		$("#newdiv_division_name").val("");
@@ -957,6 +988,43 @@ tab.view.DivisionTable = Backbone.View.extend({
 
 /*
 =========================================
+Define Helper functions
+=========================================
+These are used to work with backbone data structures
+*/	
+
+//returns false if no team found
+tab.helpers.getTeamFromId = function(team_id){
+	var found_team = false;
+	for(var i = 0; i < tab.collection.teams.length; i++){
+		if(tab.collection.teams.at(i).get("id") == team_id){
+			return tab.collection.teams.at(i);	
+		}
+	}
+	
+	console.log("returning false for team_id " + team_id)
+	return false;
+
+}
+
+/**
+takes two teams as parameters,
+returns true if they can debate, false otherwise
+**/
+tab.helpers.validPrelimPairing = function (team1, team2){
+	
+
+	if(team1.get("school_id") == team2.get("school_id")){
+		return false;
+	}
+
+	//check if teams have debated each other before
+	//check all existing rounds
+	return true;
+}
+
+/*
+=========================================
 Initialize Backbone Collections, then Views
 =========================================
 */	
@@ -965,12 +1033,14 @@ tab.collection.teams = new tab.collection.Teams();
 tab.collection.schools = new tab.collection.Schools();
 tab.collection.judges = new tab.collection.Judges();
 tab.collection.rooms = new tab.collection.Rooms();
+tab.collection.rounds = new tab.collection.Rounds();
 
 tab.view.teamTable = new tab.view.TeamTable(); 
 tab.view.schoolTable = new tab.view.SchoolTable(); 
 tab.view.divisionTable = new tab.view.DivisionTable(); 
 tab.view.judgeTable = new tab.view.JudgeTable(); 
-tab.view.roomTable = new tab.view.RoomTable(); 
+tab.view.roomTable = new tab.view.RoomTable();  
+tab.view.roundTable = new tab.view.RoundTable();
 
 /*
 =========================================
@@ -983,6 +1053,7 @@ tab.collection.divisions.fetch();
 tab.collection.schools.fetch();
 tab.collection.judges.fetch();
 tab.collection.rooms.fetch();
+//TODO: add rounds here
 
 /*
 =========================================
@@ -1078,7 +1149,7 @@ $('#new_team_school').autocomplete({
 
 $(".container").hide();
 $(".sub_menu").hide();
-$("#home_container").show();
+$("#rounds_container").show();
 
 /*
 =========================================
@@ -1097,12 +1168,12 @@ Valid values for menu_item:
 */
 function showMenu(menu_item){
 
-	$(".container").hide();
+	$(".container").slideUp(100);
+	$("#" + menu_item + "_container").slideDown(100);
 
 	$(".menu_item").removeClass("menu_item_selected");
 	$("#menu_" + menu_item).addClass("menu_item_selected");
 
-	$("#" + menu_item + "_container").show();
 	$(".sub_menu").hide();
 	$("#sub_menu_" + menu_item).show();	
 }
@@ -1225,6 +1296,83 @@ function exportTournament(){
 	
 }
 
+/*
+number: debate round number like 1, or 4
+division: ObjectId of a division
+powerMatch: boolean
+*/
+tab.helpers.pairPrelimRound = function(number, division_id, powerMatch){
+	//pair round without power matching
+	
+	var teams = [];
+
+	tab.collection.teams.each(function(team){
+		//console.log(team.get("division_id") + " : " +  division_id);
+		if(team.get("division_id") == division_id){
+			//console.log(team.get("team_code"));
+			teams.push(team);
+		}
+		
+	});
+	teams = $.shuffle(teams);
+	console.log("Shuffling teams");
+
+	//create every round and put one team in each
+	var team_count = teams.length;
+	var round_count = Math.ceil(team_count / 2);
+
+	for(var i = 0; i < round_count; i++){
+		//create new round
+		var team = teams.pop();
+		var round = new tab.model.Round();
+		round.set({
+			team1: team
+		});
+		tab.collection.rounds.add(round);
+
+	}
+
+	//at this point we have created all the rounds and put one team in each of them.
+	//teams[] now contains n/2 or (n/2)-1 teams
+
+	//for each round, find an appropriate team
+	while(teams.length > 0){
+		var team2 = teams.pop();
+		for(var i = 0; i < tab.collection.rounds.length; i++){
+			//make sure round doesn't already have both teams
+			if(tab.collection.rounds.at(i).get("team1") != undefined && tab.collection.rounds.at(i).get("team2") != undefined){
+				console.log("round already paired");
+				
+			}
+			else if(tab.helpers.validPrelimPairing(tab.collection.rounds.at(i).get("team1"), team2)){
+				//found valid team2. Insert into this round
+				tab.collection.rounds.at(i).set({team2: team2});
+				console.log("pairing team " + tab.collection.rounds.at(i).get("team1").get("team_code") + " : "+ team2.get("team_code"));
+				
+				//team2 has been successfully paired. go to the next one.
+				break;
+			}
+		}
+		
+	}
+
+	if(teams.length > 0){
+		console.log("unpaired teams: ");
+		$.each(teams, function(i, team){
+			console.log(team.get("team_code"));
+		});
+	}
+	
+	
+
+}
+
+
+
+
 
 
 });
+
+
+
