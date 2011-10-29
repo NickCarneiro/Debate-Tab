@@ -1,18 +1,20 @@
-<h1><%= title %></h1><br>
+<div id="main_container">
+	<h1><%= title %></h1><br>
 
-<ul>
-<% for(var i=0; i < posts.length; i++) {%>
-   <li><a href="/post/<%= posts[i]._id %>"><%= posts[i].title %></a></li><br />
-   <%= posts[i].body %><br /> <br />
-<% } %>
-</ul> <br />
+	<ul>
+	<% for(var i=0; i < posts.length; i++) {%>
+	   <li><a href="/post/<%= posts[i]._id %>"><%= posts[i].title %></a></li><br />
+	   <%= posts[i].body %><br /> <br />
+	<% } %>
+	</ul> <br />
 
-<% if(loggedIn === undefined){ %>
-	<a href="/login">Login</a>
-	<a href="/register">Register</a>
-	
-<% } else { %>
-	<a href="/dashboard">Dashboard</a> | <a href="/logout">Logout</a>
-	<a href="/accordion1">Register Tournament</a>
-	<a href="/tourneys">Tournaments</a>
-<% } %>
+	<% if(loggedIn === undefined){ %>
+		<a href="/login">Login</a>
+		<a href="/register">Register</a>
+		
+	<% } else { %>
+		<a href="/dashboard">Dashboard</a> | <a href="/logout">Logout</a>
+		<a href="/accordion1">Register Tournament</a>
+		<a href="/tourneys">Tournaments</a>
+	<% } %>
+</div>

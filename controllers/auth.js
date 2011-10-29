@@ -101,8 +101,22 @@ module.exports.setRoutes = function(app) {
 		}
 	});
 
-	app.get('/logout', function(req, res){
-	
+	app.get('/about', function(req, res) {
+		res.render('aboutUs', {
+			title: "About the DebateTab Team"
+		});
+	});
+
+	app.get('/landing', function(req, res) {
+		res.render('landing', {
+			title: "Welcome to DebateTab",
+			email: "john@debatetab.com",
+			first_name: "John",
+			last_name: "Doe"
+		});
+	});
+
+	app.get('/logout', function(req, res){	
 		console.log("logging out");
 		delete req.session.email;
 		res.redirect('/');
