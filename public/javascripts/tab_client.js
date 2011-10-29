@@ -1183,6 +1183,21 @@ $(".menu_item").click(function(){
 	showMenu(menu_item_name);
 });
 
+
+//Code for sending texts
+$("#menu_texts").click(function(){
+		
+			$(".container").hide();
+			$("#teams_container").hide();
+			$(".sub_menu").hide();
+			$("#help_text").text("Click here to send an SMS")
+			var data = {phone_number: '+15124022582', message: 'Hello World'};
+			$.post("/text", data, function(res){
+				console.log(res.body);
+			});
+});
+
+
 //Code for the help menu on the right
 $("#menu_judges").click(function(){
 		
@@ -1191,8 +1206,12 @@ $("#menu_judges").click(function(){
 			$("#judges_container").show();
 			$(".sub_menu").hide();
 			$("#sub_menu_judges").show();
-			$("#help_text").text("Judges context")
-	});
+			$("#help_text").text("Judges' context")
+			var data = {phone_number: '+15124022582', message: 'Hello World'};
+			$.post("/text", data, function(res){
+				//something
+			});
+});
 	
 $("#judges_search").mouseover(
 	function() {
