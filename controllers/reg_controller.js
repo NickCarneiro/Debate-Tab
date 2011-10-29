@@ -198,6 +198,10 @@ module.exports.setRoutes = function(app) {
 			res.render('specTourney', {
 					title: "Tournament" ,
 					name: doc.name ,
+					scripts: [ 'javascripts/libs/reg_plugins.js',
+						'javascripts/reg_client.js' ],
+					stylesheets: [ 'stylesheets/jquery-ui-1.8.16.custom.css', 
+						'stylesheets/reg_style.css' ],
 					location: doc.location
 					
 				});
@@ -358,7 +362,8 @@ module.exports.setRoutes = function(app) {
 			scripts: [ 'javascripts/libs/reg_plugins.js',
 				'javascripts/reg_client.js' ],
 			stylesheets: [ 'stylesheets/jquery-ui-1.8.16.custom.css', 
-				'stylesheets/reg_style.css' ],
+				'stylesheets/reg_style.css',
+				"stylesheets/tab_style.css" ],
 			username: req.session.username 
                 });
         });
@@ -373,11 +378,11 @@ module.exports.setRoutes = function(app) {
 			scripts: [ 'javascripts/libs/reg_plugins.js',
 				'javascripts/reg_client.js' ],
 			stylesheets: [ 'stylesheets/jquery-ui-1.8.16.custom.css', 
-				'stylesheets/reg_style.css' ]
+				'stylesheets/reg_style.css',
+				"stylesheets/tab_style.css" ]
                 });
         });
 
-	
 
 	return app;
 }
