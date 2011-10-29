@@ -1,29 +1,49 @@
 <style>
 	#accordion { width: 350px; height: 250px; padding: 0.5em; }
 	</style>
-
-<div id="accordion">
-	<h3><a href="#">Coach Registration</a></h3>
-	<div>
-	
-	<form method="post" action="/register">
-Email: <input type="text" name="email"/><br />
-Password: <input type="password" name="password"/> <br />
-First Name: <input type="text" name="first_name"/><br />
-Last Name: <input type="text" name="last_name"/><br />
-Cell Phone: <input type="text" name="cell_phone"/><br />
-<input type="submit" name="register" value="Register" id="button" class="ui-state-default ui-corner-all"/>
-</form>
-		
-	</div>
-	
-</div>
-
-<style>
-	#draggable { width: 150px; height: 150px; padding: 0.5em; }
+	<style>
+	#loginError { width: 450px; height: 30px; padding: 0.5em; }
 	</style>
+	
+	<div id="loginError"></div>
+	
+<div id="content">
+	 <!--   <form id="jform" action="/register" method="post"> -->
+	        <fieldset>
+	            <legend>Coach Registration</legend>
+	            <p>
+	                <label for="email" class="block">Email:</label>
+	                <input type="text" name="email" id="email" />
+	            </p>
+	            <p>
+	                <label for="password" class="block">Password</label>
+	                <input type="password" name="password" id="password" />
+	            </p>
+				 <p>
+	                <label for="cpassword" class="block">Re-enter Password</label>
+	                <input type="password" name="cpassword" id="cpassword" />
+	            </p>
+				
+	           <p>
+	                <label for="first_name" class="block">First Name</label>
+	                <input type="text" name="first_name" id="first_name" />
+	            </p>
+				<p>
+	                <label for="last_name" class="block">Last Name</label>
+	                <input type="text" name="last_name" id="last_name" />
+	            </p>
+				<p>
+	                <label for="cell_phone" class="block">Cell Phone<small>(111-111-1111)</small></label>
+	                <input type="text" name="cell_phone" id="cell_phone" />
+	            </p>
+	        </fieldset>
 
+        <p>
+	         <!--   <input type="submit" name="register" value="Register" id="button" class="ui-state-default ui-corner-all"/>-->
+				<!--<input type="submit" name="submit" value="Register" id="submit" />-->
+				<button type="submit" id="submit">Submit</button>
+	        </p>
+	<!--    </form>  -->
+	</div><!-- content -->	
+	
 
-<div id="draggable" class="ui-widget-content">
-	<p>Drag me around</p>
-</div>

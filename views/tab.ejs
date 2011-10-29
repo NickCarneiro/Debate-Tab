@@ -1,3 +1,10 @@
+<!--
+======================
+JS includes
+====================== 
+-->
+
+
 <div id="header"><!-- begin header -->
 	<h1>DebateTab.com</h1>
 </div><!-- end header -->
@@ -12,38 +19,15 @@
 				<ul id="main_menu" class="menu">
 					<li class="menu_item" id="menu_rounds">Rounds</li>
 					
-					<li class="menu_item">
-						<ul id="sub_menu_rounds" class="sub_menu">
-						
-							<li class="sub_menu_item">
-								<select> 
-									<option value="round1">Round 1</option>
-									<option value="round2">Round 2</option>
-									<option value="round3">Round 3</option>
-									<option value="round4">Round 4</option>
-									<option value="round1">Quarters</option>
-									<option value="round1">Semis</option>
-									<option value="round1">Finals</option>
-								</select>
-							</li>
-							<li class="sub_menu_item">Print Pairing</li>
-							<li class="sub_menu_item">Send SMS</li>
-						
-						</ul>
-					</li>
+					
 					
 					<li class="menu_item" id="menu_teams">Teams</li>
-					<li class="menu_item">
-						<ul id="sub_menu_teams" class="sub_menu">
-							<li class="sub_menu_item" id="add_team_menu">Add team</li>
-						</ul>
-					</li>
-					</li>
-					
 					<li class="menu_item" id="menu_judges">Judges</li>
 					<li class="menu_item" id="menu_rooms">Rooms</li>
 					<li class="menu_item" id="menu_schools">Schools</li>
+					<li class="menu_item" id="menu_divisions">Divisions</li>
 					<li class="menu_item" id="menu_settings">Settings</li>
+					<li class="menu_item" id="menu_debug">Debug</li>
 					</ul>
 				
 				
@@ -56,38 +40,54 @@
 			<div id="center_col"><!-- begin centercol -->
 			
 		<div id="rounds_container" class="container">
-			<div class="search_container">
-			<input type="text" class="search_box" id="rounds_search" /> <button class="search_button">Find</button>
-			</div>
-			<br />
-			<table class="rounds_table">
-			<tr><td>Affirmative</td><td>Negative</td><td>Judge</td></tr>
-			<tr><td>Round Rock AC</td><td>Westwood BM</td><td>Colling</td></tr>
-			<tr><td>Dulles QD</td><td>Stony Point LL</td><td>Askar</td></tr>
-			<tr><td>Hendrickson SS</td><td>Austin ER</td><td>Smith</td></tr>
-			<tr><td>Bellaire DF</td><td>Westwood KN</td><td>Jones</td></tr>
-			<tr><td>Plano GC</td><td>Hays WE</td><td>Martin</td></tr>
-			<tr><td>Greehill CC</td><td>Salado OP</td><td>Stack</td></tr>
-			<tr><td>Memoral HQ</td><td>Reagan PQ</td><td>Leibowitz</td></tr>
-			</table>
+			<div id="rounds">
+			<input type="text" class="search_box" id="rounds_search_box" /> 
+				<button id="rounds_search" class="search_button">Find</button>
+				<table id="rounds_table">
+				</table>
+				<br />
+				
+				<button id="add_round_button">Add Round</button>
+				<button id="pair_round_button">Pair Round</button>
+				</div>
 		</div>
 
 		<div id="teams_container" class="container">
 			<div id="teams">
 			<div class="search_container">
-				<input type="text" class="search_box" id="teams_search" /> <button class="search_button">Find</button>
+				<input type="text" class="search_box" id="teams_search" /> 
+				<button id="teams_search_button" class="search_button">Find</button>
 				<br />
 			</div>
-			<table class="teams_table">
-			<tr><td>Round Rock AC</td><td>Westwood BM</td><td>Colling</td></tr>
+			<table id="teams_table">
+
 			</table>
-			<br /> <br />
-			<h3>Add team</h3><br />
+			
+			
 			<span class="generic_error" id="add_team_error"></span><br />
 			<label>
-			Team name: <br />
-				<input id="new_team_name" />
+			Division: <br />
+				<select id="newteam_division">
+				</select>
 			</label> <br />
+
+			School: <br />
+				<select id="newteam_school">
+				</select>
+			</label> <br />
+			Competitor Names: <br />
+			<div id="newteam_competitors">
+				<input type="text" />
+			
+			</div>
+
+			<label>
+			Team name: <br />
+				<input id="newteam_name" />
+			</label> <br />
+			<label>
+			
+			
 			
 
 			<button id="add_team_button">Add team</button>
@@ -97,19 +97,107 @@
 		</div>
 
 		<div id="judges_container" class="container">
-	
+			<div id="judges">
+				<input type="text" class="search_box" id="judges_search_box" /> 
+				<button id="judges_search" class="search_button">Find</button>
+				<table id="judges_table">
+				</table>
+				<br />
+				<label>
+				Judge Name: <br />
+					<input id="new_judge_name" type="text"/>
+				</label> <br />
+				<button id="add_judge_button">Add Judge</button>
+			</div>
 		</div>
 
 		<div id="rooms_container" class="container">
-	
+			<div id="rooms">
+				<input type="text" class="search_box" id="rooms" /> 
+				<button id="rooms_search" class="search_button">Find</button>
+				<table id="rooms_table">
+				</table>
+				<br />
+				<label>
+				Room Name: <br />
+					<input id="newroom_name" type="text"/>
+				</label> <br />
+				<label>
+				Division: <br />
+					<select id="newroom_division" type="text">
+					</select>
+				</label> <br />
+				
+
+				<button id="add_room_button">Add Room</button>
+			</div>
 		</div>
 
 		<div id="schools_container" class="container">
-	
+			<div id="schools">
+				<input type="text" class="search_box" id="schools_search" /> 
+				<button id="schools_search" class="search_button">Find</button>
+				<table id="schools_table">
+				</table>
+				<br />
+				<label>
+				School Name: <br />
+					<input id="newschool_name" />
+				</label> <br />
+				<button id="add_school_button">Add School</button>
+			</div>
 		</div>
+		<div id="divisions_container" class="container">
+			<div id="divisions">
+				<table id="divisions_table">
+				</table>
+				<br />
+				<label>
+					Division Name: <br />
+					<input id="newdiv_division_name" type="text"/>
+				</label> <br />
+				<label>
+					Competitors per team: <br />
+					<input id="newdiv_comp_per_team" type="text"/>
+				</label> <br />
+				<label>
+					Flighted rounds: <br />
+					<input id="newdiv_flighted_rounds" type="checkbox" checked="no" name="flighted" />
+				</label> <br />
+				<label>
+					Break to: <br />
+					<select id="newdiv_break_to">
+						<option value="triple_octofinals">Triple Octofinals</option>
+						<option value="double_octofinals">Double Octofinals</option>
+						<option value="octofinals">Octofinals</option>
+						<option selected="yes" value="quarterfinals">Quarterfinals</option>
+						<option value="semifinals">Semifinals</option>
+						<option value="finals">Finals</option>
+					</select> 
+				</label> <br />
+				<label>
+					Maximum speaker points: <br />
+					<input id="newdiv_max_speaks" type="text" value="30"/>
+				</label> <br />
+				<label>
+					Number of prelims: <br />
+					<input id="newdiv_prelims" type="text" value="4"/>
+				</label> <br />
+				<br />
 
+				<button id="add_division_button">Add Division</button>
+			</div>
+		</div>
 		<div id="settings_container" class="container">
 	
+		</div>
+		<div id="debug_container" class="container">
+			<div id="debug">
+				<button id="save_state">Save state</button> <br />
+				<button id="clear_storage">Clear Storage</button>  <br />
+				<button id="fetch_teams">Fetch Teams</button> <br />
+				<button id="export_tournament">Export Tournament</button> 
+			</div>
 		</div>
 
 		<div id="home_container" class="container">
@@ -134,6 +222,7 @@
 <div id="credit">
 	<p>© 2011 Trillworks LLC</p>
 </div>
+
 
 
 

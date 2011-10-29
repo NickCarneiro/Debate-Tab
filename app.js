@@ -1,7 +1,7 @@
 /**
  * Module dependencies..
  */
-
+ 
 var express = require('express');
 var fs = require('fs');
 var app = module.exports = express.createServer();
@@ -12,7 +12,7 @@ var Models = require('./models'); //include models
 var mongoose = require('mongoose'); //like include
 
 //Change port variable to your port when testing:
-var port = 3007;
+var port = 3003;
 /*
 'ali.debatetab.com': '127.0.0.1:3001',
 'rohan.debatetab.com': '127.0.0.1:3002',
@@ -42,11 +42,7 @@ app.configure(function(){
 	
 });
 
-app.get("/hello", function(req, res) {
-	res.send("hello world");
-});
-
-fs.readdirSync('./controllers').forEach(function(file){
+ fs.readdirSync(__dirname + '/controllers').forEach(function(file){
     if(file.match(/\.js$/)) {
       require('./controllers/' + file).setRoutes(app, express);
     }
@@ -65,5 +61,6 @@ app.configure('production', function(){
 
 app.listen(port);
 console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
+
 
 
