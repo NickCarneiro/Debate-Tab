@@ -719,10 +719,12 @@ $(document).ready(function(){
 		 
 	    });
 
-
-
+	$('#alert').click(function(event){ 
+	      alert("Hello World");  
+	}); 
 });
-		
+
+
 	 	function checkfirstName(fname)
 		{
 			if(fname.length < 2) 
