@@ -113,6 +113,8 @@ jQuery.ready everything below this point.
 */
 $(function(){
 
+con.write("hello word");
+
 /*
 =========================================
 Define Backbone Models
