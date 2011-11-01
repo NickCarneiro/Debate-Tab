@@ -1179,6 +1179,90 @@ $(".menu_item").click(function(){
 });
 
 
+//Code for sending texts
+$("#menu_texts").click(function(){
+		
+			$(".container").hide();
+			$("#teams_container").hide();
+			$(".sub_menu").hide();
+			$("#help_text").text("Click here to send an SMS")
+			var data = {phone_number: '+15124022582', message: 'Hello World'};
+			$.post("/text", data, function(res){
+				console.log(res.body);
+			});
+});
+
+
+//Code for the help menu on the right
+$("#menu_judges").click(function(){
+		
+			$(".container").hide();
+			//$("#teams_container").hide();
+			$("#judges_container").show();
+			$(".sub_menu").hide();
+			$("#sub_menu_judges").show();
+			$("#help_text").text("Judges' context")
+			var data = {phone_number: '+15124022582', message: 'Hello World'};
+			$.post("/text", data, function(res){
+				//something
+			});
+});
+	
+$("#judges_search").mouseover(
+	function() {
+			$("#help_text").text("Type in judge's name to find");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+		});
+
+$("#add_team_menu").mouseover(
+	function() {
+			$("#help_text").text("Click to add teams");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+		});
+
+$("#menu_settings").mouseover(
+	function() {
+			$("#help_text").text("Bring up settings menu");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+		});
+
+$("#menu_rooms").mouseover(
+	function() {
+			$("#help_text").text("List available rooms");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+		});
+
+$("#menu_teams").mouseover(
+	function() {
+			$("#help_text").text("Click to list or add teams");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+		});
+
+$("#menu_judges").mouseover(
+	function() {
+			$("#help_text").text("Click to list or add judges");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+		});
+
+$("#menu_rounds").mouseover(
+	function() {
+			$("#help_text").text("View list of all tournaments");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+		});
+
+$("#add_team_menu").click(function(){
+	$("#teams").hide();
+	$("#add_team").show();
+});
+
+
 
 /*
 =========================================

@@ -11,8 +11,27 @@ var Models = require('./models'); //include models
 //include mongoose
 var mongoose = require('mongoose'); //like include
 
+/*
+//code for sending and receiving SMS through twilio
+var Client = require('twilio').Client,
+    Twiml = require('twilio').Twiml,
+    t = new Client('AC89170a4e43fc4a38daed8f055879a20f', 'b6fd343fee0be8aaad34ed8df07ffb3f', 'debatetab.com');
+    var p = t.getPhoneNumber('+15128430409');
+    p.setup(function() {
+      p.on('incomingSms', function(smsParams, res) {
+        console.log('SMS Received:');
+        console.log(smsParams)
+      	//res.append(new Twiml.Sms('Thanks! We are mapping your text right now. Have fun!'));    //sends text
+        //res.send();
+        p.sendSms('+15124022582', 'Testing', null, function () {
+          console.log("SMS sent");
+        });
+    });
+});
+*/
+
 //Change port variable to your port when testing:
-var port = 3003;
+var port = 3002;
 /*
 'ali.debatetab.com': '127.0.0.1:3001',
 'rohan.debatetab.com': '127.0.0.1:3002',
@@ -61,6 +80,3 @@ app.configure('production', function(){
 
 app.listen(port);
 console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
-
-
-
