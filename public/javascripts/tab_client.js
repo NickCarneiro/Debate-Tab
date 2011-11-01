@@ -1178,24 +1178,33 @@ $(".menu_item").click(function(){
 	showMenu(menu_item_name);
 });
 
-
-//Code for sending texts
-$("#menu_texts").click(function(){
-		
-			$(".container").hide();
-			$("#teams_container").hide();
-			$(".sub_menu").hide();
-			$("#help_text").text("Click here to send an SMS")
-			var data = {phone_number: '+15124022582', message: 'Hello World'};
+//client-side function call Code for sending a single text
+$("#single_text").click(function(){
+			var data = {phone_number: '+15129685781', message: 'Hello World!'};
 			$.post("/text", data, function(res){
-				console.log(res.body);
+				console.log('Message sent from UI: ' + res.body);
+				con.write(res);
+			});
+
+});
+
+
+//client side function call Code for sending mass texts
+$("#mass_texts").click(function(){
+			var data = {smsList: [
+			{phone_number: '+15129685781', message: 'Hello World__1 !'},
+			{phone_number: '+15129685781', message: 'Hello World__2 !'}
+			]};
+
+			//send this as a mass text
+			$.post("/textMass", data, function(res){
+				console.log('Message sent from UI: ' + res.body);
 			});
 });
 
 
 //Code for the help menu on the right
 $("#menu_judges").click(function(){
-		
 			$(".container").hide();
 			//$("#teams_container").hide();
 			$("#judges_container").show();
@@ -1229,9 +1238,32 @@ $("#menu_settings").mouseover(
 			$("#help_text").text("Select menu context");
 		});
 
+$("#menu_divisions").mouseover(
+	function() {
+			$("#help_text").text("Modify Divisions here");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+		});
+
+
+$("#menu_debug").mouseover(
+	function() {
+			$("#help_text").text("Secret Debug Menu");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+		});
+
+
 $("#menu_rooms").mouseover(
 	function() {
 			$("#help_text").text("List available rooms");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+		});
+
+$("#menu_schools").mouseover(
+	function() {
+			$("#help_text").text("List available Schools");
 		}).mouseleave(function() {
 			$("#help_text").text("Select menu context");
 		});
@@ -1261,6 +1293,24 @@ $("#add_team_menu").click(function(){
 	$("#teams").hide();
 	$("#add_team").show();
 });
+
+
+$("#single_text").mouseover(
+	function() {
+			$("#help_text").text("Send a single Message to Nick");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+		});
+
+
+$("#mass_texts").mouseover(
+	function() {
+			$("#help_text").text("Send Mass texts to Nick");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+		});
+
+
 
 
 

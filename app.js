@@ -11,25 +11,6 @@ var Models = require('./models'); //include models
 //include mongoose
 var mongoose = require('mongoose'); //like include
 
-/*
-//code for sending and receiving SMS through twilio
-var Client = require('twilio').Client,
-    Twiml = require('twilio').Twiml,
-    t = new Client('AC89170a4e43fc4a38daed8f055879a20f', 'b6fd343fee0be8aaad34ed8df07ffb3f', 'debatetab.com');
-    var p = t.getPhoneNumber('+15128430409');
-    p.setup(function() {
-      p.on('incomingSms', function(smsParams, res) {
-        console.log('SMS Received:');
-        console.log(smsParams)
-      	//res.append(new Twiml.Sms('Thanks! We are mapping your text right now. Have fun!'));    //sends text
-        //res.send();
-        p.sendSms('+15124022582', 'Testing', null, function () {
-          console.log("SMS sent");
-        });
-    });
-});
-*/
-
 //Change port variable to your port when testing:
 var port = 3007;
 /*
@@ -39,9 +20,8 @@ var port = 3007;
 'nikhil.debatetab.com': '127.0.0.1:3007',
 'db.debatetab.com': '127.0.0.1:3000',	Admin UI for MongoDB
 'dev.debatetab.com': '127.0.0.1:3006'	Staging
-'debatetab.com': '127.0.0.1:3005'		Production*/
-		
-//asdfqwerty
+'debatetab.com': '127.0.0.1:3005'		Production
+*/
 
 //db connection only needs to be made once. Change "test" if you want to use a different database.
 mongoose.connect('mongodb://localhost/test');    
