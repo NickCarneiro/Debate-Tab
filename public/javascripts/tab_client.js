@@ -300,6 +300,10 @@ collection.Teams = Backbone.Collection.extend({
 		  	return pattern.test(data.get("team_code"));
 		}));
 	} ,
+	//keep sorted in descending order of wins
+	comparator : function(team){
+		return team.get("wins") * -1;
+	} ,
 	localStorage: new Store("Teams")
 });	
 
@@ -396,12 +400,14 @@ pairing.prelimRoundValid = function (team1, team2, round){
 }
 //sort teams in descending order of wins
 pairing.sortTeams = function(){
-	collection.teams.sortBy(pairing.compareTeams);
+	collection.teams.sort();
 }
 
 pairing.compareTeams = function(team){
 	//comparison function used when sorting teams
-	return team.get("wins") * -1;
+	con.write("wins: " + team.get("wins"));
+	return team.get("wins");
+
 }
 
 //iterates over round collection and sets wins, losses in each team model
@@ -534,7 +540,7 @@ pairing.pairRound = function(round_number, division){
 				if(collection.rounds.at(i).get("team2") === undefined){
 				
 					var team2 = temp_teams[j];
-					con.write("placing " + team2.get("team_code") + " with " + collection.rounds.at(i).get("team1").get("team_code"));
+					//con.write("placing " + team2.get("team_code") + " with " + collection.rounds.at(i).get("team1").get("team_code"));
 					if(pairing.prelimRoundValid(collection.rounds.at(i).get("team1"), team2) === true){
 						collection.rounds.at(i).set({"team2":team2});
 						temp_teams.splice(j,1);//remove team from unpaired temp teams
