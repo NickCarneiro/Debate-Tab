@@ -19,14 +19,16 @@ phone.setup(function() {
 
 module.exports.setRoutes = function(app) {
 	app.get('/tab', function(req, res){
-	
 		res.render('tab', {
 			title: "Debate Tab Demo",
 			scripts: ["javascripts/libs/tab_plugins.js",
-				"javascripts/tab_client.js"],
+				"javascripts/tab_client.js",
+				"javascripts/libs/base64.js",
+				"javascripts/libs/jspdf.js",
+				"javascripts/libs/sprintf.js"
+			],
 			stylesheets: ["stylesheets/tab_style.css"]
 		});
-	
 	});
 
 	app.post('/export' , function(req, res){

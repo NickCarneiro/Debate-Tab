@@ -24,6 +24,10 @@ Nick Carneiro
 	var con = {};
 
 
+	//include jspdf
+	//var jspdf = require('jspdf/jspdf');
+
+
 /*
 =========================================
 Define Console Functions
@@ -34,6 +38,7 @@ con.write = function(text){
 	//TODO: scroll to bottom
 	$("#console_window").scrollTop($("#console_window")[0].scrollHeight);
 }
+
 
 /*
 =========================================
@@ -1160,9 +1165,10 @@ Valid values for menu_item:
 	schools
 	divisions
 	settings
+	pdf
+	debug
 */
 function showMenu(menu_item){
-
 	$(".container").slideUp(100);
 	$("#" + menu_item + "_container").slideDown(100);
 
@@ -1172,6 +1178,7 @@ function showMenu(menu_item){
 	$(".sub_menu").hide();
 	$("#sub_menu_" + menu_item).show();	
 }
+
 $(".menu_item").click(function(){
 	//menu item ids are like: menu_judges
 	var menu_item_name = $(this).attr("id").substr(5);
@@ -1219,6 +1226,117 @@ $("#mass_texts").click(function(){
 	});
 });
 
+//Code for PDF Menu
+$("#menu_pdf").click(function(){
+	$(".container").hide();
+	$("#pdf_container").show();
+	$("#help_text").text("This is the PDF Menu")
+});
+
+//Code for Generate PDF Button
+$("#pdf_gen").click(function(){
+	const headers = {
+		tournament_name: 'Round Rock HS Tournament',
+		date: '11/18/11',
+		round_number: '3',
+		start_time_text: 'Start: 3:00 PM',
+		message: 'Welcome to the Round Rock Tournament run by DebateTab!'
+	};
+
+	const titles = [ "Affirmative",
+			"Negative",
+			"Room",
+			"Judge"
+	];
+
+	var table_data = new Array();	//this is a 2-D array 
+	for(var i=0; i<100; i++) {
+	//	table_data[i] = new tableRowArray();
+		table_data[i] = new Array();
+		table_data[i][0] = "Robby";
+		table_data[i][1] = "Tom";
+		table_data[i][2] = '' + Math.floor(Math.random()*100);	//random number 1-100.
+									//needs to be a string?
+		table_data[i][3] = "John Doe";
+	}
+
+	generatePDF_PairingSheet(headers, titles, table_data);	
+});
+
+// my attempt to make each row into a function, bt it is not working although it is
+// doing the same thing
+//function tableRowArray() {
+//	this = new Array();
+//	this[0] = "Rob";
+//	this[1] = "Roy";
+//	this[2] = "2";
+//	this[3] = "Sherlock Holmes";
+//}
+
+
+/*
+=========================================
+BEGIN: Define PDF Function
+=========================================
+*/	
+function generatePDF_PairingSheet(headers, titles, table_data){
+	// generate a blank document
+	var doc = new jsPDF();
+	var max_page_length = 280;
+	var page_start_y_value = 50;
+
+
+	doc.text(20, 20, headers.tournament_name);
+	doc.text(20, 30, headers.date);
+	const round_text = 'Round: ' + headers.round_number;
+	doc.text(20, 40, round_text);
+	doc.text(20, 50, headers.start_time_text);
+	doc.text(20, 60, headers.message);
+	
+	var x_value = 20;
+	const title_y_value = 80;
+	const spacing = 47;
+
+
+	printTitles(doc, titles, x_value, title_y_value, spacing);
+
+	var data_y_value = 90;
+	var j = 0;
+	for(i=0; i< table_data.length; i++) {	//for each row
+		x_value = 20;
+		for(j=0; j< table_data[i].length; j++) {	//for each column
+			doc.text(x_value, data_y_value, table_data[i][j]);
+			x_value = x_value + spacing;		// add a spacing between each column
+		}	
+		data_y_value = data_y_value + 10;
+		if(data_y_value > max_page_length) {
+			doc.addPage();
+			data_y_value = page_start_y_value;
+			printTitles(doc, titles, 20, 30, spacing);	// where to start printing
+								// of titles on new page
+		}
+	}
+
+//	doc.text(20, 30, 'This is client-side JS pumping out a PDF!');
+//	doc.addPage();
+//	doc.text(20, 20, 'Do you like that?');
+
+	// Output as Data URI so that it can be downloaded / viewed
+	doc.output('datauri');
+}
+
+function printTitles(doc, titles, x_value, title_y_value, spacing) {
+	var i = 0;
+	for(i=0; i< titles.length; i++) {
+		doc.text(x_value, title_y_value, titles[i]);
+		x_value = x_value + spacing;		// add a spacing between each column
+	}
+}
+/*
+=========================================
+END: Define PDF Function
+=========================================
+*/	
 
 //Code for the help menu on the right
 $("#menu_judges").click(function(){
@@ -1253,6 +1371,11 @@ $("#menu_settings").mouseover(
 			$("#help_text").text("Bring up settings menu");
 		}).mouseleave(function() {
 			$("#help_text").text("Select menu context");
+		});
+
+$("#menu_pdf").mouseover(
+	function() {
+			$("#help_text").text("Bring up PDF Generator Menu");
 		});
 
 $("#menu_divisions").mouseover(
@@ -1440,6 +1563,6 @@ pairing.pairPrelimRound = function(number, division_id, powerMatch){
 }); //I think this is the end of jquery.ready
 
 
-}());;
+}());
 
 

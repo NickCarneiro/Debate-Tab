@@ -6,9 +6,6 @@ var express = require('express');
 var fs = require('fs');
 var app = module.exports = express.createServer();
 
-//include jspdf
-//var jspdf = require('jspdf');
-
 //io.set('log level', 1);
 var Models = require('./models'); //include models
 //include mongoose
