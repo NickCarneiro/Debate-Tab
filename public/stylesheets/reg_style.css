@@ -88,6 +88,14 @@ body {
 	    font-weight: normal;
 	    color: #222;
 	}
+
+	.left_float {
+		float:left;
+	}
+	
+	.right_float {
+		float:right;
+	}
 	 
 	#submit {
 	    background: #3ea99f;
@@ -97,7 +105,7 @@ body {
 	    color: #fafafa;
 	    text-shadow: 1px 1px 1px #0F1620;
 	    -webkit-border-radius: 7px;
-    -moz-border-radius: 7px;
+	    -moz-border-radius: 7px;
 	    border-radius: 7px;
 	}
 	 

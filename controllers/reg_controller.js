@@ -198,6 +198,10 @@ module.exports.setRoutes = function(app) {
 			res.render('specTourney', {
 					title: "Tournament" ,
 					name: doc.name ,
+					scripts: [ 'javascripts/libs/reg_plugins.js',
+						'javascripts/reg_client.js' ],
+					stylesheets: [ 'stylesheets/jquery-ui-1.8.16.custom.css', 
+						'stylesheets/reg_style.css' ],
 					location: doc.location
 					
 				});
@@ -352,6 +356,33 @@ module.exports.setRoutes = function(app) {
 	});
 
 	
+        app.get('/about', function(req, res) {
+                res.render('aboutUs', {
+                        title: "About the DebateTab Team",
+			scripts: [ 'javascripts/libs/reg_plugins.js',
+				'javascripts/reg_client.js' ],
+			stylesheets: [ 'stylesheets/jquery-ui-1.8.16.custom.css', 
+				'stylesheets/reg_style.css',
+				"stylesheets/tab_style.css" ],
+			username: req.session.username 
+                });
+        });
+
+        app.get('/landing', function(req, res) {
+                res.render('landing', {
+                        title: "Welcome to DebateTab",
+			username: req.session.username,
+                        email: "john@debatetab.com",
+                        first_name: "John",
+                        last_name: "Doe",
+			scripts: [ 'javascripts/libs/reg_plugins.js',
+				'javascripts/reg_client.js' ],
+			stylesheets: [ 'stylesheets/jquery-ui-1.8.16.custom.css', 
+				'stylesheets/reg_style.css',
+				"stylesheets/tab_style.css" ]
+                });
+        });
+
 
 	return app;
 }
