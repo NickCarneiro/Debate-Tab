@@ -1,23 +1,21 @@
-
 //code to set up phone for sending and receiving SMS through twilio
 var Client = require('twilio').Client,
-    Twiml = require('twilio').Twiml,
-    sys = require('sys'),
-    tClient = new Client('AC89170a4e43fc4a38daed8f055879a20f', 'b6fd343fee0be8aaad34ed8df07ffb3f', 'debatetab.com');
-    var phone = tClient.getPhoneNumber('+15128430409');
-
+Twiml = require('twilio').Twiml,
+sys = require('sys'),
+tClient = new Client('AC89170a4e43fc4a38daed8f055879a20f', 'b6fd343fee0be8aaad34ed8df07ffb3f', 'debatetab.com');
+var phone = tClient.getPhoneNumber('+15128430409');
 
 // set event receiver handlers
-    phone.setup(function() {
-	      phone.on('incomingSms', function(smsParams, res) {
-			console.log('SMS Received From:  ' + smsParams.From);
-			console.log('Body: ' + smsParams.Body);
-			console.log();
-			phone.sendSms(smsParams.From, 'Thanks! We are mapping your text right now. Have fun!', null, function () {
-				  console.log("SMS standard reply sent");
-			});
-	    });
-	});
+phone.setup(function() {
+      phone.on('incomingSms', function(smsParams, res) {
+		console.log('SMS Received From:  ' + smsParams.From);
+		console.log('Body: ' + smsParams.Body);
+		console.log();
+		phone.sendSms(smsParams.From, 'Thanks! We are mapping your text right now. Have fun!', null, function () {
+			  console.log("SMS standard reply sent");
+		});
+    });
+});
 
 module.exports.setRoutes = function(app) {
 	app.get('/tab', function(req, res){
@@ -41,35 +39,57 @@ module.exports.setRoutes = function(app) {
 
 	});
 
-// code to send a text when a post request is made to /text
+	// code to send a text when a post request is made to /text
+	// TODO verify user logged in
 	app.post('/text' , function(req, res){
-	//TODO verify user logged in
-		phone.sendSms(req.body.phone_number, req.body.message, null, function () {
-			console.log('SMS sent');
-			console.log('PhoneNumber to Send to: ' + req.body.phone_number);
-			console.log('Message to Send: ' + req.body.message);
-		});
-		res.send('msg_sent');
-	});
-
-// code to send MASS texts
-	app.post('/textMass' , function(req, res){
-	//TODO verify user logged in
-		var list = req.body.smsList;
-		console.log('Mass Message request: ');
-		console.log(list);
-		for (var i=0; i< list.length; i++) {
-			var number = list[i].phone_number;
-			var message = list[i].message;
-			console.log('Sending ith mesage where i = ' + i);
-			 phone.sendSms(number, message, null, function () {
-			      //  console.log('i = ' + iter);
-				console.log('SMS sent to: ' + number);
-				console.log('Message Sent: ' + message);
-				console.log('');
-		        });
+		try {
+			var number = req.body.phone_number;
+			var message = req.body.message;
+			phone.sendSms(number, message, null, function () {
+				console.log('SMS sent');
+				console.log('PhoneNumber: ' + number);
+				console.log('Message: ' + message);
+			});
+			res.send('single text sent to ' + number + '. and the message was: ' + message);
+		} catch (e) {
+			console.log('An error has occured while sending a single message: ' + e.message);
+			res.send('An error has occured while sending a single message: ' + e.message);
 		}
-		res.send('msgs_sent');
-	});
+	});	
 
+	// code to send MASS texts
+	// TODO verify user logged in
+	app.post('/textMass' , function(req, res){
+		try {
+			var list = req.body.smsList;
+			console.log('Mass Message request: ');
+			console.log(list);
+			
+			for (var i=0; i< list.length; i++) {
+				var number = list[i].phone_number;
+				var message = list[i].message;
+				
+				console.log('Sending ith message where i = ' + i);
+
+				sendMassTexts(i, number, message);
+			}
+			res.send('mass texts sent');
+		} catch (e) {
+			console.log('An error has occured while sending the mass messages: ' + e.message);
+			res.send('An error has occured while sending the mass messages: ' + e.message);
+		}
+	});
 };
+
+// function that sends message and provides a callback with specific log actions as well
+// used by post('/textMass')
+// abstracting this action into a function allows the logging to work correctly because of
+// variable scope, which was an issue earlier
+function sendMassTexts(i, number, message) {
+	 phone.sendSms(number, message, null, function () {
+		console.log('i = ' + i);
+		console.log('SMS sent to: ' + number);
+		console.log('Message Sent: ' + message);
+		console.log('');
+	});
+}

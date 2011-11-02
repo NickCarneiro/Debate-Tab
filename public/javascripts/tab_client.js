@@ -1178,43 +1178,60 @@ $(".menu_item").click(function(){
 	showMenu(menu_item_name);
 });
 
+var nick = '+15129685781';
+
 //client-side function call Code for sending a single text
 $("#single_text").click(function(){
-			var data = {phone_number: '+15129685781', message: 'Hello World!'};
-			$.post("/text", data, function(res){
-				console.log('Message sent from UI: ' + res.body);
-				con.write(res);
-			});
 
+	var pNumber = $("#debug_sms_input_phone").val();
+	if(pNumber == '' || pNumber == ' ') {
+		pNumber = ' ';
+		$("#debug_sms_input_phone").val("<Phone Number> for single");
+		con.write("For a single text, enter phone number. There is no default. Not sending msg.");
+		return;
+	}
+
+	var msg = $("#debug_sms_input_message").val();
+	if(msg == '' || msg == ' ') {
+		msg = 'Hello World!';
+	}
+
+	var data = {phone_number: pNumber, message: msg};
+
+	$.post("/text", data, function(res){
+		console.log('Message sent from UI: ' + res.body);
+		con.write(res);
+	});
 });
 
 
 //client side function call Code for sending mass texts
 $("#mass_texts").click(function(){
-			var data = {smsList: [
-			{phone_number: '+15129685781', message: 'Hello World__1 !'},
-			{phone_number: '+15129685781', message: 'Hello World__2 !'}
-			]};
+	var data = {smsList: [
+		{phone_number: nick, message: 'Hello World__1 !'},
+		{phone_number: nick, message: 'Hello World__2 !'}
+	]};
 
-			//send this as a mass text
-			$.post("/textMass", data, function(res){
-				console.log('Message sent from UI: ' + res.body);
-			});
+	//send this as a mass text
+	$.post("/textMass", data, function(res){
+		console.log('Message sent from UI: ' + res.body);
+		con.write(res);
+	});
 });
 
 
 //Code for the help menu on the right
 $("#menu_judges").click(function(){
-			$(".container").hide();
-			//$("#teams_container").hide();
-			$("#judges_container").show();
-			$(".sub_menu").hide();
-			$("#sub_menu_judges").show();
-			$("#help_text").text("Judges' context")
-			var data = {phone_number: '+15124022582', message: 'Hello World'};
-			$.post("/text", data, function(res){
-				//something
-			});
+		$(".container").hide();
+		//$("#teams_container").hide();
+		$("#judges_container").show();
+		$(".sub_menu").hide();
+		$("#sub_menu_judges").show();
+		$("#help_text").text("Judges' context")
+		var data = {phone_number: '+15124022582', message: 'Hello World'};
+		$.post("/text", data, function(res){
+			//something
+		});
 });
 	
 $("#judges_search").mouseover(
@@ -1297,7 +1314,7 @@ $("#add_team_menu").click(function(){
 
 $("#single_text").mouseover(
 	function() {
-			$("#help_text").text("Send a single Message to Nick");
+			$("#help_text").text("The Cool Single SMS Message Sender");
 		}).mouseleave(function() {
 			$("#help_text").text("Select menu context");
 		});
