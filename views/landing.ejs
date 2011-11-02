@@ -1,0 +1,21 @@
+<div id="wrapper_1"><!-- sets background to white and creates full length leftcol-->
+	<div id="main_col"><!-- begin main content area -->
+		<h1><%= title %></h1><br>
+
+		<h2>Hello <%= first_name %>!</h2><br/><br/><br/>
+
+		Your information:<br/><br/>
+		username: <%= username %><br/>
+		email: <%= email %><br/>
+		first name: <%= first_name %><br/>
+		last name: <%= last_name %><br/>
+
+		<h2>This is the Landing Page. Woohoo !!</h2>
+
+		<% for(var i=0; i<5; i++) {%>
+			Hello World!<br>
+		<% } %>
+
+		<button id="alert">Click Me!</button>
+	</div>
+</div>
