@@ -23,7 +23,8 @@ var tab = (function (){
 	var pairing = {};
 	//debug console
 	var con = {};
-	//functions to maniulate the interface
+	//functions to maniulate the interface and ui state
+	
 	var ui = {};
 
 
@@ -186,7 +187,7 @@ pairing.pairRound = function(round_number, division){
 		}
 		for (var i = 0; i < total_rounds; i++){
 			var team = temp_teams.pop();
-			var round = new tab.model.Round();
+			var round = new model.Round();
 			round.set("round_number", round_number)
 			round.set("team1", team);
 			round.set("division", division);
@@ -341,6 +342,7 @@ pairing.pairRound = function(round_number, division){
 					round.set({"team1": collection.teams.at(i)});
 					round.set({"team2":  {team_code: "BYE"}});
 					round.set({"round_number": round_number});
+					round.set({division: division});
 					paired.push(collection.teams.at(i));
 					collection.rounds.add(round);
 
@@ -412,6 +414,7 @@ pairing.pairRound = function(round_number, division){
 
 	var round_count = 0;
 	for(var i = 0; i < rounds.length; i++){
+		con.write(collection.rounds.at(i).get("team1").get("team_code"));
 		if(collection.rounds.at(i).get("round_number") === round_number){
 			round_count++;
 		}
@@ -573,6 +576,7 @@ model.Division = Backbone.Model.extend({
 		}
 	}
 });
+
 
 
 /*
@@ -1187,7 +1191,6 @@ view.RoundTable = Backbone.View.extend({
 		pairing.pairRound(1, collection.divisions.at(0));
 	},
 	render: function(){
-		console.log("rendering rounds");
 		$("#rounds_table").empty();
 		_(collection.rounds.models).each(function(round){ // in case collection is not empty
         	this.appendRound(round);
@@ -1442,11 +1445,47 @@ view.judgeTable = new view.JudgeTable();
 view.roomTable = new view.RoomTable();  
 view.roundTable = new view.RoundTable();
 
+
+/*
+Valid values for menu_item:
+	rounds
+	teams
+	judges
+	rooms
+	schools
+	divisions
+	settings
+*/
+
+ui.showMenu = function(menu_item){
+
+	$(".container").slideUp(100);
+	$("#" + menu_item + "_container").slideDown(100);
+
+	$(".menu_item").removeClass("menu_item_selected");
+	$("#menu_" + menu_item).addClass("menu_item_selected");
+
+	$(".sub_menu").hide();
+	$("#sub_menu_" + menu_item).show();	
+	localStorage.setItem("selected", menu_item);
+	//ui.state.save({"selected": menu_item});
+}
+
+//initialize ui menu state
+
+if(localStorage.getItem("selected") != undefined){
+	con.write("found saved menu state: " + localStorage.getItem("selected"));
+
+	//show saved menu
+	ui.showMenu(localStorage.getItem("selected"));
+} 
 /*
 =========================================
 Load localStorage into Collections
 =========================================
 */	
+
+
 //note: calling fetch runs the constructors of the models.
 collection.teams.fetch();
 collection.divisions.fetch();
@@ -1472,27 +1511,7 @@ $("#rounds_container").show();
 Main Menu Controls
 =========================================
 */
-/*
-Valid values for menu_item:
-	rounds
-	teams
-	judges
-	rooms
-	schools
-	divisions
-	settings
-*/
-ui.showMenu = function(menu_item){
 
-	$(".container").slideUp(100);
-	$("#" + menu_item + "_container").slideDown(100);
-
-	$(".menu_item").removeClass("menu_item_selected");
-	$("#menu_" + menu_item).addClass("menu_item_selected");
-
-	$(".sub_menu").hide();
-	$("#sub_menu_" + menu_item).show();	
-}
 $(".menu_item").click(function(){
 	//menu item ids are like: menu_judges
 	var menu_item_name = $(this).attr("id").substr(5);
@@ -1534,7 +1553,9 @@ $("#pair_tests").click(function(){
 	con.write("Pairing tests:");
 
 	//teams should have been loaded from localstorage
+	pairing.deleteAllRounds();
 	pairing.pairRound(1);
+
 	pairing.printPairings(1);
 	pairing.simulateRound(1);
 
@@ -1542,21 +1563,6 @@ $("#pair_tests").click(function(){
 	pairing.sortTeams();
 	pairing.printRecords();
 
-	pairing.pairRound(2);
-
-	pairing.printPairings(2);
-	pairing.simulateRound(2);
-	pairing.updateRecords();
-	pairing.sortTeams();
-	pairing.printRecords();
-
-	pairing.pairRound(3);
-
-	pairing.printPairings(3);
-	pairing.simulateRound(3);
-	pairing.updateRecords();
-	pairing.sortTeams();
-	pairing.printRecords();
 	con.write("number of teams: " + collection.teams.length);
 	con.write("number of rounds: " + collection.rounds.length);
 		
@@ -1567,7 +1573,7 @@ $("#pair_tests").click(function(){
 }); //I think this is the end of jquery.ready
 
 
-return {collection: collection, model: model, view: view, router: router, pairing: pairing, con: con};
+return {collection: collection, model: model, view: view, router: router, pairing: pairing, con: con, ui: ui};
 }());;
 
 
