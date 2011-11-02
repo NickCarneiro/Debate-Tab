@@ -28,6 +28,10 @@ var tab = (function (){
 	var ui = {};
 
 
+	//include jspdf
+	//var jspdf = require('jspdf/jspdf');
+
+
 /*
 =========================================
 Define Console Functions
@@ -38,6 +42,80 @@ con.write = function(text){
 	//TODO: scroll to bottom
 	$("#console_window").scrollTop($("#console_window")[0].scrollHeight);
 }
+
+
+
+/*
+=========================================
+Define Pairing Functions
+=========================================
+*/	
+// all functions for tab below this point
+
+pairing.prelimRoundValid = function (team1, team2, round){
+		//this case is for round 1 or a tournament with no power matching
+		if(team1.school == team2.school){
+			return false;
+		} else {
+			if(round === 1 || round === undefined){
+				return true;
+			} else {
+				if(alreadyDebated(team1, team2)){
+					return false;
+				} else {
+					return true;
+				}		
+			}
+		}
+}
+
+//returns true if two teams have already debated each other in prelims
+
+pairing.alreadyDebated = function(team1, team2){
+	for(var i = 0; i < rounds.length; i++){
+		if(rounds[i].team1 == team1 && rounds[i].team2 == team2){
+			return true;
+		} else if(rounds[i].team1 == team2 && rounds[i].team2 == team1){
+			return true;
+		} 
+	}
+	//if we get here, they have never debated.
+	return false;
+}
+pairing.shuffle = function(arr){
+	var bucket;
+	for(var i = 0; i < arr.length; i++){
+		var dest = Math.floor(Math.random() * arr.length);
+		var src = Math.floor(Math.random() * arr.length);
+		bucket = arr[dest];
+		arr[dest] = arr[src];
+		arr[src] = bucket;
+	}
+
+	return teams;
+
+}
+
+pairing.printPairings =function(round_number){
+	con.write("############## ROUND " + round_number +" ###############");
+	for(var i = 0; i < rounds.length; i++){
+		if(rounds[i].round_number == round_number){
+			//insert a fake "bye" team if necessary
+			if(rounds[i].team2 == null){
+				rounds[i].team2 = {name: "BYE"};
+			}
+			var padding = 30 - rounds[i].team1.name.length;
+			var spaces = "";
+			for(var j = 0; j < padding; j++){
+				spaces = spaces + "&nbsp;";
+			}
+			con.write(rounds[i].team1.name + spaces + rounds[i].team2.name);
+			}
+		
+	}
+
+}
+
 
 
 /*
@@ -1517,12 +1595,303 @@ Main Menu Controls
 =========================================
 */
 
+/*
+Valid values for menu_item:
+	rounds
+	teams
+	judges
+	rooms
+	schools
+	divisions
+	settings
+	pdf
+	debug
+*/
+function showMenu(menu_item){
+	$(".container").slideUp(100);
+	$("#" + menu_item + "_container").slideDown(100);
+
+	$(".menu_item").removeClass("menu_item_selected");
+	$("#menu_" + menu_item).addClass("menu_item_selected");
+
+	$(".sub_menu").hide();
+	$("#sub_menu_" + menu_item).show();	
+}
+
+
 $(".menu_item").click(function(){
 	//menu item ids are like: menu_judges
 	var menu_item_name = $(this).attr("id").substr(5);
 	//TODO: save menu state in a model so it opens to where you were if browser gets closed
 	ui.showMenu(menu_item_name);
 });
+
+var nick = '+15129685781';
+
+//client-side function call Code for sending a single text
+$("#single_text").click(function(){
+
+	var pNumber = $("#debug_sms_input_phone").val();
+	if(pNumber == '' || pNumber == ' ') {
+		pNumber = ' ';
+		$("#debug_sms_input_phone").val("<Phone Number> for single");
+		con.write("For a single text, enter phone number. There is no default. Not sending msg.");
+		return;
+	}
+
+	var msg = $("#debug_sms_input_message").val();
+	if(msg == '' || msg == ' ') {
+		msg = 'Hello World!';
+	}
+
+	var data = {phone_number: pNumber, message: msg};
+
+	$.post("/text", data, function(res){
+		console.log('Message sent from UI: ' + res.body);
+		con.write(res);
+	});
+});
+
+
+//client side function call Code for sending mass texts
+$("#mass_texts").click(function(){
+	var data = {smsList: [
+		{phone_number: nick, message: 'Hello World__1 !'},
+		{phone_number: nick, message: 'Hello World__2 !'}
+	]};
+
+	//send this as a mass text
+	$.post("/textMass", data, function(res){
+		console.log('Message sent from UI: ' + res.body);
+		con.write(res);
+	});
+});
+
+//Code for PDF Menu
+$("#menu_pdf").click(function(){
+	$(".container").hide();
+	$("#pdf_container").show();
+	$("#help_text").text("This is the PDF Menu")
+});
+
+//Code for Generate PDF Button
+$("#pdf_gen").click(function(){
+	const headers = {
+		tournament_name: 'Round Rock HS Tournament',
+		date: '11/18/11',
+		round_number: '3',
+		start_time_text: 'Start: 3:00 PM',
+		message: 'Welcome to the Round Rock Tournament run by DebateTab!'
+	};
+
+	const titles = [ "Affirmative",
+			"Negative",
+			"Room",
+			"Judge"
+	];
+
+	var table_data = new Array();	//this is a 2-D array 
+	for(var i=0; i<100; i++) {
+	//	table_data[i] = new tableRowArray();
+		table_data[i] = new Array();
+		table_data[i][0] = "Robby";
+		table_data[i][1] = "Tom";
+		table_data[i][2] = '' + Math.floor(Math.random()*100);	//random number 1-100.
+									//needs to be a string?
+		table_data[i][3] = "John Doe";
+	}
+
+	generatePDF_PairingSheet(headers, titles, table_data);	
+});
+
+// my attempt to make each row into a function, bt it is not working although it is
+// doing the same thing
+//function tableRowArray() {
+//	this = new Array();
+//	this[0] = "Rob";
+//	this[1] = "Roy";
+//	this[2] = "2";
+//	this[3] = "Sherlock Holmes";
+//}
+
+
+/*
+=========================================
+BEGIN: Define PDF Function
+=========================================
+*/	
+function generatePDF_PairingSheet(headers, titles, table_data){
+	// generate a blank document
+	var doc = new jsPDF();
+	var max_page_length = 280;
+	var page_start_y_value = 50;
+
+
+	doc.text(20, 20, headers.tournament_name);
+	doc.text(20, 30, headers.date);
+	const round_text = 'Round: ' + headers.round_number;
+	doc.text(20, 40, round_text);
+	doc.text(20, 50, headers.start_time_text);
+	doc.text(20, 60, headers.message);
+	
+	var x_value = 20;
+	const title_y_value = 80;
+	const spacing = 47;
+
+
+	printTitles(doc, titles, x_value, title_y_value, spacing);
+
+	var data_y_value = 90;
+	var j = 0;
+	for(i=0; i< table_data.length; i++) {	//for each row
+		x_value = 20;
+		for(j=0; j< table_data[i].length; j++) {	//for each column
+			doc.text(x_value, data_y_value, table_data[i][j]);
+			x_value = x_value + spacing;		// add a spacing between each column
+		}	
+		data_y_value = data_y_value + 10;
+		if(data_y_value > max_page_length) {
+			doc.addPage();
+			data_y_value = page_start_y_value;
+			printTitles(doc, titles, 20, 30, spacing);	// where to start printing
+								// of titles on new page
+		}
+	}
+
+//	doc.text(20, 30, 'This is client-side JS pumping out a PDF!');
+//	doc.addPage();
+//	doc.text(20, 20, 'Do you like that?');
+
+	// Output as Data URI so that it can be downloaded / viewed
+	doc.output('datauri');
+}
+
+function printTitles(doc, titles, x_value, title_y_value, spacing) {
+	var i = 0;
+	for(i=0; i< titles.length; i++) {
+		doc.text(x_value, title_y_value, titles[i]);
+		x_value = x_value + spacing;		// add a spacing between each column
+	}
+}
+/*
+=========================================
+END: Define PDF Function
+=========================================
+*/	
+
+//Code for the help menu on the right
+$("#menu_judges").click(function(){
+		$(".container").hide();
+		//$("#teams_container").hide();
+		$("#judges_container").show();
+		$(".sub_menu").hide();
+		$("#sub_menu_judges").show();
+		$("#help_text").text("Judges' context")
+		var data = {phone_number: '+15124022582', message: 'Hello World'};
+		$.post("/text", data, function(res){
+			//something
+		});
+});
+	
+$("#judges_search").mouseover(
+	function() {
+			$("#help_text").text("Type in judge's name to find");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+		});
+
+$("#add_team_menu").mouseover(
+	function() {
+			$("#help_text").text("Click to add teams");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+		});
+
+$("#menu_settings").mouseover(
+	function() {
+			$("#help_text").text("Bring up settings menu");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+		});
+
+$("#menu_pdf").mouseover(
+	function() {
+			$("#help_text").text("Bring up PDF Generator Menu");
+		});
+
+$("#menu_divisions").mouseover(
+	function() {
+			$("#help_text").text("Modify Divisions here");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+		});
+
+
+$("#menu_debug").mouseover(
+	function() {
+			$("#help_text").text("Secret Debug Menu");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+		});
+
+
+$("#menu_rooms").mouseover(
+	function() {
+			$("#help_text").text("List available rooms");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+		});
+
+$("#menu_schools").mouseover(
+	function() {
+			$("#help_text").text("List available Schools");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+		});
+
+$("#menu_teams").mouseover(
+	function() {
+			$("#help_text").text("Click to list or add teams");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+		});
+
+$("#menu_judges").mouseover(
+	function() {
+			$("#help_text").text("Click to list or add judges");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+		});
+
+$("#menu_rounds").mouseover(
+	function() {
+			$("#help_text").text("View list of all tournaments");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+		});
+
+$("#add_team_menu").click(function(){
+	$("#teams").hide();
+	$("#add_team").show();
+});
+
+
+$("#single_text").mouseover(
+	function() {
+			$("#help_text").text("The Cool Single SMS Message Sender");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+		});
+
+
+$("#mass_texts").mouseover(
+	function() {
+			$("#help_text").text("Send Mass texts to Nick");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+		});
+
+
 
 
 
@@ -1578,7 +1947,9 @@ $("#pair_tests").click(function(){
 }); //I think this is the end of jquery.ready
 
 
+
 return {collection: collection, model: model, view: view, router: router, pairing: pairing, con: con, ui: ui};
-}());;
+
+}());
 
 

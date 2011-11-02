@@ -12,7 +12,7 @@ var Models = require('./models'); //include models
 var mongoose = require('mongoose'); //like include
 
 //Change port variable to your port when testing:
-var port = 3003;
+var port = 3007;
 /*
 'ali.debatetab.com': '127.0.0.1:3001',
 'rohan.debatetab.com': '127.0.0.1:3002',
@@ -20,9 +20,8 @@ var port = 3003;
 'nikhil.debatetab.com': '127.0.0.1:3007',
 'db.debatetab.com': '127.0.0.1:3000',	Admin UI for MongoDB
 'dev.debatetab.com': '127.0.0.1:3006'	Staging
-'debatetab.com': '127.0.0.1:3005'		Production*/
-		
-//asdfqwerty
+'debatetab.com': '127.0.0.1:3005'		Production
+*/
 
 //db connection only needs to be made once. Change "test" if you want to use a different database.
 mongoose.connect('mongodb://localhost/test');    
@@ -57,10 +56,5 @@ app.configure('production', function(){
 });
 
 
-
-
 app.listen(port);
 console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
-
-
-
