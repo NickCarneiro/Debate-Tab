@@ -51,6 +51,8 @@ con.write = function(text){
 Define Backbone Models
 =========================================
 */	
+
+
 model.Competitor = Backbone.Model.extend({
 	initialize: function(){
 	            console.log("initialized new competitor");
@@ -311,6 +313,25 @@ pairing.getDivisionFromId = function(division_id){
 	return undefined;
 }
 
+//object references to backbone models get turned into plain old objects 
+//when they are loaded from localstorage.
+//this function looks at the ObjectIds of the objects and turns the plain old
+//objects back into references to the backbone models
+pairing.restoreReferences = function(){
+	var fixed = 0;
+	for(var i = 0; i < collection.teams.length; i++){
+		var school_id = collection.teams.at(i).get("school").id;
+		if(school_id != undefined){
+			var school = pairing.getSchoolFromId(school_id);
+			if(school != undefined){
+				fixed++;
+				collection.teams.at(i).set({school: school});
+			}
+		}
+	}
+	con.write("found " + i + " team references to schools");
+	con.write("restored " + fixed + " team references to schools");
+}
 pairing.prelimRoundValid = function (team1, team2, round){
 		//this case is for round 1 or a tournament with no power matching
 		console.log(team1);
@@ -925,6 +946,7 @@ view.TeamTable = Backbone.View.extend({
 			$(this).val("");
 		});
 		var school = pairing.getSchoolFromId(school_id);
+		con.w
 		team.set({
 			team_code: team_code,
 			school: school,
@@ -1519,6 +1541,9 @@ collection.schools.fetch();
 collection.judges.fetch();
 collection.rooms.fetch();
 //TODO: initialize rounds here
+
+//turn object copies into object references to original models
+pairing.restoreReferences();
 
 //print stats on loaded data to console
 con.write("Teams: " + collection.teams.length);
