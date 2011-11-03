@@ -320,6 +320,10 @@ pairing.getDivisionFromId = function(division_id){
 pairing.restoreReferences = function(){
 	var fixed = 0;
 	for(var i = 0; i < collection.teams.length; i++){
+		//######
+		//restore references for teams
+		//######
+		//restore school reference
 		var school_id = collection.teams.at(i).get("school").id;
 		if(school_id != undefined){
 			var school = pairing.getSchoolFromId(school_id);
@@ -328,10 +332,21 @@ pairing.restoreReferences = function(){
 				collection.teams.at(i).set({school: school});
 			}
 		}
+
+		//restore division reference
+		var division_id = collection.teams.at(i).get("division").id;
+		if(school_id != undefined){
+			var division = pairing.getDivisionFromId(division_id);
+			if(division != undefined){
+				
+				collection.teams.at(i).set({division: division});
+			}
+		}
 	}
 	con.write("found " + i + " team references to schools");
 	con.write("restored " + fixed + " team references to schools");
 }
+
 pairing.prelimRoundValid = function (team1, team2, round){
 		//this case is for round 1 or a tournament with no power matching
 		console.log(team1);
@@ -989,7 +1004,8 @@ view.Team = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("team_code") + '</td> <td>'+this.model.get("division").division_name +'</td><td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
+		console.log(this.model.get("division"));
+		$(this.el).html('<td>' + this.model.get("team_code") + '</td> <td>'+this.model.get("division").get("division_name") +'</td><td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el ( in appendTeam)
 	} ,
 	unrender: function(){
@@ -1476,7 +1492,7 @@ view.DivisionTable = Backbone.View.extend({
 
 /*
 =========================================
-Initialize Backbone Collections, then Views
+Initialize Backbone Collections
 =========================================
 */	
 collection.divisions = new collection.Divisions();
@@ -1486,6 +1502,28 @@ collection.judges = new collection.Judges();
 collection.rooms = new collection.Rooms();
 collection.rounds = new collection.Rounds();
 
+/*
+=========================================
+Load localStorage into Collections
+=========================================
+*/	
+
+//note: calling fetch runs the constructors of the models.
+collection.teams.fetch();
+collection.divisions.fetch();
+collection.schools.fetch();
+collection.judges.fetch();
+collection.rooms.fetch();
+//TODO: initialize rounds here
+
+
+/*
+=========================================
+Initialize Backbone Views
+=========================================
+*/	
+//turn object copies into object references to original models
+pairing.restoreReferences();
 view.teamTable = new view.TeamTable(); 
 view.schoolTable = new view.SchoolTable(); 
 view.divisionTable = new view.DivisionTable(); 
@@ -1527,23 +1565,7 @@ if(localStorage.getItem("selected") != undefined){
 	//show saved menu
 	ui.showMenu(localStorage.getItem("selected"));
 } 
-/*
-=========================================
-Load localStorage into Collections
-=========================================
-*/	
 
-
-//note: calling fetch runs the constructors of the models.
-collection.teams.fetch();
-collection.divisions.fetch();
-collection.schools.fetch();
-collection.judges.fetch();
-collection.rooms.fetch();
-//TODO: initialize rounds here
-
-//turn object copies into object references to original models
-pairing.restoreReferences();
 
 //print stats on loaded data to console
 con.write("Teams: " + collection.teams.length);
