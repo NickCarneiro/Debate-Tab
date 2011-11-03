@@ -352,9 +352,7 @@ pairing.restoreReferences = function(){
 			}
 		}
 	}
-	con.write("found " + i + " team references to schools");
-	con.write("restored " + fixed + " team references to schools");
-
+	
 	//######
 	//restore references for rounds
 	//######
@@ -854,8 +852,9 @@ view.TeamTable = Backbone.View.extend({
 		collection.divisions.bind("reset", this.render, this);
 		collection.divisions.bind("reset", this.showCompetitors, this);
 		collection.schools.bind("reset", this.render, this);
-		this.showCompetitors();
+		
 		this.render();
+		this.showCompetitors();
 		
 	} ,
 
@@ -912,9 +911,11 @@ view.TeamTable = Backbone.View.extend({
 		$("#newteam_competitors").html("");
 		var division_id = $("#newteam_division").val();
 		var comp_per_team = null;
-		_.each(collection.divisions.models, 
+		collection.divisions.each( 
 			function(division){
+
 				if(division.get("id") == division_id){
+
 					comp_per_team = division.get("comp_per_team");
 				}
 			}

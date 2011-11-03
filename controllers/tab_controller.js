@@ -2,7 +2,7 @@
 var Client = require('twilio').Client,
 Twiml = require('twilio').Twiml,
 sys = require('sys'),
-tClient = new Client('AC89170a4e43fc4a38daed8f055879a20f', 'b6fd343fee0be8aaad34ed8df07ffb3f', 'debatetab.com');
+tClient = new Client('AC89170a4e43fc4a38daed8f055879a20f', 'b6fd343fee0be8aaad34ed8df07ffb3f', 'nick.debatetab.com', {port:3012});
 var phone = tClient.getPhoneNumber('+15128430409');
 
 // set event receiver handlers
