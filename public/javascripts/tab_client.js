@@ -313,6 +313,15 @@ pairing.getDivisionFromId = function(division_id){
 	return undefined;
 }
 
+pairing.getTeamFromId = function(team_id){
+	for(var i = 0; i < collection.teams.length; i++){
+		if(team_id === collection.teams.at(i).get("id")){
+			return collection.teams.at(i);
+		}
+	}
+	return undefined;
+}
+
 //object references to backbone models get turned into plain old objects 
 //when they are loaded from localstorage.
 //this function looks at the ObjectIds of the objects and turns the plain old
@@ -345,6 +354,28 @@ pairing.restoreReferences = function(){
 	}
 	con.write("found " + i + " team references to schools");
 	con.write("restored " + fixed + " team references to schools");
+
+	//######
+	//restore references for rounds
+	//######
+	for(var i = 0; i < collection.rounds.length; i++){
+		if(collection.rounds.at(i).get("team1") != undefined){
+			var team1_id = collection.rounds.at(i).get("team1").id;
+			var team1 = pairing.getTeamFromId(team1_id);
+		} else {
+			var team1 = null;
+		}
+		if(collection.rounds.at(i).get("team2") != undefined){
+			var team2_id = collection.rounds.at(i).get("team2").id;
+			var team2 = pairing.getTeamFromId(team2_id);
+		} else {
+			var team2 = null;
+		}
+		
+		collection.rounds.at(i).set({team1: team1});
+		collection.rounds.at(i).set({team2: team2});
+	}
+
 }
 
 pairing.prelimRoundValid = function (team1, team2, round){
@@ -396,8 +427,11 @@ pairing.updateRecords = function(){
 }
 
 pairing.deleteAllRounds = function(){
-	con.write("deleting all rounds");
-	collection.rounds.remove(collection.rounds.toArray());
+	collection.rounds.each(function(round){
+		con.write("removing round " + round.get("round_number"));
+		collection.rounds.remove(round);
+		round.destroy();
+	});
 }
 //generate random results for specified round
 pairing.simulateRound = function(round_number){
@@ -1299,6 +1333,8 @@ view.RoundTable = Backbone.View.extend({
 			model: round
 		});
 		$("#rounds_table", this.el).append(roundView.render().el);
+		//save round to localstorage
+		round.save();
 	} ,
 	search: function(e){
 		var letters = $("#rounds_search").val();
@@ -1511,8 +1547,7 @@ collection.divisions.fetch();
 collection.schools.fetch();
 collection.judges.fetch();
 collection.rooms.fetch();
-//TODO: initialize rounds here
-
+collection.rounds.fetch();
 
 /*
 =========================================
@@ -1910,6 +1945,10 @@ $("#export_tournament").click(function(){
 	//TODO: finish this feature
 });
 
+$("#pair_delete_all_rounds").click(function(){
+	con.write("deleting all rounds");
+	pairing.deleteAllRounds();
+});
 $("#pair_tests").click(function(){
 	con.write("Pairing tests:");
 
