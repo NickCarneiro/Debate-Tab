@@ -45,78 +45,6 @@ con.write = function(text){
 
 
 
-/*
-=========================================
-Define Pairing Functions
-=========================================
-*/	
-// all functions for tab below this point
-
-pairing.prelimRoundValid = function (team1, team2, round){
-		//this case is for round 1 or a tournament with no power matching
-		if(team1.school == team2.school){
-			return false;
-		} else {
-			if(round === 1 || round === undefined){
-				return true;
-			} else {
-				if(alreadyDebated(team1, team2)){
-					return false;
-				} else {
-					return true;
-				}		
-			}
-		}
-}
-
-//returns true if two teams have already debated each other in prelims
-
-pairing.alreadyDebated = function(team1, team2){
-	for(var i = 0; i < rounds.length; i++){
-		if(rounds[i].team1 == team1 && rounds[i].team2 == team2){
-			return true;
-		} else if(rounds[i].team1 == team2 && rounds[i].team2 == team1){
-			return true;
-		} 
-	}
-	//if we get here, they have never debated.
-	return false;
-}
-pairing.shuffle = function(arr){
-	var bucket;
-	for(var i = 0; i < arr.length; i++){
-		var dest = Math.floor(Math.random() * arr.length);
-		var src = Math.floor(Math.random() * arr.length);
-		bucket = arr[dest];
-		arr[dest] = arr[src];
-		arr[src] = bucket;
-	}
-
-	return teams;
-
-}
-
-pairing.printPairings =function(round_number){
-	con.write("############## ROUND " + round_number +" ###############");
-	for(var i = 0; i < rounds.length; i++){
-		if(rounds[i].round_number == round_number){
-			//insert a fake "bye" team if necessary
-			if(rounds[i].team2 == null){
-				rounds[i].team2 = {name: "BYE"};
-			}
-			var padding = 30 - rounds[i].team1.name.length;
-			var spaces = "";
-			for(var j = 0; j < padding; j++){
-				spaces = spaces + "&nbsp;";
-			}
-			con.write(rounds[i].team1.name + spaces + rounds[i].team2.name);
-			}
-		
-	}
-
-}
-
-
 
 /*
 =========================================
@@ -648,7 +576,7 @@ pairing.pairRound = function(round_number, division){
 				if(pairing.prelimRoundValid(collection.teams.at(i), collection.teams.at(j), round_number)){
 					var round = new model.Round();
 					round.set({"team1": collection.teams.at(i)});
-					round.set({"team2": collection.at.teams(j)});
+					round.set({"team2": collection.teams.at(j)});
 					round.set({"round_number": round_number});
 					collection.rounds.add(round);
 					//keep track of teams that have been paired
@@ -1946,6 +1874,10 @@ $("#pair_tests").click(function(){
 	pairing.updateRecords();
 	pairing.sortTeams();
 	pairing.printRecords();
+
+	pairing.pairRound(2);
+	pairing.printPairings();
+
 
 	con.write("number of teams: " + collection.teams.length);
 	con.write("number of rounds: " + collection.rounds.length);
