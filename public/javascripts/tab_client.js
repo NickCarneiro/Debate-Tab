@@ -850,7 +850,9 @@ view.TeamTable = Backbone.View.extend({
 
 		//populate dropdowns with initial divisions and schools
 		collection.divisions.bind("reset", this.render, this);
+		collection.divisions.bind("reset", this.showCompetitors, this);
 		collection.schools.bind("reset", this.render, this);
+		this.showCompetitors();
 		this.render();
 		
 	} ,
@@ -902,6 +904,8 @@ view.TeamTable = Backbone.View.extend({
 		}
 
 	} ,
+	//show correct number of competitor name inputs depending on competitors
+	//per team in selected division
 	showCompetitors: function(){
 		$("#newteam_competitors").html("");
 		var division_id = $("#newteam_division").val();
