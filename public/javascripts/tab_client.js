@@ -349,10 +349,8 @@ pairing.restoreReferences = function(){
 
 pairing.prelimRoundValid = function (team1, team2, round){
 		//this case is for round 1 or a tournament with no power matching
-		console.log(team1);
-		console.log(team2);
+		
 		if(team1.get("school") === team2.get("school")){
-			console.log("false");
 			return false;
 		} else {
 			if(round === 1 || round === undefined){
@@ -515,8 +513,7 @@ pairing.pairRound = function(round_number, division){
 						//found a match for this round, break and go to next round
 						break;
 					} else {
-						con.write("cannot pair " + collection.rounds.at(i).get("team1").get("team_code") + " and " 
-							+ team2.get("team_code"));
+						//con.write("cannot pair " + collection.rounds.at(i).get("team1").get("team_code") + " and " + team2.get("team_code"));
 					}
 				} else {
 					con.write("round already paired");
@@ -669,7 +666,7 @@ pairing.pairRound = function(round_number, division){
 
 		//if there are an even number of teams OR
 		//there are an odd number but more than 1 is unpaired, fix pairings
-		if((teams.length % 2 === 0  && unpaired.length > 0 ) || unpaired.length > 1){
+		if((collection.teams.length % 2 === 0  && unpaired.length > 0 ) || unpaired.length > 1){
 			con.write("fixing broken power match");
 			//rounds are in order of best to worst
 			//unpaired in unsorted are also in order of best to worst. 
@@ -679,10 +676,10 @@ pairing.pairRound = function(round_number, division){
 
 				for(var i = 0; i < unpaired.length; i++){
 					
-					con.write("trying to pair unpaired team " + unpaired[i].team_code);
+					con.write("trying to pair unpaired team " + unpaired[i].get("team_code"));
 					//find the first bye round
 					var bye;
-					for(var k = 0; k < rounds.length; k++){
+					for(var k = 0; k < collection.rounds.length; k++){
 						//This addresses byes in  order that they appear
 						if(collection.rounds.at(k).get("team2").get("team_code") === "BYE"){
 							bye = collection.rounds.at(k);
@@ -691,20 +688,21 @@ pairing.pairRound = function(round_number, division){
 
 
 					//need to find two sets of teams that are compatible.
-					for(var j = rounds.length - 1; j >= 0; j--){
+					for(var j = collection.rounds.length - 1; j >= 0; j--){
 						//skip previous rounds
-						if(!collection.rounds.at(j).round_number === round_number){
-							con.write("round number is " + collection.rounds.at(j).round_number + " and desired is " + round_number);
+						if(!collection.rounds.at(j).get("round_number") === round_number){
+							con.write("round number is " + collection.rounds.at(j).get("round_number") 
+								+ " and desired is " + round_number);
 							continue;
 						}
-						con.write("check round for swap: " + collection.rounds.at(j).get("team1").get("team_code") + " " 
-							+ collection.rounds.at(j).get("team2").get("team_code"));
+						//con.write("check round for swap: " + collection.rounds.at(j).get("team1").get("team_code") + " " 
+						//	+ collection.rounds.at(j).get("team2").get("team_code"));
 						if(pairing.prelimRoundValid(collection.rounds.at(j).get("team1"), unpaired[i]) 
 							&& pairing.prelimRoundValid(bye.get("team1"), collection.rounds.at(j).get("team2"))){
 							//replace bye team with already paired team2
 							bye.set({"team2": collection.rounds.at(j).get("team2")});
 							// and replace team2 with unpaired team
-							collection.rounds.at(j).get("team2") = unpaired[i];
+							collection.rounds.at(j).set({"team2": unpaired[i]});
 							
 							con.write("moving " + bye.get("team2").get("team_code") + " and adding " + unpaired[i].get("team_code") );
 							break; // go to next unpaired team
@@ -1004,7 +1002,6 @@ view.Team = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
-		console.log(this.model.get("division"));
 		$(this.el).html('<td>' + this.model.get("team_code") + '</td> <td>'+this.model.get("division").get("division_name") +'</td><td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el ( in appendTeam)
 	} ,
