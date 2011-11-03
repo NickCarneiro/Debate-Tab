@@ -45,84 +45,14 @@ con.write = function(text){
 
 
 
-/*
-=========================================
-Define Pairing Functions
-=========================================
-*/	
-// all functions for tab below this point
-
-pairing.prelimRoundValid = function (team1, team2, round){
-		//this case is for round 1 or a tournament with no power matching
-		if(team1.school == team2.school){
-			return false;
-		} else {
-			if(round === 1 || round === undefined){
-				return true;
-			} else {
-				if(alreadyDebated(team1, team2)){
-					return false;
-				} else {
-					return true;
-				}		
-			}
-		}
-}
-
-//returns true if two teams have already debated each other in prelims
-
-pairing.alreadyDebated = function(team1, team2){
-	for(var i = 0; i < rounds.length; i++){
-		if(rounds[i].team1 == team1 && rounds[i].team2 == team2){
-			return true;
-		} else if(rounds[i].team1 == team2 && rounds[i].team2 == team1){
-			return true;
-		} 
-	}
-	//if we get here, they have never debated.
-	return false;
-}
-pairing.shuffle = function(arr){
-	var bucket;
-	for(var i = 0; i < arr.length; i++){
-		var dest = Math.floor(Math.random() * arr.length);
-		var src = Math.floor(Math.random() * arr.length);
-		bucket = arr[dest];
-		arr[dest] = arr[src];
-		arr[src] = bucket;
-	}
-
-	return teams;
-
-}
-
-pairing.printPairings =function(round_number){
-	con.write("############## ROUND " + round_number +" ###############");
-	for(var i = 0; i < rounds.length; i++){
-		if(rounds[i].round_number == round_number){
-			//insert a fake "bye" team if necessary
-			if(rounds[i].team2 == null){
-				rounds[i].team2 = {name: "BYE"};
-			}
-			var padding = 30 - rounds[i].team1.name.length;
-			var spaces = "";
-			for(var j = 0; j < padding; j++){
-				spaces = spaces + "&nbsp;";
-			}
-			con.write(rounds[i].team1.name + spaces + rounds[i].team2.name);
-			}
-		
-	}
-
-}
-
-
 
 /*
 =========================================
 Define Backbone Models
 =========================================
 */	
+
+
 model.Competitor = Backbone.Model.extend({
 	initialize: function(){
 	            console.log("initialized new competitor");
@@ -300,6 +230,11 @@ collection.Teams = Backbone.Collection.extend({
 		  	return pattern.test(data.get("team_code"));
 		}));
 	} ,
+	//keep sorted in descending order of wins
+	//overwrite this to change method of ranking for TFA vs UIL vs NFL or other league rules
+	comparator : function(team){
+		return team.get("wins") * -1;
+	} ,
 	localStorage: new Store("Teams")
 });	
 
@@ -378,8 +313,72 @@ pairing.getDivisionFromId = function(division_id){
 	return undefined;
 }
 
+pairing.getTeamFromId = function(team_id){
+	for(var i = 0; i < collection.teams.length; i++){
+		if(team_id === collection.teams.at(i).get("id")){
+			return collection.teams.at(i);
+		}
+	}
+	return undefined;
+}
+
+//object references to backbone models get turned into plain old objects 
+//when they are loaded from localstorage.
+//this function looks at the ObjectIds of the objects and turns the plain old
+//objects back into references to the backbone models
+pairing.restoreReferences = function(){
+	var fixed = 0;
+	for(var i = 0; i < collection.teams.length; i++){
+		//######
+		//restore references for teams
+		//######
+		//restore school reference
+		var school_id = collection.teams.at(i).get("school").id;
+		if(school_id != undefined){
+			var school = pairing.getSchoolFromId(school_id);
+			if(school != undefined){
+				fixed++;
+				collection.teams.at(i).set({school: school});
+			}
+		}
+
+		//restore division reference
+		var division_id = collection.teams.at(i).get("division").id;
+		if(school_id != undefined){
+			var division = pairing.getDivisionFromId(division_id);
+			if(division != undefined){
+				
+				collection.teams.at(i).set({division: division});
+			}
+		}
+	}
+	
+	//######
+	//restore references for rounds
+	//######
+	for(var i = 0; i < collection.rounds.length; i++){
+		if(collection.rounds.at(i).get("team1") != undefined){
+			var team1_id = collection.rounds.at(i).get("team1").id;
+			var team1 = pairing.getTeamFromId(team1_id);
+		} else {
+			var team1 = null;
+		}
+		if(collection.rounds.at(i).get("team2") != undefined){
+			var team2_id = collection.rounds.at(i).get("team2").id;
+			var team2 = pairing.getTeamFromId(team2_id);
+		} else {
+			var team2 = null;
+		}
+		
+		collection.rounds.at(i).set({team1: team1});
+		collection.rounds.at(i).set({team2: team2});
+	}
+
+}
+
 pairing.prelimRoundValid = function (team1, team2, round){
 		//this case is for round 1 or a tournament with no power matching
+		
 		if(team1.get("school") === team2.get("school")){
 			return false;
 		} else {
@@ -396,12 +395,14 @@ pairing.prelimRoundValid = function (team1, team2, round){
 }
 //sort teams in descending order of wins
 pairing.sortTeams = function(){
-	collection.teams.sortBy(pairing.compareTeams);
+	collection.teams.sort();
 }
 
 pairing.compareTeams = function(team){
 	//comparison function used when sorting teams
-	return team.get("wins") * -1;
+	con.write("wins: " + team.get("wins"));
+	return team.get("wins");
+
 }
 
 //iterates over round collection and sets wins, losses in each team model
@@ -424,8 +425,11 @@ pairing.updateRecords = function(){
 }
 
 pairing.deleteAllRounds = function(){
-	con.write("deleting all rounds");
-	collection.rounds.remove(collection.rounds.toArray());
+	collection.rounds.each(function(round){
+		con.write("removing round " + round.get("round_number"));
+		collection.rounds.remove(round);
+		round.destroy();
+	});
 }
 //generate random results for specified round
 pairing.simulateRound = function(round_number){
@@ -534,15 +538,14 @@ pairing.pairRound = function(round_number, division){
 				if(collection.rounds.at(i).get("team2") === undefined){
 				
 					var team2 = temp_teams[j];
-					con.write("placing " + team2.get("team_code") + " with " + collection.rounds.at(i).get("team1").get("team_code"));
+					//con.write("placing " + team2.get("team_code") + " with " + collection.rounds.at(i).get("team1").get("team_code"));
 					if(pairing.prelimRoundValid(collection.rounds.at(i).get("team1"), team2) === true){
 						collection.rounds.at(i).set({"team2":team2});
 						temp_teams.splice(j,1);//remove team from unpaired temp teams
 						//found a match for this round, break and go to next round
 						break;
 					} else {
-						con.write("cannot pair " + collection.rounds.at(i).get("team1").get("team_code") + " and " 
-							+ team2.get("team_code"));
+						//con.write("cannot pair " + collection.rounds.at(i).get("team1").get("team_code") + " and " + team2.get("team_code"));
 					}
 				} else {
 					con.write("round already paired");
@@ -642,7 +645,7 @@ pairing.pairRound = function(round_number, division){
 				if(pairing.prelimRoundValid(collection.teams.at(i), collection.teams.at(j), round_number)){
 					var round = new model.Round();
 					round.set({"team1": collection.teams.at(i)});
-					round.set({"team2": collection.at.teams(j)});
+					round.set({"team2": collection.teams.at(j)});
 					round.set({"round_number": round_number});
 					collection.rounds.add(round);
 					//keep track of teams that have been paired
@@ -669,7 +672,9 @@ pairing.pairRound = function(round_number, division){
 				if(pairing.roundCount(round_number) < desiredRoundCount){
 					var round = new model.Round();
 					round.set({"team1": collection.teams.at(i)});
-					round.set({"team2":  {team_code: "BYE"}});
+					var bye_team = new model.Team();
+					bye_team.set({"team_code": "BYE"});
+					round.set({"team2":  bye_team});
 					round.set({"round_number": round_number});
 					round.set({division: division});
 					paired.push(collection.teams.at(i));
@@ -693,7 +698,7 @@ pairing.pairRound = function(round_number, division){
 
 		//if there are an even number of teams OR
 		//there are an odd number but more than 1 is unpaired, fix pairings
-		if((teams.length % 2 === 0  && unpaired.length > 0 ) || unpaired.length > 1){
+		if((collection.teams.length % 2 === 0  && unpaired.length > 0 ) || unpaired.length > 1){
 			con.write("fixing broken power match");
 			//rounds are in order of best to worst
 			//unpaired in unsorted are also in order of best to worst. 
@@ -703,10 +708,10 @@ pairing.pairRound = function(round_number, division){
 
 				for(var i = 0; i < unpaired.length; i++){
 					
-					con.write("trying to pair unpaired team " + unpaired[i].team_code);
+					con.write("trying to pair unpaired team " + unpaired[i].get("team_code"));
 					//find the first bye round
 					var bye;
-					for(var k = 0; k < rounds.length; k++){
+					for(var k = 0; k < collection.rounds.length; k++){
 						//This addresses byes in  order that they appear
 						if(collection.rounds.at(k).get("team2").get("team_code") === "BYE"){
 							bye = collection.rounds.at(k);
@@ -715,20 +720,21 @@ pairing.pairRound = function(round_number, division){
 
 
 					//need to find two sets of teams that are compatible.
-					for(var j = rounds.length - 1; j >= 0; j--){
+					for(var j = collection.rounds.length - 1; j >= 0; j--){
 						//skip previous rounds
-						if(!collection.rounds.at(j).round_number === round_number){
-							con.write("round number is " + collection.rounds.at(j).round_number + " and desired is " + round_number);
+						if(!collection.rounds.at(j).get("round_number") === round_number){
+							con.write("round number is " + collection.rounds.at(j).get("round_number") 
+								+ " and desired is " + round_number);
 							continue;
 						}
-						con.write("check round for swap: " + collection.rounds.at(j).get("team1").get("team_code") + " " 
-							+ collection.rounds.at(j).get("team2").get("team_code"));
+						//con.write("check round for swap: " + collection.rounds.at(j).get("team1").get("team_code") + " " 
+						//	+ collection.rounds.at(j).get("team2").get("team_code"));
 						if(pairing.prelimRoundValid(collection.rounds.at(j).get("team1"), unpaired[i]) 
 							&& pairing.prelimRoundValid(bye.get("team1"), collection.rounds.at(j).get("team2"))){
 							//replace bye team with already paired team2
 							bye.set({"team2": collection.rounds.at(j).get("team2")});
 							// and replace team2 with unpaired team
-							collection.rounds.at(j).get("team2") = unpaired[i];
+							collection.rounds.at(j).set({"team2": unpaired[i]});
 							
 							con.write("moving " + bye.get("team2").get("team_code") + " and adding " + unpaired[i].get("team_code") );
 							break; // go to next unpaired team
@@ -844,8 +850,11 @@ view.TeamTable = Backbone.View.extend({
 
 		//populate dropdowns with initial divisions and schools
 		collection.divisions.bind("reset", this.render, this);
+		collection.divisions.bind("reset", this.showCompetitors, this);
 		collection.schools.bind("reset", this.render, this);
+		
 		this.render();
+		this.showCompetitors();
 		
 	} ,
 
@@ -896,13 +905,17 @@ view.TeamTable = Backbone.View.extend({
 		}
 
 	} ,
+	//show correct number of competitor name inputs depending on competitors
+	//per team in selected division
 	showCompetitors: function(){
 		$("#newteam_competitors").html("");
 		var division_id = $("#newteam_division").val();
 		var comp_per_team = null;
-		_.each(collection.divisions.models, 
+		collection.divisions.each( 
 			function(division){
+
 				if(division.get("id") == division_id){
+
 					comp_per_team = division.get("comp_per_team");
 				}
 			}
@@ -974,7 +987,6 @@ view.TeamTable = Backbone.View.extend({
 		var team = new model.Team();
 		var division_id = $("#newteam_division").val();
 		var division = pairing.getDivisionFromId(division_id);
-		console.log(division);
 		var competitors = [];
 		//populate competitors based on form entries
 		$("#newteam_competitors").children().each(function(){
@@ -982,6 +994,7 @@ view.TeamTable = Backbone.View.extend({
 			$(this).val("");
 		});
 		var school = pairing.getSchoolFromId(school_id);
+		con.w
 		team.set({
 			team_code: team_code,
 			school: school,
@@ -1024,7 +1037,7 @@ view.Team = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("team_code") + '</td> <td>'+this.model.get("division").division_name +'</td><td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
+		$(this.el).html('<td>' + this.model.get("team_code") + '</td> <td>'+this.model.get("division").get("division_name") +'</td><td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el ( in appendTeam)
 	} ,
 	unrender: function(){
@@ -1321,6 +1334,8 @@ view.RoundTable = Backbone.View.extend({
 			model: round
 		});
 		$("#rounds_table", this.el).append(roundView.render().el);
+		//save round to localstorage
+		round.save();
 	} ,
 	search: function(e){
 		var letters = $("#rounds_search").val();
@@ -1511,7 +1526,7 @@ view.DivisionTable = Backbone.View.extend({
 
 /*
 =========================================
-Initialize Backbone Collections, then Views
+Initialize Backbone Collections
 =========================================
 */	
 collection.divisions = new collection.Divisions();
@@ -1521,6 +1536,27 @@ collection.judges = new collection.Judges();
 collection.rooms = new collection.Rooms();
 collection.rounds = new collection.Rounds();
 
+/*
+=========================================
+Load localStorage into Collections
+=========================================
+*/	
+
+//note: calling fetch runs the constructors of the models.
+collection.teams.fetch();
+collection.divisions.fetch();
+collection.schools.fetch();
+collection.judges.fetch();
+collection.rooms.fetch();
+collection.rounds.fetch();
+
+/*
+=========================================
+Initialize Backbone Views
+=========================================
+*/	
+//turn object copies into object references to original models
+pairing.restoreReferences();
 view.teamTable = new view.TeamTable(); 
 view.schoolTable = new view.SchoolTable(); 
 view.divisionTable = new view.DivisionTable(); 
@@ -1562,20 +1598,7 @@ if(localStorage.getItem("selected") != undefined){
 	//show saved menu
 	ui.showMenu(localStorage.getItem("selected"));
 } 
-/*
-=========================================
-Load localStorage into Collections
-=========================================
-*/	
 
-
-//note: calling fetch runs the constructors of the models.
-collection.teams.fetch();
-collection.divisions.fetch();
-collection.schools.fetch();
-collection.judges.fetch();
-collection.rooms.fetch();
-//TODO: initialize rounds here
 
 //print stats on loaded data to console
 con.write("Teams: " + collection.teams.length);
@@ -1923,6 +1946,10 @@ $("#export_tournament").click(function(){
 	//TODO: finish this feature
 });
 
+$("#pair_delete_all_rounds").click(function(){
+	con.write("deleting all rounds");
+	pairing.deleteAllRounds();
+});
 $("#pair_tests").click(function(){
 	con.write("Pairing tests:");
 
@@ -1934,6 +1961,14 @@ $("#pair_tests").click(function(){
 	pairing.simulateRound(1);
 
 	pairing.updateRecords();
+	pairing.sortTeams();
+	pairing.printRecords();
+
+	pairing.pairRound(2);
+	pairing.printPairings(2);
+	pairing.simulateRound(2);
+	pairing.updateRecords();
+
 	pairing.sortTeams();
 	pairing.printRecords();
 

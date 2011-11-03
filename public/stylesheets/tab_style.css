@@ -450,12 +450,12 @@ ul.autocomplete li.selected {
 	line-height: 1.4em;
 	background: #eee;
 	color: #333333;
-	width: 70%;
-	height: 60%;
+	width: 90%;
+	height: 300px;
 	overflow-y: scroll;
 	padding: 8px;
 	margin: 0px auto;
-	margin-top: 50px;
+	margin-top: 10px;
 
 
 }
