@@ -854,7 +854,6 @@ view.TeamTable = Backbone.View.extend({
 		collection.schools.bind("reset", this.render, this);
 		
 		this.render();
-		this.showCompetitors();
 		
 	} ,
 
@@ -935,6 +934,7 @@ view.TeamTable = Backbone.View.extend({
 			model: division
 		});
 		$("#newteam_division", this.el).append(divOptionView.render().el);
+		this.showCompetitors();
 	} ,
 	//add new school to dropdown box
 	addSchoolSelect: function(school){
@@ -961,7 +961,6 @@ view.TeamTable = Backbone.View.extend({
     	_(collection.divisions.models).each(function(division){ // pre-existing divisions
         	this.addDivSelect(division);
     	}, this);
-
     	_(collection.schools.models).each(function(school){ // pre-existing schools
         	this.addSchoolSelect(school);
     	}, this);
@@ -1606,6 +1605,7 @@ con.write("Divisions: " + collection.divisions.length);
 con.write("Schools: " + collection.schools.length);
 con.write("Judges: " + collection.judges.length);
 con.write("Rooms: " + collection.rooms.length);
+con.write("Rounds: " + collection.rounds.length);
 //initialize menu state
 
 $(".container").hide();
