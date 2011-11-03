@@ -229,6 +229,7 @@ collection.Teams = Backbone.Collection.extend({
 		}));
 	} ,
 	//keep sorted in descending order of wins
+	//overwrite this to change method of ranking for TFA vs UIL vs NFL or other league rules
 	comparator : function(team){
 		return team.get("wins") * -1;
 	} ,
@@ -312,7 +313,10 @@ pairing.getDivisionFromId = function(division_id){
 
 pairing.prelimRoundValid = function (team1, team2, round){
 		//this case is for round 1 or a tournament with no power matching
+		console.log(team1);
+		console.log(team2);
 		if(team1.get("school") === team2.get("school")){
+			console.log("false");
 			return false;
 		} else {
 			if(round === 1 || round === undefined){
@@ -603,7 +607,9 @@ pairing.pairRound = function(round_number, division){
 				if(pairing.roundCount(round_number) < desiredRoundCount){
 					var round = new model.Round();
 					round.set({"team1": collection.teams.at(i)});
-					round.set({"team2":  {team_code: "BYE"}});
+					var bye_team = new model.Team();
+					bye_team.set({"team_code": "BYE"});
+					round.set({"team2":  bye_team});
 					round.set({"round_number": round_number});
 					round.set({division: division});
 					paired.push(collection.teams.at(i));
@@ -912,7 +918,6 @@ view.TeamTable = Backbone.View.extend({
 		var team = new model.Team();
 		var division_id = $("#newteam_division").val();
 		var division = pairing.getDivisionFromId(division_id);
-		console.log(division);
 		var competitors = [];
 		//populate competitors based on form entries
 		$("#newteam_competitors").children().each(function(){
@@ -1876,8 +1881,12 @@ $("#pair_tests").click(function(){
 	pairing.printRecords();
 
 	pairing.pairRound(2);
-	pairing.printPairings();
+	pairing.printPairings(2);
+	pairing.simulateRound(2);
+	pairing.updateRecords();
 
+	pairing.sortTeams();
+	pairing.printRecords();
 
 	con.write("number of teams: " + collection.teams.length);
 	con.write("number of rounds: " + collection.rounds.length);
