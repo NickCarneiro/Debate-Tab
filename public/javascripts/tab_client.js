@@ -374,6 +374,18 @@ pairing.restoreReferences = function(){
 		collection.rounds.at(i).set({team2: team2});
 	}
 
+	//######
+	//restore references for judges
+	//######
+	for(var i = 0; i < collection.judges.length; i++){
+		if(collection.judges.at(i).get("school") != undefined){
+			var school_id = collection.judges.at(i).get("school").id;
+			var school = pairing.getSchoolFromId(school_id);
+		} else {
+			var school = undefined;
+		}
+		collection.judges.at(i).set({school: school});
+	}
 }
 
 pairing.prelimRoundValid = function (team1, team2, round){
@@ -1014,7 +1026,7 @@ view.TeamTable = Backbone.View.extend({
 			$(this).val("");
 		});
 		var school = pairing.getSchoolFromId(school_id);
-		con.w
+		
 		team.set({
 			team_code: team_code,
 			school: school,
@@ -1057,7 +1069,9 @@ view.Team = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("team_code") + '</td> <td>'+this.model.get("division").get("division_name") +'</td><td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
+		$(this.el).html('<td>' + this.model.get("team_code") + 
+			'</td> <td>'+this.model.get("division").get("division_name") +'</td><td>' + 
+			this.model.get("id") + '</td><td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el ( in appendTeam)
 	} ,
 	unrender: function(){
@@ -1082,7 +1096,9 @@ view.Judge = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
+		var school = this.model.get("school") === undefined ? "None" : this.model.get("school").get("school_name");
+		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' + this.model.get("id") + 
+			'</td><td>'+ school +'</td><td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el ( in appendJudge)
 	} ,
 	unrender: function(){
@@ -1097,10 +1113,15 @@ view.JudgeTable = Backbone.View.extend({
 		"keyup #judges_search": "search"
 	} ,
 	initialize: function(){
-		_.bindAll(this, "render", "addJudge", "appendJudge");
+		_.bindAll(this, "render", "addJudge", "appendJudge", "addSchoolSelect");
 		
 		collection.judges.bind("add", this.appendJudge);
+		collection.schools.bind("add", this.addSchoolSelect);
 		collection.judges.bind("reset", this.render, this);
+		collection.schools.bind("reset", this.render, this);
+		collection.schools.each(function(school){ // pre-existing schools
+        	this.addSchoolSelect(school);
+    	}, this);
 		this.render();
 		
 	} ,
@@ -1112,12 +1133,15 @@ view.JudgeTable = Backbone.View.extend({
 	} ,
 
 	addJudge: function(){
-		console.log("judge");
 		//TODO: validate judge name
 		var judge_name = $("#new_judge_name").val();
 
 		var judge = new model.Judge();
-		judge.set({name: judge_name});
+		var school_id = $("#newjudge_school").val();
+		//may be undefined
+		var school = pairing.getSchoolFromId(school_id);
+		
+		judge.set({name: judge_name, school:school});
 
 		collection.judges.add(judge);
 		judge.save();
@@ -1133,6 +1157,13 @@ view.JudgeTable = Backbone.View.extend({
 	search: function(e){
 		var letters = $("#judges_search").val();
 		this.renderSearch(collection.judges.search(letters));
+	} ,
+	//add new school to dropdown box
+	addSchoolSelect: function(school){
+		var schoolOptionView = new view.SchoolOption({
+			model: school
+		});
+		$("#newjudge_school", this.el).append(schoolOptionView.render().el);
 	} ,
 	renderSearch: function(results){
 		$("#judges_table").html("");
