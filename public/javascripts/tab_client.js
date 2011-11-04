@@ -385,6 +385,16 @@ pairing.restoreReferences = function(){
 			var school = undefined;
 		}
 		collection.judges.at(i).set({school: school});
+
+		if(collection.judges.at(i).get("divisions") != null){
+			var divisions = collection.judges.at(i).get("divisions");
+			for(var j = 0; j < divisions.length; j++){
+				var div_id = divisions[j].id;
+				var div = pairing.getDivisionFromId(div_id);
+				divisions[j] = div;
+			}
+		}
+		
 	}
 }
 
@@ -1079,6 +1089,32 @@ view.Team = Backbone.View.extend({
 	}
 });
 
+view.DivisionCheckbox = Backbone.View.extend({
+	tagName: "li" ,
+	initialize: function(){
+		_.bindAll(this, "render", "unrender", "remove");
+	    this.model.bind('remove', this.unrender);
+		this.model.bind('change', this.render);
+
+	} ,
+	remove: function(division){
+		this.model.destroy();
+	} ,
+	render: function(){
+		//associate data element "id" with ObjectId in case we want to use this later
+		$(this.el).data("id", this.model.get("id"));
+		//set the value attr to the ObjectId
+		//This will be read by jQuery to figure out which division was selected
+		$(this.el).attr("value", this.model.get("id"));
+		$(this.el).data("division_id", this.model.get("id"));
+		$(this.el).html('<input type="checkbox" /> ' + this.model.get("division_name"));
+		return this; //required for chainable call, .render().el ( in appendTeam)
+	} ,
+	unrender: function(){
+		$(this.el).remove();
+	}
+	
+});
 view.Judge = Backbone.View.extend({
 	tagName: "tr" ,
 	events: { 
@@ -1093,6 +1129,7 @@ view.Judge = Backbone.View.extend({
 	} ,
 
 	remove: function(judge){
+
 		this.model.destroy();
 	} ,
 	render: function(){
@@ -1117,10 +1154,17 @@ view.JudgeTable = Backbone.View.extend({
 		
 		collection.judges.bind("add", this.appendJudge);
 		collection.schools.bind("add", this.addSchoolSelect);
+		collection.divisions.bind("add", this.addDivisionCheckbox);
+
 		collection.judges.bind("reset", this.render, this);
 		collection.schools.bind("reset", this.render, this);
+		collection.divisions.bind("reset", this.render, this);
 		collection.schools.each(function(school){ // pre-existing schools
         	this.addSchoolSelect(school);
+    	}, this);
+
+    	collection.divisions.each(function(division){ // pre-existing schools
+        	this.addDivisionCheckbox(division);
     	}, this);
 		this.render();
 		
@@ -1140,7 +1184,23 @@ view.JudgeTable = Backbone.View.extend({
 		var school_id = $("#newjudge_school").val();
 		//may be undefined
 		var school = pairing.getSchoolFromId(school_id);
-		
+		var divisions = [];
+		$("#newjudge_divisions").children().each(function(i, li){
+			if($(li).attr != undefined){
+				//console.log($(li).find("input").attr("checked"));
+			
+				if($(li).find("input").attr("checked") === "checked"){
+
+					var division_id = $(li).data("division_id");
+					var div = pairing.getDivisionFromId(division_id);
+					divisions.push(div);
+				}
+			}
+			
+			
+			
+		});
+		judge.set({divisions: divisions});
 		judge.set({name: judge_name, school:school});
 
 		collection.judges.add(judge);
@@ -1164,6 +1224,13 @@ view.JudgeTable = Backbone.View.extend({
 			model: school
 		});
 		$("#newjudge_school", this.el).append(schoolOptionView.render().el);
+	} ,
+
+	addDivisionCheckbox: function(division){
+		var divisionCheckboxView = new view.DivisionCheckbox({
+			model: division
+		});	
+		$("#newjudge_divisions", this.el).append(divisionCheckboxView.render().el);
 	} ,
 	renderSearch: function(results){
 		$("#judges_table").html("");
@@ -1862,10 +1929,7 @@ $("#menu_judges").click(function(){
 		$(".sub_menu").hide();
 		$("#sub_menu_judges").show();
 		$("#help_text").text("Judges' context")
-		var data = {phone_number: '+15124022582', message: 'Hello World'};
-		$.post("/text", data, function(res){
-			//something
-		});
+		
 });
 	
 $("#judges_search").mouseover(
