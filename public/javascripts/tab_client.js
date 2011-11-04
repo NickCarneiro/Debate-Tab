@@ -693,14 +693,28 @@ pairing.pairRound = function(round_number, division){
 		}
 
 		con.write(unpaired.length + " teams were left unpaired:");
-
+		var byes = 0;
+		for(var k = 0; k < collection.rounds.length; k++){
+			//This addresses byes in  order that they appear
+			if(collection.rounds.at(k).get("team2").get("team_code") === "BYE"){
+				if(collection.rounds.at(k).get("round_number") === round_number){
+					byes++;
+				}
+				
+			}
+		}
+		
 		for(var i = 0; i < unpaired.length; i++){
 			con.write(unpaired[i].get("team_code"));
 		}
+		con.write("number of byes " + byes);
+		if(unpaired.length > 0){
+			pairing.printPairings(round_number);
 
+		}
 		//if there are an even number of teams OR
 		//there are an odd number but more than 1 is unpaired, fix pairings
-		if((collection.teams.length % 2 === 0  && unpaired.length > 0 ) || unpaired.length > 1){
+		if((collection.teams.length % 2 === 0  && unpaired.length > 0 ) || unpaired.length > 1 || byes > 1){
 			con.write("fixing broken power match");
 			//rounds are in order of best to worst
 			//unpaired in unsorted are also in order of best to worst. 
@@ -720,7 +734,11 @@ pairing.pairRound = function(round_number, division){
 						}
 					}
 
-
+					if(bye === undefined){
+						con.write("bye is undefined!!!");
+						//can't fix this here
+						break;
+					}
 					//need to find two sets of teams that are compatible.
 					for(var j = collection.rounds.length - 1; j >= 0; j--){
 						//skip previous rounds
@@ -731,6 +749,7 @@ pairing.pairRound = function(round_number, division){
 						}
 						//con.write("check round for swap: " + collection.rounds.at(j).get("team1").get("team_code") + " " 
 						//	+ collection.rounds.at(j).get("team2").get("team_code"));
+						//console.log(bye);
 						if(pairing.prelimRoundValid(collection.rounds.at(j).get("team1"), unpaired[i]) 
 							&& pairing.prelimRoundValid(bye.get("team1"), collection.rounds.at(j).get("team2"))){
 							//replace bye team with already paired team2
@@ -1665,7 +1684,7 @@ $("#single_text").click(function(){
 	}
 
 	var msg = $("#debug_sms_input_message").val();
-	if(msg == '' || msg == ' ') {
+	if($.trim(msg) == '') {
 		msg = 'Hello World!';
 	}
 
@@ -1970,7 +1989,20 @@ $("#pair_tests").click(function(){
 	pairing.printPairings(2);
 	pairing.simulateRound(2);
 	pairing.updateRecords();
+	pairing.sortTeams();
+	pairing.printRecords();
 
+	pairing.pairRound(3);
+	pairing.printPairings(3);
+	pairing.simulateRound(3);
+	pairing.updateRecords();
+	pairing.sortTeams();
+	pairing.printRecords();
+
+	pairing.pairRound(4);
+	pairing.printPairings(4);
+	pairing.simulateRound(4);
+	pairing.updateRecords();
 	pairing.sortTeams();
 	pairing.printRecords();
 
