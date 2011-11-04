@@ -425,11 +425,13 @@ pairing.updateRecords = function(){
 }
 
 pairing.deleteAllRounds = function(){
-	collection.rounds.each(function(round){
-		con.write("removing round " + round.get("round_number"));
-		collection.rounds.remove(round);
-		round.destroy();
-	});
+	con.write("rounds length " + collection.rounds.length);
+	while(collection.rounds.at(0) != undefined){
+	
+		con.write("removing round " + collection.rounds.at(0).get("team1").get("team_code"));
+		collection.rounds.at(0).destroy();
+		//collection.rounds.remove(round);
+	}
 }
 //generate random results for specified round
 pairing.simulateRound = function(round_number){
