@@ -398,6 +398,18 @@ pairing.restoreReferences = function(){
 		}
 		
 	}
+	
+		//######
+	//restore references for Rooms
+	//######
+	for(var i = 0; i < collection.rooms.length; i++){
+		if(collection.rooms.at(i).get("division") != undefined){
+			var div_id = collection.rooms.at(i).get("division").id;
+			var div = pairing.getDivisionFromId(div_id);
+			collection.rooms.at(i).set({division: div});
+		}
+
+	}
 }
 
 pairing.prelimRoundValid = function (team1, team2, round){
@@ -1272,7 +1284,7 @@ view.Room = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' +this.model.get("division") + '</td> <td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
+		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' +this.model.get("division").get("division_name") + '</td> <td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el ( in appendRoom)			.get("division_name")
 	} ,
 	unrender: function(){
@@ -1829,6 +1841,8 @@ $("#menu_pdf").click(function(){
 	$("#help_text").text("This is the PDF Menu")
 });
 
+
+
 //Code for Generate PDF Button
 $("#pdf_gen").click(function(){
 	const headers = {
@@ -1844,6 +1858,14 @@ $("#pdf_gen").click(function(){
 			"Room",
 			"Judge"
 	];
+	
+	var rooms_array = new Array();
+	
+	for(x=0; x < collection.rooms.length; x++)
+	{
+		rooms_array[x] = collection.rooms.at(x).get("division").get("division_name"); 
+	}
+	
 
 	var table_data = new Array();	//this is a 2-D array 
 	if(collection.rounds.length > 0)
@@ -1851,7 +1873,7 @@ $("#pdf_gen").click(function(){
 		for(var i=0; i< collection.rounds.length; i++) {
 		//	table_data[i] = new tableRowArray();
 			table_data[i] = new Array();
-			if(collection.rounds.at(0).get("aff") == 0)
+			if(collection.rounds.at(i).get("aff") == 0)
 			{
 				table_data[i][0] = collection.rounds.at(i).get("team1").get("team_code");
 				table_data[i][1] = collection.rounds.at(i).get("team2").get("team_code");
@@ -1863,10 +1885,54 @@ $("#pdf_gen").click(function(){
 				table_data[i][1] = collection.rounds.at(i).get("team1").get("team_code");
 				
 			}
-		//	table_data[i][2] = '' + Math.floor(Math.random()*100);	//random number 1-100.
-										//needs to be a string?
-										
-			table_data[i][2] = '' + collection.rooms.at(i).get("name");	//random number 1-100.
+			
+			if((table_data[i][0] == "BYE") || (table_data[i][1] == "BYE"))
+			{
+				table_data[i][2] = "None";
+			}
+			else if(collection.rounds.at(i).get("team1").get("division").get("division_name") == "VCX")
+			{
+				for(x=0; x < collection.rooms.length; x++)
+				{
+					if(rooms_array[x] == "VCX")
+					{
+						table_data[i][2] = '' + collection.rooms.at(x).get("name");
+					/*	for(y=x; y < rooms_array.length - 1; y++)
+						{
+							rooms_array[y] = rooms_array[y+1];
+							if((y + 1) == rooms_array.length)
+							{
+								rooms_array[y+1] = null;
+							}
+						}*/
+						rooms_array[x] = "lol";
+						break;
+						
+					}
+				}	
+			}
+			else if(collection.rounds.at(i).get("team1").get("division").get("division_name") == "NCX")
+			{
+				for(x=0; x < collection.rooms.length; x++)
+				{
+					if(rooms_array[x] == "NCX")
+					{
+						table_data[i][2] = '' + collection.rooms.at(x).get("name");
+					/*	for(y=x; y < rooms_array.length - 1; y++)
+						{
+							rooms_array[y] = rooms_array[y+1];
+							if((y + 1) == rooms_array.length)
+							{
+								rooms_array[y+1] = null;
+							}
+						}*/
+						rooms_array[x] = "lol";
+						break;
+						
+					}
+				}	
+			}
+				
 
 			table_data[i][3] = "John Doe";
 		}
