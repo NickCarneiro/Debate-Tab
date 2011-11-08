@@ -399,14 +399,16 @@ pairing.restoreReferences = function(){
 }
 
 pairing.prelimRoundValid = function (team1, team2, round){
-		//this case is for round 1 or a tournament with no power matching
 		
 		if(team1.get("school") === team2.get("school")){
+			//are from the same school
 			return false;
 		} else {
 			if(round === 1 || round === undefined){
+				//first round. can't have already debated.
 				return true;
 			} else {
+				//make sure they haven't already debated
 				if(pairing.alreadyDebated(team1, team2)){
 					return false;
 				} else {
@@ -450,7 +452,7 @@ pairing.deleteAllRounds = function(){
 	con.write("rounds length " + collection.rounds.length);
 	while(collection.rounds.at(0) != undefined){
 	
-		con.write("removing round " + collection.rounds.at(0).get("team1").get("team_code"));
+		//con.write("removing round " + collection.rounds.at(0).get("team1").get("team_code"));
 		collection.rounds.at(0).destroy();
 		//collection.rounds.remove(round);
 	}
@@ -496,7 +498,7 @@ pairing.printRecords = function(){
 //returns true if two teams have already debated each other in prelims
 
 pairing.alreadyDebated = function(team1, team2){
-	for(var i = 0; i < rounds.length; i++){
+	for(var i = 0; i < collection.rounds.length; i++){
 		if(collection.rounds.at(i).get("team1") == team1 && collection.rounds.at(i).get("team2") == team2){
 			return true;
 		} else if(collection.rounds.at(i).get("team1") == team2 && collection.rounds.at(i).get("team2") == team1){
@@ -527,7 +529,160 @@ pairing.printPairings = function(round_number){
 
 }
 
+/*
+Make sure no team gets a BYE if they have already had one in a previous round
+*/
+pairing.fixRepeatedByes = function(round_number, division){
+	var bye = undefined; //team that has a bye
+	for(var i = 0; i < collection.rounds.length; i++){
+		//skip all irrelevant rounds
+		if(collection.rounds.at(i).get("round_number") != round_number || collection.rounds.at(i).get("division") != division){
+			//con.write("skipping.");
+			continue;
+		}
 
+		var team1 = collection.rounds.at(i).get("team1");
+		var team2 = collection.rounds.at(i).get("team2");
+
+		//round with one real team and one fake bye team
+		var bye_round = collection.rounds.at(i);
+
+		if(team1 === undefined || team2 === undefined){
+			con.write("FATAL ERROR: a team was found to be undefined in fixMultipleByes");
+		} else {
+			//check to see if round is a bye
+			var bye;
+			if(team1.get("team_code") === "BYE"){
+				bye = team1;
+
+
+			} else if (team2.get("team_code") === "BYE"){
+				bye = team1;
+				var bye_index = i;
+			} else {
+				//this round is not a bye. go to the next one.
+			}
+
+		}
+	}
+
+	if(bye != undefined){
+		//con.write("bye found: " + bye.get("team_code"));
+		if(pairing.alreadyHadBye(bye, round_number, division) === true){
+			//find someone who can debate against bye in bye_round
+			//con.write(bye.get("team_code") + " has already had a bye. Finding valid opponent.");
+			//this code is run after the power match so rounds are in sorted order of most wins to fewest.
+			//first try to go downwards to find a valid opponent.
+			//con.write("going downward to find team to swap for bye");
+			for(var i = bye_index + 1; i < collection.rounds.length; i++){
+				//try to take team1
+				if(pairing.prelimRoundValid(bye, collection.rounds.at(i).get("team1"))){
+					if(!pairing.alreadyHadBye(collection.rounds.at(i).get("team2"))){
+						//found a valid switch. 
+						pairing.replaceByeWithTeam(bye_round, collection.rounds.at(i).get("team1"));
+						return;
+					}
+				}
+				//couldn't take team1. try team2.
+				if(!pairing.prelimRoundValid(bye, collection.rounds.at(i).get("team2"))){
+					if(!pairing.alreadyHadBye(collection.rounds.at(i).get("team1"))){
+						//found a valid switch. 
+						pairing.replaceByeWithTeam(bye_round, collection.rounds.at(i).get("team2"));
+						return;
+					}
+				}
+			}
+
+			//con.write("going upward to find team to swap for bye");
+			//try going upward from the bye round if nothing below works.
+			for(var i = bye_index - 1; i >= 0; i--){
+				//try to take team1
+				if(pairing.prelimRoundValid(bye, collection.rounds.at(i).get("team1"))){
+					if(!pairing.alreadyHadBye(collection.rounds.at(i).get("team2"))){
+						//found a valid switch. 
+						pairing.replaceByeWithTeam(bye_round, collection.rounds.at(i).get("team1"));
+						//over write source team with bye
+						//create BYE team to put in place
+						var bye_team = new model.Team();
+						bye_team.set({"team_code": "BYE"});
+						collection.rounds.at(i).set({"team1": bye_team});
+
+						return;
+					}
+				}
+				//couldn't take team1. try team2.
+				if(!pairing.prelimRoundValid(bye, collection.rounds.at(i).get("team2"))){
+					if(!pairing.alreadyHadBye(collection.rounds.at(i).get("team1"))){
+						//found a valid switch. 
+						pairing.replaceByeWithTeam(bye_round, collection.rounds.at(i).get("team2"));
+						//over write source team with bye
+						//create BYE team to put in place
+						var bye_team = new model.Team();
+						bye_team.set({"team_code": "BYE"});
+						collection.rounds.at(i).set({"team2": bye_team});
+
+						return;
+					}
+				}
+			}
+
+			con.write("ERROR: could not fix bye by switching teams");
+
+		}
+	} else {
+		//no byes found
+	}
+
+}
+
+//@round is the bye round that is being modified
+//@team is the real team replacing the bye team in @round
+pairing.replaceByeWithTeam = function(round, team){
+	
+	
+	if(round.get("team1").get("team_code") === "BYE"){
+		//replace team1
+		round.set({team1: team});
+		con.write("Replacing bye for " + round.get("team2").get("team_code") + " with " + team.get("team_code"));
+	} else if(round.get("team2").get("team_code") === "BYE"){
+		//replace team 2
+		round.set({team2: team});
+		con.write("Replacing bye for " + round.get("team1").get("team_code") + " with " + team.get("team_code"));
+
+	} else {
+		console.log(round);
+		con.write("FATAL ERROR: bye round in replaceByeWithTeam was not actually a bye round. See chrome console.")
+	}
+}
+/*
+return true if @team has already had a bye.
+@division is the division that @team is competing in
+@round is the round that the caller is currently attempting to pair
+*/
+pairing.alreadyHadBye = function(team, round_number, division){
+	//found a bye. check the other rounds.
+		for(var i = 0; i < collection.rounds.length; i++){
+			if(collection.rounds.at(i).get("round_number") < round_number && collection.rounds.at(i).get("division") === division){
+				//only check previous rounds in the division this team is entered.
+				var team1 = collection.rounds.at(i).get("team1");
+				var team2 = collection.rounds.at(i).get("team2");
+				if(team1 === team && team2.get("team_code") === "BYE"){
+					//team has had a bye previously
+					return true;
+
+				} else if(team2 === team && team1.get("team_code") === "BYE"){
+					//team has had a bye previously
+					return true
+				} 
+			}
+		}
+		//didn't find any previous byes
+		return false;
+}
+
+/*
+Creates round models for specified round_number and division.
+*/
 pairing.pairRound = function(round_number, division){
 	if(round_number === 1){
 		var total_rounds = Math.ceil(collection.teams.length / 2);
@@ -542,6 +697,7 @@ pairing.pairRound = function(round_number, division){
 			temp_teams.push(collection.teams.at(i));
 		}
 		for (var i = 0; i < total_rounds; i++){
+
 			var team = temp_teams.pop();
 			var round = new model.Round();
 			round.set({"round_number": round_number});
@@ -583,6 +739,7 @@ pairing.pairRound = function(round_number, division){
 				//set team2 in this round to a fake bye team
 				var bye_team = new model.Team();
 				bye_team.set({team_code: "BYE"});
+				bye_team.set({division: division});
 				collection.rounds.at(i).set({team2: bye_team});
 			}
 		}
@@ -671,6 +828,7 @@ pairing.pairRound = function(round_number, division){
 					round.set({"team1": collection.teams.at(i)});
 					round.set({"team2": collection.teams.at(j)});
 					round.set({"round_number": round_number});
+					round.set({"division": division});
 					collection.rounds.add(round);
 					//keep track of teams that have been paired
 					paired.push(collection.teams.at(i));
@@ -686,7 +844,6 @@ pairing.pairRound = function(round_number, division){
 		//array of models
 		var unpaired = [];
 		//count unpaired teams
-		con.write("desired round count " + desiredRoundCount)
 		for(var i = 0; i < collection.teams.length; i++){
 			if(paired.indexOf(collection.teams.at(i)) === -1){
 				//team has not been paired
@@ -700,7 +857,7 @@ pairing.pairRound = function(round_number, division){
 					bye_team.set({"team_code": "BYE"});
 					round.set({"team2":  bye_team});
 					round.set({"round_number": round_number});
-					round.set({division: division});
+					round.set({"division": division});
 					paired.push(collection.teams.at(i));
 					collection.rounds.add(round);
 
@@ -713,8 +870,7 @@ pairing.pairRound = function(round_number, division){
 
 			
 		}
-
-		con.write(unpaired.length + " teams were left unpaired:");
+		
 		var byes = 0;
 		for(var k = 0; k < collection.rounds.length; k++){
 			//This addresses byes in  order that they appear
@@ -725,15 +881,17 @@ pairing.pairRound = function(round_number, division){
 				
 			}
 		}
-		
-		for(var i = 0; i < unpaired.length; i++){
-			con.write(unpaired[i].get("team_code"));
-		}
-		con.write("number of byes " + byes);
-		if(unpaired.length > 0){
-			pairing.printPairings(round_number);
 
+		if(unpaired.length > 0){
+			con.write(unpaired.length + " teams were left unpaired:");
+			//print out unpared teams
+			for(var i = 0; i < unpaired.length; i++){
+				con.write(unpaired[i].get("team_code"));
+			}
 		}
+		
+
+		
 		//if there are an even number of teams OR
 		//there are an odd number but more than 1 is unpaired, fix pairings
 		if((collection.teams.length % 2 === 0  && unpaired.length > 0 ) || unpaired.length > 1 || byes > 1){
@@ -790,6 +948,7 @@ pairing.pairRound = function(round_number, division){
 		
 	}
 
+	//count and print number of rounds
 	var round_count = 0;
 	for(var i = 0; i < collection.rounds.length; i++){
 		//con.write(collection.rounds.at(i).get("team1").get("team_code"));
@@ -797,7 +956,8 @@ pairing.pairRound = function(round_number, division){
 			round_count++;
 		}
 	}
-	con.write("Debates created for round " + round_number + ":" +round_count);
+
+	pairing.fixRepeatedByes(round_number, division);
 }
 
 /*
@@ -2078,28 +2238,28 @@ $("#pair_tests").click(function(){
 
 	pairing.updateRecords();
 	pairing.sortTeams();
-	pairing.printRecords();
+	//pairing.printRecords();
 
 	pairing.pairRound(2);
 	pairing.printPairings(2);
 	pairing.simulateRound(2);
 	pairing.updateRecords();
 	pairing.sortTeams();
-	pairing.printRecords();
+	//pairing.printRecords();
 
 	pairing.pairRound(3);
 	pairing.printPairings(3);
 	pairing.simulateRound(3);
 	pairing.updateRecords();
 	pairing.sortTeams();
-	pairing.printRecords();
+	//pairing.printRecords();
 
 	pairing.pairRound(4);
 	pairing.printPairings(4);
 	pairing.simulateRound(4);
 	pairing.updateRecords();
 	pairing.sortTeams();
-	pairing.printRecords();
+	//pairing.printRecords();
 
 	con.write("number of teams: " + collection.teams.length);
 	con.write("number of rounds: " + collection.rounds.length);
