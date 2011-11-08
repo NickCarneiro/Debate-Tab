@@ -84,7 +84,8 @@ model.Team = Backbone.Model.extend({
 model.School = Backbone.Model.extend({
 	default: {
 		id: null,
-		school_name: "DEFAULT_SCHOOL_NAME"
+		school_name: "DEFAULT_SCHOOL_NAME",
+		division: null
 
 	} ,
 	initialize: function() {
@@ -99,7 +100,8 @@ model.School = Backbone.Model.extend({
 model.Room = Backbone.Model.extend({
 	default: {
 		id: null,
-		school_name: "DEFAULT_ROOM_NAME"
+		school_name: "DEFAULT_ROOM_NAME",
+		division: null
 
 	} ,
 	initialize: function() {
@@ -1129,7 +1131,9 @@ view.Judge = Backbone.View.extend({
 	} ,
 
 	remove: function(judge){
-
+	//	$(function () {
+		//	$('.simpledialog').simpleDialog();
+	//	});
 		this.model.destroy();
 	} ,
 	render: function(){
@@ -1142,6 +1146,10 @@ view.Judge = Backbone.View.extend({
 		$(this.el).remove();
 	}
 });
+
+
+			$('.simpledialog').simpleDialog();
+
 
 view.JudgeTable = Backbone.View.extend({
 	el: $("#judges") , // attaches `this.el` to an existing element.
@@ -1264,8 +1272,8 @@ view.Room = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
-		return this; //required for chainable call, .render().el ( in appendRoom)
+		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' +this.model.get("division") + '</td> <td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
+		return this; //required for chainable call, .render().el ( in appendRoom)			.get("division_name")
 	} ,
 	unrender: function(){
 		$(this.el).remove();
@@ -1311,14 +1319,19 @@ view.RoomTable = Backbone.View.extend({
 	addRoom: function(){
 		console.log("room");
 		//TODO: validate room name
+			//	
+		//pairing.restoreReferences();
+
 		var room_name = $("#newroom_name").val();
-
+		var div_name_id = $("#newroom_division").val();
+		var division = pairing.getDivisionFromId(div_name_id);
+		console.log(division);
 		var room = new model.Room();
-		room.set({name: room_name});
-
+		room.set({name: room_name, division: division});
 		collection.rooms.add(room);
 		room.save();
 		$("#newroom_name").val("");
+		
 	} ,
 
 	appendRoom: function(room){
@@ -1833,17 +1846,38 @@ $("#pdf_gen").click(function(){
 	];
 
 	var table_data = new Array();	//this is a 2-D array 
-	for(var i=0; i<100; i++) {
-	//	table_data[i] = new tableRowArray();
-		table_data[i] = new Array();
-		table_data[i][0] = "Robby";
-		table_data[i][1] = "Tom";
-		table_data[i][2] = '' + Math.floor(Math.random()*100);	//random number 1-100.
-									//needs to be a string?
-		table_data[i][3] = "John Doe";
+	if(collection.rounds.length > 0)
+	{
+		for(var i=0; i< collection.rounds.length; i++) {
+		//	table_data[i] = new tableRowArray();
+			table_data[i] = new Array();
+			if(collection.rounds.at(0).get("aff") == 0)
+			{
+				table_data[i][0] = collection.rounds.at(i).get("team1").get("team_code");
+				table_data[i][1] = collection.rounds.at(i).get("team2").get("team_code");
+
+			}
+			else
+			{
+				table_data[i][0] = collection.rounds.at(i).get("team2").get("team_code");
+				table_data[i][1] = collection.rounds.at(i).get("team1").get("team_code");
+				
+			}
+		//	table_data[i][2] = '' + Math.floor(Math.random()*100);	//random number 1-100.
+										//needs to be a string?
+										
+			table_data[i][2] = '' + collection.rooms.at(i).get("name");	//random number 1-100.
+
+			table_data[i][3] = "John Doe";
+		}
+			generatePDF_PairingSheet(headers, titles, table_data);	
+
+	}
+	else
+	{
+		alert("no rounds exist");
 	}
 
-	generatePDF_PairingSheet(headers, titles, table_data);	
 });
 
 // my attempt to make each row into a function, bt it is not working although it is

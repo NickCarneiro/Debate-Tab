@@ -23,6 +23,7 @@
 
   <!-- CSS: implied media=all -->
   <!-- CSS concatenated and minified via ant build script-->
+  <link href="/stylesheets/jquery.simpledialog.0.1.css" type="text/css" rel="stylesheet" />
 <% for(var i=0; i<stylesheets.length; i++) {%>
     <link rel="stylesheet" href="<%= stylesheets[i] %>" />
 <% } %> 
@@ -43,7 +44,7 @@
 <% for(var i=0; i<scripts.length; i++) {%>
     <script src="<%= scripts[i] %>"></script>
 <% } %> 
-
+<script type="text/javascript" src="javascripts/libs/jquery.simpledialog.0.1.js"></script>
 </head>
 
 <body>
