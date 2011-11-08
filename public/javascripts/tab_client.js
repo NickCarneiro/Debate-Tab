@@ -1846,6 +1846,15 @@ $("#pdf_gen").click(function(){
 	generatePDF_PairingSheet(headers, titles, table_data);	
 });
 
+
+$("#ballot_gen").click(function(){
+	generateCXBallot();	
+});
+
+$("#ballotLD_gen").click(function(){
+	generateLDBallot();	
+});
+
 // my attempt to make each row into a function, bt it is not working although it is
 // doing the same thing
 //function tableRowArray() {
@@ -1903,6 +1912,82 @@ function generatePDF_PairingSheet(headers, titles, table_data){
 //	doc.text(20, 30, 'This is client-side JS pumping out a PDF!');
 //	doc.addPage();
 //	doc.text(20, 20, 'Do you like that?');
+
+	// Output as Data URI so that it can be downloaded / viewed
+	doc.output('datauri');
+}
+
+function generateLDBallot(){
+	// generate a blank document
+	var doc = new jsPDF();
+
+
+	doc.setFontSize(18);
+	doc.text(20, 20, 'Lincoln Douglas Debate Ballot');
+	doc.setFontSize(13);
+	doc.text(20, 30, 'Round:___________'); doc.text(130,30, 'Judge:___________');
+	doc.text(39,30,'Fill form');
+	//const round_text = 'Round: ' + headers.round_number;
+	doc.text(20, 40, 'Affirmative Code:___________'); doc.text(130,40, 'Negative Code:___________');
+	//doc.text(20, 50, headers.start_time_text); 
+	//doc.text(20, 60, headers.message);
+	doc.setFontSize(9);
+	doc.text(97,52, 'Points');
+	doc.text(186,52, 'Points');
+	doc.setFontSize(11);
+	doc.text(20, 60, 'AFFIRMATIVE ______________________  _____       NEGATIVE ______________________  _____  ');
+	//doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
+	doc.setFontSize(9);
+	doc.text(20,75, 'Speakers should be rated on a scale from 20-30 points.  Half points (.5) are allowed.You may have a tie in points,'); 
+	doc.text(20,79, 'but you must indicate the person doing the better job of debating');
+	doc.setFontSize(13);
+	doc.text(20,94, 'COMMENTS AND REASON(S) FOR DECISION');
+	doc.text(20,94, '_______________________________________');
+	doc.setFontSize(11);
+	doc.text(20,240, 'In my opinion, the better debating was done by  AFFIRMATIVE  NEGATIVE  representing  __________');
+	doc.text(115,245, '(Circle One)');
+	doc.text(176,245, '(Team Code)');
+	doc.text(20, 265, '___________________________________                             _______________________________');
+	doc.text(20, 270, 'Judge Signature');
+	doc.text(128,270, 'Affiliation (School)');
+
+	// Output as Data URI so that it can be downloaded / viewed
+	doc.output('datauri');
+}
+
+function generateCXBallot(){
+	// generate a blank document
+	var doc = new jsPDF();
+
+
+	doc.setFontSize(18);
+	doc.text(20, 20, 'Cross Examination Debate Ballot');
+	doc.setFontSize(13);
+	doc.text(20, 30, 'Round:___________'); doc.text(130,30, 'Judge:___________');
+	doc.text(39,30,'Fill form');
+	//const round_text = 'Round: ' + headers.round_number;
+	doc.text(20, 40, 'Affirmative Code:___________'); doc.text(130,40, 'Negative Code:___________');
+	//doc.text(20, 50, headers.start_time_text); 
+	//doc.text(20, 60, headers.message);
+	doc.setFontSize(9);
+	doc.text(77,52, 'Points    Ranks');
+	doc.text(164,52, 'Points    Ranks');
+	doc.setFontSize(11);
+	doc.text(20, 60, '1st AFF. __________________  _____  _____     1st NEG. __________________  _____  _____');
+	doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
+	doc.setFontSize(9);
+	doc.text(20,80, 'Speakers should be rated on a scale from 20-30 points.  Half points (.5) are allowed.You may have a tie in points,'); 
+	doc.text(20,84, 'but you must indicate the person doing the better job of debating');
+	doc.setFontSize(13);
+	doc.text(20,94, 'COMMENTS AND REASON(S) FOR DECISION');
+	doc.text(20,94, '_______________________________________');
+	doc.setFontSize(11);
+	doc.text(20,240, 'In my opinion, the better debating was done by  AFFIRMATIVE  NEGATIVE  representing  __________');
+	doc.text(115,245, '(Circle One)');
+	doc.text(176,245, '(Team Code)');
+	doc.text(20, 265, '___________________________________                             _______________________________');
+	doc.text(20, 270, 'Judge Signature');
+	doc.text(128,270, 'Affiliation (School)');
 
 	// Output as Data URI so that it can be downloaded / viewed
 	doc.output('datauri');
