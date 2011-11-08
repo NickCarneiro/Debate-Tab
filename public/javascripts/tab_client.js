@@ -160,7 +160,12 @@ model.Round = Backbone.Model.extend({
 
 	//returns winning team, false if no winner
 	getWinner: function(){
-		if(this.get("result") === undefined){
+		//if round is a bye, the real team is the winner.
+		if(this.get("team1").get("team_code") === "BYE"){
+			return this.get("team2");
+		} else if(this.get("team2").get("team_code") === "BYE"){
+			return this.get("team1");
+		} else if(this.get("result") === undefined){
 			return false;
 		} else if(this.get("result") == 0 || this.get("result") == 1){
 			return this.get("aff") == 0 ? this.get("team1") : this.get("team2");
@@ -2322,39 +2327,40 @@ $("#pair_delete_all_rounds").click(function(){
 });
 $("#pair_tests").click(function(){
 	con.write("Pairing tests:");
-
+	var div1 = collection.divisions.at(0);
+	var div2 = collection.divisions.at(1);
 	//teams should have been loaded from localstorage
 	pairing.deleteAllRounds();
-	pairing.pairRound(1);
+	pairing.pairRound(1, div1);
 
-	pairing.printPairings(1);
-	pairing.simulateRound(1);
+	pairing.printPairings(1, div1);
+	pairing.simulateRound(1, div1);
 
-	pairing.updateRecords();
-	pairing.sortTeams();
+	pairing.updateRecords(div1);
+	pairing.sortTeams(div1);
+	pairing.printRecords();
+
+	pairing.pairRound(2, div1);
+	pairing.printPairings(2, div1);
+	pairing.simulateRound(2, div1);
+	pairing.updateRecords(div1);
+	pairing.sortTeams(div1);
+	pairing.printRecords();
+/*
+	pairing.pairRound(3, div1);
+	pairing.printPairings(3, div1);
+	pairing.simulateRound(3, div1);
+	pairing.updateRecords(div1);
+	pairing.sortTeams(div1);
 	//pairing.printRecords();
 
-	pairing.pairRound(2);
-	pairing.printPairings(2);
-	pairing.simulateRound(2);
-	pairing.updateRecords();
-	pairing.sortTeams();
+	pairing.pairRound(4, div1);
+	pairing.printPairings(4, div1);
+	pairing.simulateRound(4, div1);
+	pairing.updateRecords(div1);
+	pairing.sortTeams(div1);
 	//pairing.printRecords();
-
-	pairing.pairRound(3);
-	pairing.printPairings(3);
-	pairing.simulateRound(3);
-	pairing.updateRecords();
-	pairing.sortTeams();
-	//pairing.printRecords();
-
-	pairing.pairRound(4);
-	pairing.printPairings(4);
-	pairing.simulateRound(4);
-	pairing.updateRecords();
-	pairing.sortTeams();
-	//pairing.printRecords();
-
+*/
 	con.write("number of teams: " + collection.teams.length);
 	con.write("number of rounds: " + collection.rounds.length);
 		
