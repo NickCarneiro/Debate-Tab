@@ -24,8 +24,10 @@ var tab = (function (){
 	//debug console
 	var con = {};
 	//functions to maniulate the interface and ui state
-	
 	var ui = {};
+
+	//functions for working with pdfs
+	var pdf = {};
 
 
 	//include jspdf
@@ -544,24 +546,31 @@ pairing.fixRepeatedByes = function(round_number, division){
 		var team1 = collection.rounds.at(i).get("team1");
 		var team2 = collection.rounds.at(i).get("team2");
 
-		//round with one real team and one fake bye team
-		var bye_round = collection.rounds.at(i);
+		
 
 		if(team1 === undefined || team2 === undefined){
-			con.write("FATAL ERROR: a team was found to be undefined in fixMultipleByes");
+			con.write("FATAL ERROR: a team was found to be undefined in fixRepeatedByes");
 		} else {
 			//check to see if round is a bye
 			var bye;
 			if(team1.get("team_code") === "BYE"){
-				bye = team1;
-
+				bye = team2;
+				//round with one real team and one fake bye team
+				
 
 			} else if (team2.get("team_code") === "BYE"){
 				bye = team1;
-				var bye_index = i;
+				//round with one real team and one fake bye team
+				
+
 			} else {
 				//this round is not a bye. go to the next one.
+				continue;
 			}
+
+			var bye_round = collection.rounds.at(i);
+			var bye_index = i;
+			break; //we found the bye round. stop searching.
 
 		}
 	}
@@ -2003,16 +2012,16 @@ $("#pdf_gen").click(function(){
 		table_data[i][3] = "John Doe";
 	}
 
-	generatePDF_PairingSheet(headers, titles, table_data);	
+	pdf.generatePDF_PairingSheet(headers, titles, table_data);	
 });
 
 
 $("#ballot_gen").click(function(){
-	generateCXBallot();	
+	pdf.generateCXBallot();	
 });
 
 $("#ballotLD_gen").click(function(){
-	generateLDBallot();	
+	pdf.generateLDBallot();	
 });
 
 // my attempt to make each row into a function, bt it is not working although it is
@@ -2031,7 +2040,7 @@ $("#ballotLD_gen").click(function(){
 BEGIN: Define PDF Function
 =========================================
 */	
-function generatePDF_PairingSheet(headers, titles, table_data){
+pdf.generatePDF_PairingSheet = function(headers, titles, table_data){
 	// generate a blank document
 	var doc = new jsPDF();
 	var max_page_length = 280;
@@ -2077,7 +2086,7 @@ function generatePDF_PairingSheet(headers, titles, table_data){
 	doc.output('datauri');
 }
 
-function generateLDBallot(){
+pdf.generateLDBallot = function(){
 	// generate a blank document
 	var doc = new jsPDF();
 
@@ -2115,7 +2124,7 @@ function generateLDBallot(){
 	doc.output('datauri');
 }
 
-function generateCXBallot(){
+pdf.generateCXBallot = function(){
 	// generate a blank document
 	var doc = new jsPDF();
 
