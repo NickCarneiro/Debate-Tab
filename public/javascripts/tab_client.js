@@ -1897,14 +1897,7 @@ $("#pdf_gen").click(function(){
 					if(rooms_array[x] == "VCX")
 					{
 						table_data[i][2] = '' + collection.rooms.at(x).get("name");
-					/*	for(y=x; y < rooms_array.length - 1; y++)
-						{
-							rooms_array[y] = rooms_array[y+1];
-							if((y + 1) == rooms_array.length)
-							{
-								rooms_array[y+1] = null;
-							}
-						}*/
+
 						rooms_array[x] = "lol";
 						break;
 						
@@ -1918,14 +1911,35 @@ $("#pdf_gen").click(function(){
 					if(rooms_array[x] == "NCX")
 					{
 						table_data[i][2] = '' + collection.rooms.at(x).get("name");
-					/*	for(y=x; y < rooms_array.length - 1; y++)
-						{
-							rooms_array[y] = rooms_array[y+1];
-							if((y + 1) == rooms_array.length)
-							{
-								rooms_array[y+1] = null;
-							}
-						}*/
+				
+						rooms_array[x] = "lol";
+						break;
+						
+					}
+				}	
+			}
+			else if(collection.rounds.at(i).get("team1").get("division").get("division_name") == "VLD")
+			{
+				for(x=0; x < collection.rooms.length; x++)
+				{
+					if(rooms_array[x] == "VLD")
+					{
+						table_data[i][2] = '' + collection.rooms.at(x).get("name");
+			
+						rooms_array[x] = "lol";
+						break;
+						
+					}
+				}	
+			}
+			else if(collection.rounds.at(i).get("team1").get("division").get("division_name") == "NLD")
+			{
+				for(x=0; x < collection.rooms.length; x++)
+				{
+					if(rooms_array[x] == "NLD")
+					{
+						table_data[i][2] = '' + collection.rooms.at(x).get("name");
+		
 						rooms_array[x] = "lol";
 						break;
 						
