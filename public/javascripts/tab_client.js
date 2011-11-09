@@ -1149,14 +1149,15 @@ view.Judge = Backbone.View.extend({
 
 	remove: function(judge){
 	//	$(function () {
-		//	$('.simpledialog').simpleDialog();
+			$('.simpledialog').simpleDialog();
 	//	});
-		this.model.destroy();
+	//	this.model.destroy();
+		
 	} ,
 	render: function(){
 		var school = this.model.get("school") === undefined ? "None" : this.model.get("school").get("school_name");
 		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' + this.model.get("id") + 
-			'</td><td>'+ school +'</td><td class="remove">Remove</td>');
+			'</td><td>'+ school +'</td><td><a href="#" rel="dialog_content" class="simpledialog">Remove</a></td>');
 		return this; //required for chainable call, .render().el ( in appendJudge)
 	} ,
 	unrender: function(){
@@ -1164,8 +1165,8 @@ view.Judge = Backbone.View.extend({
 	}
 });
 
-
-			$('.simpledialog').simpleDialog();
+		
+		$('.simpledialog').simpleDialog();
 
 
 view.JudgeTable = Backbone.View.extend({
@@ -1864,114 +1865,9 @@ $("#pdf_gen").click(function(){
 			"Judge"
 	];
 	
-	var rooms_array = new Array();
+    var startIndex = 0;
+    roundDataPDF(headers,titles,startIndex);
 	
-	for(x=0; x < collection.rooms.length; x++)
-	{
-		rooms_array[x] = collection.rooms.at(x).get("division").get("division_name"); 
-	}
-	
-	var judges_array = new Array();
-	
-	//collection.judges.at(0).get("divisions")[0].get("division_name")
-
-	var table_data = new Array();	//this is a 2-D array 
-	if(collection.rounds.length > 0)
-	{
-		for(var i=0; i< Math.ceil((collection.teams.length)/2) ; i++) {
-		//	table_data[i] = new tableRowArray();
-			table_data[i] = new Array();
-			if(collection.rounds.at(i).get("aff") == 0)
-			{
-				table_data[i][0] = collection.rounds.at(i).get("team1").get("team_code");
-				table_data[i][1] = collection.rounds.at(i).get("team2").get("team_code");
-
-			}
-			else
-			{
-				table_data[i][0] = collection.rounds.at(i).get("team2").get("team_code");
-				table_data[i][1] = collection.rounds.at(i).get("team1").get("team_code");
-				
-			}
-			
-			if((table_data[i][0] == "BYE") || (table_data[i][1] == "BYE"))
-			{
-				table_data[i][2] = "None";
-			}
-			else if(collection.rounds.at(i).get("team1").get("division").get("division_name") == "VCX")
-			{
-				for(x=0; x < collection.rooms.length; x++)
-				{
-					if(rooms_array[x] == "VCX")
-					{
-						table_data[i][2] = '' + collection.rooms.at(x).get("name");
-
-						rooms_array[x] = "lol";
-						break;
-						
-					}
-				}	
-			}
-			else if(collection.rounds.at(i).get("team1").get("division").get("division_name") == "NCX")
-			{
-				for(x=0; x < collection.rooms.length; x++)
-				{
-					if(rooms_array[x] == "NCX")
-					{
-						table_data[i][2] = '' + collection.rooms.at(x).get("name");
-				
-						rooms_array[x] = "lol";
-						break;
-						
-					}
-				}	
-			}
-			else if(collection.rounds.at(i).get("team1").get("division").get("division_name") == "VLD")
-			{
-				for(x=0; x < collection.rooms.length; x++)
-				{
-					if(rooms_array[x] == "VLD")
-					{
-						table_data[i][2] = '' + collection.rooms.at(x).get("name");
-			
-						rooms_array[x] = "lol";
-						break;
-						
-					}
-				}	
-			}
-			else if(collection.rounds.at(i).get("team1").get("division").get("division_name") == "NLD")
-			{
-				for(x=0; x < collection.rooms.length; x++)
-				{
-					if(rooms_array[x] == "NLD")
-					{
-						table_data[i][2] = '' + collection.rooms.at(x).get("name");
-		
-						rooms_array[x] = "lol";
-						break;
-						
-					}
-				}	
-			}
-				
-			
-				
-				
-			table_data[i][3] = "John Doe";
-		
-		
-		
-		
-		}
-		
-			generatePDF_PairingSheet(headers, titles, table_data);	
-
-	}
-	else
-	{
-		alert("no rounds exist");
-	}
 
 });
 
@@ -1990,111 +1886,8 @@ $("#pdf_gen2").click(function(){
 			"Judge"
 	];
 	
-	var rooms_array = new Array();
-	
-	for(x=0; x < collection.rooms.length; x++)
-	{
-		rooms_array[x] = collection.rooms.at(x).get("division").get("division_name"); 
-	}
-	var size = Math.ceil((collection.teams.length)/2)
-
-	var table_data = new Array();	//this is a 2-D array 
-	if(collection.rounds.length > 0)
-	{
-		for(var i=0, j=size; i< Math.ceil((collection.teams.length)/2) ; i++, j++) {
-		//	table_data[i] = new tableRowArray();
-			table_data[i] = new Array();
-			if(collection.rounds.at(i).get("aff") == 0)
-			{
-				table_data[i][0] = collection.rounds.at(j).get("team1").get("team_code");
-				table_data[i][1] = collection.rounds.at(j).get("team2").get("team_code");
-
-			}
-			else
-			{
-				table_data[i][0] = collection.rounds.at(j).get("team2").get("team_code");
-				table_data[i][1] = collection.rounds.at(j).get("team1").get("team_code");
-				
-			}
-			
-			if((table_data[i][0] == "BYE") || (table_data[i][1] == "BYE"))
-			{
-				table_data[i][2] = "None";
-			}
-			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "VCX")
-			{
-				for(x=0; x < collection.rooms.length; x++)
-				{
-					if(rooms_array[x] == "VCX")
-					{
-						table_data[i][2] = '' + collection.rooms.at(x).get("name");
-
-						rooms_array[x] = "lol";
-						break;
-						
-					}
-				}	
-			}
-			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "NCX")
-			{
-				for(x=0; x < collection.rooms.length; x++)
-				{
-					if(rooms_array[x] == "NCX")
-					{
-						table_data[i][2] = '' + collection.rooms.at(x).get("name");
-				
-						rooms_array[x] = "lol";
-						break;
-						
-					}
-				}	
-			}
-			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "VLD")
-			{
-				for(x=0; x < collection.rooms.length; x++)
-				{
-					if(rooms_array[x] == "VLD")
-					{
-						table_data[i][2] = '' + collection.rooms.at(x).get("name");
-			
-						rooms_array[x] = "lol";
-						break;
-						
-					}
-				}	
-			}
-			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "NLD")
-			{
-				for(x=0; x < collection.rooms.length; x++)
-				{
-					if(rooms_array[x] == "NLD")
-					{
-						table_data[i][2] = '' + collection.rooms.at(x).get("name");
-		
-						rooms_array[x] = "lol";
-						break;
-						
-					}
-				}	
-			}
-				
-			
-				
-				
-			table_data[i][3] = "John Doe";
-		
-		
-		
-		
-		}
-		
-			generatePDF_PairingSheet(headers, titles, table_data);	
-
-	}
-	else
-	{
-		alert("no rounds exist");
-	}
+	var startIndex = (Math.ceil((collection.teams.length)/2));
+    roundDataPDF(headers,titles,startIndex);
 
 });
 
@@ -2113,19 +1906,26 @@ $("#pdf_gen3").click(function(){
 			"Judge"
 	];
 	
-	var rooms_array = new Array();
+	var startIndex = 2*(Math.ceil((collection.teams.length)/2));
+    roundDataPDF(headers,titles,startIndex);
+
+});
+
+function roundDataPDF(headers,titles,startIndex)
+{
+    var rooms_array = new Array();
 	
 	for(x=0; x < collection.rooms.length; x++)
 	{
 		rooms_array[x] = collection.rooms.at(x).get("division").get("division_name"); 
 	}
-		var size = 2*(Math.ceil((collection.teams.length)/2))
+		
 
 
 	var table_data = new Array();	//this is a 2-D array 
 	if(collection.rounds.length > 0)
 	{
-		for(var i=0, j=size; i< Math.ceil((collection.teams.length)/2) ; i++) {
+		for(var i=0, j=startIndex; i< Math.ceil((collection.teams.length)/2) ; i++,j++) {
 		//	table_data[i] = new tableRowArray();
 			table_data[i] = new Array();
 			if(collection.rounds.at(i).get("aff") == 0)
@@ -2219,18 +2019,7 @@ $("#pdf_gen3").click(function(){
 	{
 		alert("no rounds exist");
 	}
-
-});
-
-// my attempt to make each row into a function, bt it is not working although it is
-// doing the same thing
-//function tableRowArray() {
-//	this = new Array();
-//	this[0] = "Rob";
-//	this[1] = "Roy";
-//	this[2] = "2";
-//	this[3] = "Sherlock Holmes";
-//}
+}
 
 
 /*
@@ -2256,8 +2045,10 @@ function generatePDF_PairingSheet(headers, titles, table_data){
 	const title_y_value = 80;
 	const spacing = 47;
 
-
+	doc.setFontSize(20);
 	printTitles(doc, titles, x_value, title_y_value, spacing);
+	doc.setFontSize(14);
+
 
 	var data_y_value = 90;
 	var j = 0;
@@ -2287,6 +2078,7 @@ function generatePDF_PairingSheet(headers, titles, table_data){
 function printTitles(doc, titles, x_value, title_y_value, spacing) {
 	var i = 0;
 	for(i=0; i< titles.length; i++) {
+	
 		doc.text(x_value, title_y_value, titles[i]);
 		x_value = x_value + spacing;		// add a spacing between each column
 	}
