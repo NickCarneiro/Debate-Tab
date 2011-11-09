@@ -1919,8 +1919,40 @@ function roundDataPDF(headers,titles,startIndex)
 	{
 		rooms_array[x] = collection.rooms.at(x).get("division").get("division_name"); 
 	}
-		
+    var judges_array = new Array();
+	
+    for(y=0; y<collection.judges.length; y++)
+    {
+       judges_array[y] = new Array();
 
+       if(collection.judges.at(y).get("divisions").length == 1)
+       {
+        judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
+       }
+       if(collection.judges.at(y).get("divisions").length == 2)
+       {
+        judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
+        judges_array[y][1] = collection.judges.at(y).get("divisions")[1].get("division_name");
+       }
+       if(collection.judges.at(y).get("divisions").length == 3)
+       {
+        judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
+        judges_array[y][1] = collection.judges.at(y).get("divisions")[1].get("division_name");
+        judges_array[y][2] = collection.judges.at(y).get("divisions")[2].get("division_name");
+       }
+       if(collection.judges.at(y).get("divisions").length == 4)
+       {
+        judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
+        judges_array[y][1] = collection.judges.at(y).get("divisions")[1].get("division_name");
+        judges_array[y][2] = collection.judges.at(y).get("divisions")[2].get("division_name");
+        judges_array[y][3] = collection.judges.at(y).get("divisions")[3].get("division_name");
+       }
+    }	
+    var judge_team_forbidden = new Array();
+
+    var judgeIndex = $.inArray("VCX", judges_array);
+    console.log(judges_array);
+    console.log($.inArray("VCX",judges_array[0]));
 
 	var table_data = new Array();	//this is a 2-D array 
 	if(collection.rounds.length > 0)
@@ -1957,7 +1989,18 @@ function roundDataPDF(headers,titles,startIndex)
 						break;
 						
 					}
-				}	
+				}
+                for(x=0; x < collection.judges.length; x++)
+                {
+                    var judgeIndex = $.inArray("VCX", judges_array[x]);
+                    if(judgeIndex != -1)
+                    {
+                        table_data[i][3] = collection.judges.at(x).get("name");
+                        judges_array[x] = "lol";
+                        break;
+                    }
+                }
+                	
 			}
 			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "NCX")
 			{
@@ -1972,6 +2015,16 @@ function roundDataPDF(headers,titles,startIndex)
 						
 					}
 				}	
+                for(x=0; x < collection.judges.length; x++)
+                {
+                    var judgeIndex = $.inArray("NCX", judges_array[x]);
+                    if(judgeIndex != -1)
+                    {
+                        table_data[i][3] = collection.judges.at(x).get("name");
+                        judges_array[x] = "lol";
+                        break;
+                    }
+                }
 			}
 			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "VLD")
 			{
@@ -1986,6 +2039,16 @@ function roundDataPDF(headers,titles,startIndex)
 						
 					}
 				}	
+                for(x=0; x < collection.judges.length; x++)
+                {
+                    var judgeIndex = $.inArray("VLD", judges_array[x]);
+                    if(judgeIndex != -1)
+                    {
+                        table_data[i][3] = collection.judges.at(x).get("name");
+                        judges_array[x] = "lol";
+                        break;
+                    }
+                }
 			}
 			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "NLD")
 			{
@@ -2000,12 +2063,22 @@ function roundDataPDF(headers,titles,startIndex)
 						
 					}
 				}	
+                for(x=0; x < collection.judges.length; x++)
+                {
+                    var judgeIndex = $.inArray("NLD", judges_array[x]);
+                    if(judgeIndex != -1)
+                    {
+                        table_data[i][3] = collection.judges.at(x).get("name");
+                        judges_array[x] = "lol";
+                        break;
+                    }
+                }
 			}
 				
 			
 				
 				
-			table_data[i][3] = "John Doe";
+			//table_data[i][3] = "John Doe";
 		
 		
 		
