@@ -160,7 +160,12 @@ model.Round = Backbone.Model.extend({
 
 	//returns winning team, false if no winner
 	getWinner: function(){
-		if(this.get("result") === undefined){
+		//if round is a bye, the real team is the winner.
+		if(this.get("team1").get("team_code") === "BYE"){
+			return this.get("team2");
+		} else if(this.get("team2").get("team_code") === "BYE"){
+			return this.get("team1");
+		} else if(this.get("result") === undefined){
 			return false;
 		} else if(this.get("result") == 0 || this.get("result") == 1){
 			return this.get("aff") == 0 ? this.get("team1") : this.get("team2");
@@ -1848,7 +1853,7 @@ $("#pdf_gen").click(function(){
 	const headers = {
 		tournament_name: 'Round Rock HS Tournament',
 		date: '11/18/11',
-		round_number: '3',
+		round_number: '1',
 		start_time_text: 'Start: 3:00 PM',
 		message: 'Welcome to the Round Rock Tournament run by DebateTab!'
 	};
@@ -1866,11 +1871,14 @@ $("#pdf_gen").click(function(){
 		rooms_array[x] = collection.rooms.at(x).get("division").get("division_name"); 
 	}
 	
+	var judges_array = new Array();
+	
+	//collection.judges.at(0).get("divisions")[0].get("division_name")
 
 	var table_data = new Array();	//this is a 2-D array 
 	if(collection.rounds.length > 0)
 	{
-		for(var i=0; i< collection.rounds.length; i++) {
+		for(var i=0; i< Math.ceil((collection.teams.length)/2) ; i++) {
 		//	table_data[i] = new tableRowArray();
 			table_data[i] = new Array();
 			if(collection.rounds.at(i).get("aff") == 0)
@@ -1947,9 +1955,263 @@ $("#pdf_gen").click(function(){
 				}	
 			}
 				
-
+			
+				
+				
 			table_data[i][3] = "John Doe";
+		
+		
+		
+		
 		}
+		
+			generatePDF_PairingSheet(headers, titles, table_data);	
+
+	}
+	else
+	{
+		alert("no rounds exist");
+	}
+
+});
+
+$("#pdf_gen2").click(function(){
+	const headers = {
+		tournament_name: 'Round Rock HS Tournament',
+		date: '11/18/11',
+		round_number: '2',
+		start_time_text: 'Start: 3:00 PM',
+		message: 'Welcome to the Round Rock Tournament run by DebateTab!'
+	};
+
+	const titles = [ "Affirmative",
+			"Negative",
+			"Room",
+			"Judge"
+	];
+	
+	var rooms_array = new Array();
+	
+	for(x=0; x < collection.rooms.length; x++)
+	{
+		rooms_array[x] = collection.rooms.at(x).get("division").get("division_name"); 
+	}
+	var size = Math.ceil((collection.teams.length)/2)
+
+	var table_data = new Array();	//this is a 2-D array 
+	if(collection.rounds.length > 0)
+	{
+		for(var i=0, j=size; i< Math.ceil((collection.teams.length)/2) ; i++, j++) {
+		//	table_data[i] = new tableRowArray();
+			table_data[i] = new Array();
+			if(collection.rounds.at(i).get("aff") == 0)
+			{
+				table_data[i][0] = collection.rounds.at(j).get("team1").get("team_code");
+				table_data[i][1] = collection.rounds.at(j).get("team2").get("team_code");
+
+			}
+			else
+			{
+				table_data[i][0] = collection.rounds.at(j).get("team2").get("team_code");
+				table_data[i][1] = collection.rounds.at(j).get("team1").get("team_code");
+				
+			}
+			
+			if((table_data[i][0] == "BYE") || (table_data[i][1] == "BYE"))
+			{
+				table_data[i][2] = "None";
+			}
+			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "VCX")
+			{
+				for(x=0; x < collection.rooms.length; x++)
+				{
+					if(rooms_array[x] == "VCX")
+					{
+						table_data[i][2] = '' + collection.rooms.at(x).get("name");
+
+						rooms_array[x] = "lol";
+						break;
+						
+					}
+				}	
+			}
+			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "NCX")
+			{
+				for(x=0; x < collection.rooms.length; x++)
+				{
+					if(rooms_array[x] == "NCX")
+					{
+						table_data[i][2] = '' + collection.rooms.at(x).get("name");
+				
+						rooms_array[x] = "lol";
+						break;
+						
+					}
+				}	
+			}
+			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "VLD")
+			{
+				for(x=0; x < collection.rooms.length; x++)
+				{
+					if(rooms_array[x] == "VLD")
+					{
+						table_data[i][2] = '' + collection.rooms.at(x).get("name");
+			
+						rooms_array[x] = "lol";
+						break;
+						
+					}
+				}	
+			}
+			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "NLD")
+			{
+				for(x=0; x < collection.rooms.length; x++)
+				{
+					if(rooms_array[x] == "NLD")
+					{
+						table_data[i][2] = '' + collection.rooms.at(x).get("name");
+		
+						rooms_array[x] = "lol";
+						break;
+						
+					}
+				}	
+			}
+				
+			
+				
+				
+			table_data[i][3] = "John Doe";
+		
+		
+		
+		
+		}
+		
+			generatePDF_PairingSheet(headers, titles, table_data);	
+
+	}
+	else
+	{
+		alert("no rounds exist");
+	}
+
+});
+
+$("#pdf_gen3").click(function(){
+	const headers = {
+		tournament_name: 'Round Rock HS Tournament',
+		date: '11/18/11',
+		round_number: '3',
+		start_time_text: 'Start: 3:00 PM',
+		message: 'Welcome to the Round Rock Tournament run by DebateTab!'
+	};
+
+	const titles = [ "Affirmative",
+			"Negative",
+			"Room",
+			"Judge"
+	];
+	
+	var rooms_array = new Array();
+	
+	for(x=0; x < collection.rooms.length; x++)
+	{
+		rooms_array[x] = collection.rooms.at(x).get("division").get("division_name"); 
+	}
+		var size = 2*(Math.ceil((collection.teams.length)/2))
+
+
+	var table_data = new Array();	//this is a 2-D array 
+	if(collection.rounds.length > 0)
+	{
+		for(var i=0, j=size; i< Math.ceil((collection.teams.length)/2) ; i++) {
+		//	table_data[i] = new tableRowArray();
+			table_data[i] = new Array();
+			if(collection.rounds.at(i).get("aff") == 0)
+			{
+				table_data[i][0] = collection.rounds.at(j).get("team1").get("team_code");
+				table_data[i][1] = collection.rounds.at(j).get("team2").get("team_code");
+
+			}
+			else
+			{
+				table_data[i][0] = collection.rounds.at(j).get("team2").get("team_code");
+				table_data[i][1] = collection.rounds.at(j).get("team1").get("team_code");
+				
+			}
+			
+			if((table_data[i][0] == "BYE") || (table_data[i][1] == "BYE"))
+			{
+				table_data[i][2] = "None";
+			}
+			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "VCX")
+			{
+				for(x=0; x < collection.rooms.length; x++)
+				{
+					if(rooms_array[x] == "VCX")
+					{
+						table_data[i][2] = '' + collection.rooms.at(x).get("name");
+
+						rooms_array[x] = "lol";
+						break;
+						
+					}
+				}	
+			}
+			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "NCX")
+			{
+				for(x=0; x < collection.rooms.length; x++)
+				{
+					if(rooms_array[x] == "NCX")
+					{
+						table_data[i][2] = '' + collection.rooms.at(x).get("name");
+				
+						rooms_array[x] = "lol";
+						break;
+						
+					}
+				}	
+			}
+			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "VLD")
+			{
+				for(x=0; x < collection.rooms.length; x++)
+				{
+					if(rooms_array[x] == "VLD")
+					{
+						table_data[i][2] = '' + collection.rooms.at(x).get("name");
+			
+						rooms_array[x] = "lol";
+						break;
+						
+					}
+				}	
+			}
+			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "NLD")
+			{
+				for(x=0; x < collection.rooms.length; x++)
+				{
+					if(rooms_array[x] == "NLD")
+					{
+						table_data[i][2] = '' + collection.rooms.at(x).get("name");
+		
+						rooms_array[x] = "lol";
+						break;
+						
+					}
+				}	
+			}
+				
+			
+				
+				
+			table_data[i][3] = "John Doe";
+		
+		
+		
+		
+		}
+		
 			generatePDF_PairingSheet(headers, titles, table_data);	
 
 	}
@@ -2182,38 +2444,40 @@ $("#pair_delete_all_rounds").click(function(){
 });
 $("#pair_tests").click(function(){
 	con.write("Pairing tests:");
-
+	var div1 = collection.divisions.at(0);
+	var div2 = collection.divisions.at(1);
 	//teams should have been loaded from localstorage
 	pairing.deleteAllRounds();
-	pairing.pairRound(1);
+	pairing.pairRound(1, div1);
 
-	pairing.printPairings(1);
-	pairing.simulateRound(1);
+	pairing.printPairings(1, div1);
+	pairing.simulateRound(1, div1);
 
-	pairing.updateRecords();
-	pairing.sortTeams();
+	pairing.updateRecords(div1);
+	pairing.sortTeams(div1);
 	pairing.printRecords();
 
-	pairing.pairRound(2);
-	pairing.printPairings(2);
-	pairing.simulateRound(2);
-	pairing.updateRecords();
-	pairing.sortTeams();
+	pairing.pairRound(2, div1);
+	pairing.printPairings(2, div1);
+	pairing.simulateRound(2, div1);
+	pairing.updateRecords(div1);
+	pairing.sortTeams(div1);
 	pairing.printRecords();
+/*
+	pairing.pairRound(3, div1);
+	pairing.printPairings(3, div1);
+	pairing.simulateRound(3, div1);
+	pairing.updateRecords(div1);
+	pairing.sortTeams(div1);
+	//pairing.printRecords();
 
-	pairing.pairRound(3);
-	pairing.printPairings(3);
-	pairing.simulateRound(3);
-	pairing.updateRecords();
-	pairing.sortTeams();
-	pairing.printRecords();
-
-	pairing.pairRound(4);
-	pairing.printPairings(4);
-	pairing.simulateRound(4);
-	pairing.updateRecords();
-	pairing.sortTeams();
-	pairing.printRecords();
+	pairing.pairRound(4, div1);
+	pairing.printPairings(4, div1);
+	pairing.simulateRound(4, div1);
+	pairing.updateRecords(div1);
+	pairing.sortTeams(div1);
+	//pairing.printRecords();
+*/
 
 	con.write("number of teams: " + collection.teams.length);
 	con.write("number of rounds: " + collection.rounds.length);
