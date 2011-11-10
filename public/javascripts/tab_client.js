@@ -379,6 +379,33 @@ pairing.restoreReferences = function(){
 		
 		collection.rounds.at(i).set({team1: team1});
 		collection.rounds.at(i).set({team2: team2});
+
+		//fix division reference
+		//restore division reference
+		var division_id = collection.rounds.at(i).get("division").id;
+		if(division_id != undefined){
+			var division = pairing.getDivisionFromId(division_id);
+			if(division != undefined){
+				
+				collection.rounds.at(i).set({division: division});
+				//re-add bye team if any null references found.
+				//happens because bye teams don't get saved to localstorage
+				if(collection.rounds.at(i).get("team1") === undefined){
+					var bye_team = new model.Team();
+					bye_team.set({team_code: "BYE"});
+					bye_team.set({division: division});
+					collection.rounds.at(i).set({team1: bye_team});
+				} else if (collection.rounds.at(i).get("team2") === undefined){
+					var bye_team = new model.Team();
+					bye_team.set({team_code: "BYE"});
+					bye_team.set({division: division});
+					collection.rounds.at(i).set({team2: bye_team});
+				}
+				
+			}
+		} else {
+			con.write("WARNING: division id was undefined when restoring reference for round");
+		}
 	}
 
 	//######
@@ -2600,6 +2627,23 @@ $("#pair_delete_all_rounds").click(function(){
 	con.write("deleting all rounds");
 	pairing.deleteAllRounds();
 });
+
+$("#pair_print_pairings").click(function(){
+	//print pairings for every division and every round
+	var rounds = [];
+	for(var i = 0; i < collection.rounds.length; i++){
+		if(rounds.indexOf(collection.rounds.at(i).get("round_number")) === -1){
+			rounds.push(collection.rounds.at(i).get("round_number"));
+		}
+	}
+	for(var i = 0; i < collection.divisions.length; i++){
+		for(var j = 0; j < rounds.length; j++){
+			pairing.printPairings(rounds[j], collection.divisions.at(i));
+		}
+	}
+
+});
+
 $("#pair_tests").click(function(){
 	con.write("Pairing tests:");
 	var div1 = collection.divisions.at(0);
