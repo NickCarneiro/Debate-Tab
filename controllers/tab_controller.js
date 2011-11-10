@@ -22,10 +22,7 @@ module.exports.setRoutes = function(app) {
 		res.render('tab', {
 			title: "Debate Tab Demo",
 			scripts: ["javascripts/libs/tab_plugins.js",
-				"javascripts/tab_client.js",
-				"javascripts/libs/base64.js",
-				"javascripts/libs/jspdf.js",
-				"javascripts/libs/sprintf.js"
+				"javascripts/tab_client.js"
 			],
 			stylesheets: ["stylesheets/tab_style.css"]
 		});
