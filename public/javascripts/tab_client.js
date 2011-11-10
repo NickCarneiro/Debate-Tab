@@ -1421,12 +1421,11 @@ pdf.generatePairingSheet = function(headers, titles, round_number, division){
 	doc.text(20, 50, headers.start_time_text);
 	doc.text(20, 60, headers.message);
 
-	var x_value = 20;
-	const title_y_value = 80;
-	const spacing = 47;
+	
+	var spacing = 47;
 
 
-	pdf.printTitles(doc, titles, x_value, title_y_value, spacing);
+	pdf.printTitles(doc, titles, 20, 80, spacing);
 
 	var data_y_value = 90;
 	var j = 0;
@@ -1435,7 +1434,7 @@ pdf.generatePairingSheet = function(headers, titles, round_number, division){
 		if(collection.rounds.at(i).get("round_number") != round_number || collection.rounds.at(i).get("division") != division){
 			continue;
 		}
-
+		var x_value = 20;
 		var team1 = collection.rounds.at(i).get("team1").get("team_code");
 		var team2 = collection.rounds.at(i).get("team2").get("team_code");
 		var aff;
@@ -1447,9 +1446,9 @@ pdf.generatePairingSheet = function(headers, titles, round_number, division){
 			aff = team2;
 			neg = team1;
 		}
-		doc.text(x_value, data_y_value, aff.get("team_code")); //AFF
+		doc.text(x_value, data_y_value, aff); //AFF
 		x_value = x_value + spacing;		// add a spacing between each column
-		doc.text(x_value, data_y_value, neg.get("team_code")); //NEG
+		doc.text(x_value, data_y_value, neg); //NEG
 		x_value = x_value + spacing;
 		var judge_name = collection.rounds.at(i).get("judge") != undefined ? collection.rounds.at(i).get("judge").get("name") : "";
 		doc.text(x_value, data_y_value, judge_name); //JUDGE
@@ -2620,51 +2619,12 @@ $("#pdf_gen").click(function(){
 			"Judge"
 	];
 	
-    var startIndex = 0;
-    pdf.roundDataPDF(headers,titles,startIndex);
+    pdf.generatePairingSheet(headers,titles, 1, collection.divisions.at(0));
 	
 
 });
 
-$("#pdf_gen2").click(function(){
-	const headers = {
-		tournament_name: 'Round Rock HS Tournament',
-		date: '11/18/11',
-		round_number: '2',
-		start_time_text: 'Start: 3:00 PM',
-		message: 'Welcome to the Round Rock Tournament run by DebateTab!'
-	};
 
-	const titles = [ "Affirmative",
-			"Negative",
-			"Room",
-			"Judge"
-	];
-	
-	var startIndex = (Math.ceil((collection.teams.length)/2));
-    pdf.roundDataPDF(headers,titles,startIndex);
-
-});
-
-$("#pdf_gen3").click(function(){
-	const headers = {
-		tournament_name: 'Round Rock HS Tournament',
-		date: '11/18/11',
-		round_number: '3',
-		start_time_text: 'Start: 3:00 PM',
-		message: 'Welcome to the Round Rock Tournament run by DebateTab!'
-	};
-
-	const titles = [ "Affirmative",
-			"Negative",
-			"Room",
-			"Judge"
-	];
-	
-	var startIndex = 2*(Math.ceil((collection.teams.length)/2));
-    pdf.roundDataPDF(headers,titles,startIndex);
-
-});
 
 $("#ballot_gen").click(function(){
 	pdf.generateCXBallot();	
