@@ -1416,7 +1416,7 @@ pdf.generatePairingSheet = function(headers, titles, round_number, division){
 
 	doc.text(20, 20, headers.tournament_name);
 	doc.text(20, 30, headers.date);
-	const round_text = 'Round: ' + headers.round_number;
+	var round_text = 'Round: ' + headers.round_number;
 	doc.text(20, 40, round_text);
 	doc.text(20, 50, headers.division.get("division_name") + " : " + headers.start_time_text);
 	doc.text(20, 60, headers.message);
@@ -2604,7 +2604,7 @@ $("#menu_pdf").click(function(){
 
 //Code for Generate PDF Button
 $("#pdf_gen").click(function(){
-	const headers = {
+	var headers = {
 		tournament_name: 'Round Rock HS Tournament',
 		date: '11/18/11',
 		round_number: '1',
@@ -2613,10 +2613,10 @@ $("#pdf_gen").click(function(){
 		division: collection.divisions.at(0)
 	};
 
-	const titles = [ "Affirmative",
+	var titles = [ "Affirmative",
 			"Negative",
-			"Room",
-			"Judge"
+			"Judge",
+			"Room"
 	];
 	
     pdf.generatePairingSheet(headers,titles, 1, collection.divisions.at(0));
