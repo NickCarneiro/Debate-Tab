@@ -298,7 +298,7 @@ collection.Rounds = Backbone.Collection.extend({
 
 /*
 =========================================
-Define Pairing Functions
+BEGIN: Define Pairing Functions
 =========================================
 */	
 // all functions for tab below this point
@@ -1138,6 +1138,371 @@ pairing.pairRound = function(round_number, division){
 	pairing.fixRepeatedByes(round_number, division);
 	pairing.setSides(round_number, division);
 }
+
+/*
+=========================================
+END: Define Pairing Functions
+=========================================
+*/	
+
+
+/*
+=========================================
+BEGIN: Define PDF Function
+=========================================
+*/	
+
+pdf.roundDataPDF = function(headers,titles,startIndex)
+{
+    var rooms_array = new Array();
+	
+	for(x=0; x < collection.rooms.length; x++)
+	{
+		rooms_array[x] = collection.rooms.at(x).get("division").get("division_name"); 
+	}
+    var judges_array = new Array();
+	
+    for(y=0; y<collection.judges.length; y++)
+    {
+       judges_array[y] = new Array();
+
+       if(collection.judges.at(y).get("divisions").length == 1)
+       {
+        judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
+       }
+       if(collection.judges.at(y).get("divisions").length == 2)
+       {
+        judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
+        judges_array[y][1] = collection.judges.at(y).get("divisions")[1].get("division_name");
+       }
+       if(collection.judges.at(y).get("divisions").length == 3)
+       {
+        judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
+        judges_array[y][1] = collection.judges.at(y).get("divisions")[1].get("division_name");
+        judges_array[y][2] = collection.judges.at(y).get("divisions")[2].get("division_name");
+       }
+       if(collection.judges.at(y).get("divisions").length == 4)
+       {
+        judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
+        judges_array[y][1] = collection.judges.at(y).get("divisions")[1].get("division_name");
+        judges_array[y][2] = collection.judges.at(y).get("divisions")[2].get("division_name");
+        judges_array[y][3] = collection.judges.at(y).get("divisions")[3].get("division_name");
+       }
+    }	
+    var judge_team_forbidden = new Array();
+
+    var judgeIndex = $.inArray("VCX", judges_array);
+    console.log(judges_array);
+    console.log($.inArray("VCX",judges_array[0]));
+
+	var table_data = new Array();	//this is a 2-D array 
+	if(collection.rounds.length > 0)
+	{
+		for(var i=0, j=startIndex; i< Math.ceil((collection.teams.length)/2) ; i++,j++) {
+		//	table_data[i] = new tableRowArray();
+			table_data[i] = new Array();
+			if(collection.rounds.at(i).get("aff") == 0)
+			{
+				table_data[i][0] = collection.rounds.at(j).get("team1").get("team_code");
+				table_data[i][1] = collection.rounds.at(j).get("team2").get("team_code");
+
+			}
+			else
+			{
+				table_data[i][0] = collection.rounds.at(j).get("team2").get("team_code");
+				table_data[i][1] = collection.rounds.at(j).get("team1").get("team_code");
+				
+			}
+			
+			if((table_data[i][0] == "BYE") || (table_data[i][1] == "BYE"))
+			{
+				table_data[i][2] = "None";
+			}
+			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "VCX")
+			{
+				for(x=0; x < collection.rooms.length; x++)
+				{
+					if(rooms_array[x] == "VCX")
+					{
+						table_data[i][2] = '' + collection.rooms.at(x).get("name");
+
+						rooms_array[x] = "lol";
+						break;
+						
+					}
+				}
+                for(x=0; x < collection.judges.length; x++)
+                {
+                    var judgeIndex = $.inArray("VCX", judges_array[x]);
+                    if(judgeIndex != -1)
+                    {
+                        table_data[i][3] = collection.judges.at(x).get("name");
+                        judges_array[x] = "lol";
+                        break;
+                    }
+                }
+                	
+			}
+			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "NCX")
+			{
+				for(x=0; x < collection.rooms.length; x++)
+				{
+					if(rooms_array[x] == "NCX")
+					{
+						table_data[i][2] = '' + collection.rooms.at(x).get("name");
+				
+						rooms_array[x] = "lol";
+						break;
+						
+					}
+				}	
+                for(x=0; x < collection.judges.length; x++)
+                {
+                    var judgeIndex = $.inArray("NCX", judges_array[x]);
+                    if(judgeIndex != -1)
+                    {
+                        table_data[i][3] = collection.judges.at(x).get("name");
+                        judges_array[x] = "lol";
+                        break;
+                    }
+                }
+			}
+			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "VLD")
+			{
+				for(x=0; x < collection.rooms.length; x++)
+				{
+					if(rooms_array[x] == "VLD")
+					{
+						table_data[i][2] = '' + collection.rooms.at(x).get("name");
+			
+						rooms_array[x] = "lol";
+						break;
+						
+					}
+				}	
+                for(x=0; x < collection.judges.length; x++)
+                {
+                    var judgeIndex = $.inArray("VLD", judges_array[x]);
+                    if(judgeIndex != -1)
+                    {
+                        table_data[i][3] = collection.judges.at(x).get("name");
+                        judges_array[x] = "lol";
+                        break;
+                    }
+                }
+			}
+			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "NLD")
+			{
+				for(x=0; x < collection.rooms.length; x++)
+				{
+					if(rooms_array[x] == "NLD")
+					{
+						table_data[i][2] = '' + collection.rooms.at(x).get("name");
+		
+						rooms_array[x] = "lol";
+						break;
+						
+					}
+				}	
+                for(x=0; x < collection.judges.length; x++)
+                {
+                    var judgeIndex = $.inArray("NLD", judges_array[x]);
+                    if(judgeIndex != -1)
+                    {
+                        table_data[i][3] = collection.judges.at(x).get("name");
+                        judges_array[x] = "lol";
+                        break;
+                    }
+                }
+			}
+
+		
+		}
+		
+			pdf.generatePDF_PairingSheet(headers, titles, table_data);	
+
+	}
+	else
+	{
+		alert("no rounds exist");
+	}
+}
+
+pdf.generatePDF_PairingSheet = function(headers, titles, table_data){
+	// generate a blank document
+	var doc = new jsPDF();
+	var max_page_length = 280;
+	var page_start_y_value = 50;
+
+
+	doc.text(20, 20, headers.tournament_name);
+	doc.text(20, 30, headers.date);
+	const round_text = 'Round: ' + headers.round_number;
+	doc.text(20, 40, round_text);
+	doc.text(20, 50, headers.start_time_text);
+	doc.text(20, 60, headers.message);
+
+	var x_value = 20;
+	const title_y_value = 80;
+	const spacing = 47;
+
+
+	pdf.printTitles(doc, titles, x_value, title_y_value, spacing);
+
+	var data_y_value = 90;
+	var j = 0;
+	for(i=0; i< table_data.length; i++) {	//for each row
+		x_value = 20;
+		for(j=0; j< table_data[i].length; j++) {	//for each column
+			doc.text(x_value, data_y_value, table_data[i][j]);
+			x_value = x_value + spacing;		// add a spacing between each column
+		}	
+		data_y_value = data_y_value + 10;
+		if(data_y_value > max_page_length) {
+			doc.addPage();
+			data_y_value = page_start_y_value;
+			pdf.printTitles(doc, titles, 20, 30, spacing);	// where to start printing
+								// of titles on new page
+		}
+	}
+
+//	doc.text(20, 30, 'This is client-side JS pumping out a PDF!');
+//	doc.addPage();
+//	doc.text(20, 20, 'Do you like that?');
+
+	// Output as Data URI so that it can be downloaded / viewed
+	doc.output('datauri');
+}
+
+pdf.generateLDBallot = function(){
+	// generate a blank document
+	var doc = new jsPDF();
+
+
+	doc.setFontSize(18);
+	doc.text(20, 20, 'Lincoln Douglas Debate Ballot');
+	doc.setFontSize(13);
+	doc.text(20, 30, 'Round:___________'); doc.text(130,30, 'Judge:___________');
+	doc.text(39,30,'Fill form');
+	//const round_text = 'Round: ' + headers.round_number;
+	doc.text(20, 40, 'Affirmative Code:___________'); doc.text(130,40, 'Negative Code:___________');
+	//doc.text(20, 50, headers.start_time_text); 
+	//doc.text(20, 60, headers.message);
+	doc.setFontSize(9);
+	doc.text(97,52, 'Points');
+	doc.text(186,52, 'Points');
+	doc.setFontSize(11);
+	doc.text(20, 60, 'AFFIRMATIVE ______________________  _____       NEGATIVE ______________________  _____  ');
+	//doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
+	doc.setFontSize(9);
+	doc.text(20,75, 'Speakers should be rated on a scale from 20-30 points.  Half points (.5) are allowed.You may have a tie in points,'); 
+	doc.text(20,79, 'but you must indicate the person doing the better job of debating');
+	doc.setFontSize(13);
+	doc.text(20,94, 'COMMENTS AND REASON(S) FOR DECISION');
+	doc.text(20,94, '_______________________________________');
+	doc.setFontSize(11);
+	doc.text(20,240, 'In my opinion, the better debating was done by  AFFIRMATIVE  NEGATIVE  representing  __________');
+	doc.text(115,245, '(Circle One)');
+	doc.text(176,245, '(Team Code)');
+	doc.text(20, 265, '___________________________________                             _______________________________');
+	doc.text(20, 270, 'Judge Signature');
+	doc.text(128,270, 'Affiliation (School)');
+
+	// Output as Data URI so that it can be downloaded / viewed
+	doc.output('datauri');
+}
+
+pdf.generateCXBallot = function(){
+	// generate a blank document
+	var doc = new jsPDF();
+
+
+	doc.setFontSize(18);
+	doc.text(20, 20, 'Cross Examination Debate Ballot');
+	doc.setFontSize(13);
+	doc.text(20, 30, 'Round:___________'); doc.text(130,30, 'Judge:___________');
+	doc.text(39,30,'Fill form');
+	//const round_text = 'Round: ' + headers.round_number;
+	doc.text(20, 40, 'Affirmative Code:___________'); doc.text(130,40, 'Negative Code:___________');
+	//doc.text(20, 50, headers.start_time_text); 
+	//doc.text(20, 60, headers.message);
+	doc.setFontSize(9);
+	doc.text(77,52, 'Points    Ranks');
+	doc.text(164,52, 'Points    Ranks');
+	doc.setFontSize(11);
+	doc.text(20, 60, '1st AFF. __________________  _____  _____     1st NEG. __________________  _____  _____');
+	doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
+	doc.setFontSize(9);
+	doc.text(20,80, 'Speakers should be rated on a scale from 20-30 points.  Half points (.5) are allowed.You may have a tie in points,'); 
+	doc.text(20,84, 'but you must indicate the person doing the better job of debating');
+	doc.setFontSize(13);
+	doc.text(20,94, 'COMMENTS AND REASON(S) FOR DECISION');
+	doc.text(20,94, '_______________________________________');
+	doc.setFontSize(11);
+	doc.text(20,240, 'In my opinion, the better debating was done by  AFFIRMATIVE  NEGATIVE  representing  __________');
+	doc.text(115,245, '(Circle One)');
+	doc.text(176,245, '(Team Code)');
+	doc.text(20, 265, '___________________________________                             _______________________________');
+	doc.text(20, 270, 'Judge Signature');
+	doc.text(128,270, 'Affiliation (School)');
+
+	// Output as Data URI so that it can be downloaded / viewed
+	doc.output('datauri');
+}
+
+
+pdf.printTitles = function(doc, titles, x_value, title_y_value, spacing) {
+	var i = 0;
+	for(i=0; i< titles.length; i++) {
+	
+		doc.text(x_value, title_y_value, titles[i]);
+		x_value = x_value + spacing;		// add a spacing between each column
+	}
+}
+/*
+=========================================
+END: Define PDF Functions
+=========================================
+*/	
+
+
+/*
+=========================================
+BEGIN: Define UI Functions
+=========================================
+*/	
+
+/*
+Valid values for menu_item:
+	rounds
+	teams
+	judges
+	rooms
+	schools
+	divisions
+	settings
+*/
+
+/*
+=========================================
+END: Define UI Functions
+=========================================
+*/	
+
+ui.showMenu = function(menu_item){
+
+	$(".container").slideUp(100);
+	$("#" + menu_item + "_container").slideDown(100);
+
+	$(".menu_item").removeClass("menu_item_selected");
+	$("#menu_" + menu_item).addClass("menu_item_selected");
+
+	$(".sub_menu").hide();
+	$("#sub_menu_" + menu_item).show();	
+	localStorage.setItem("selected", menu_item);
+	//ui.state.save({"selected": menu_item});
+}
+
 
 /*
 =========================================
@@ -2034,30 +2399,6 @@ view.roomTable = new view.RoomTable();
 view.roundTable = new view.RoundTable();
 
 
-/*
-Valid values for menu_item:
-	rounds
-	teams
-	judges
-	rooms
-	schools
-	divisions
-	settings
-*/
-
-ui.showMenu = function(menu_item){
-
-	$(".container").slideUp(100);
-	$("#" + menu_item + "_container").slideDown(100);
-
-	$(".menu_item").removeClass("menu_item_selected");
-	$("#menu_" + menu_item).addClass("menu_item_selected");
-
-	$(".sub_menu").hide();
-	$("#sub_menu_" + menu_item).show();	
-	localStorage.setItem("selected", menu_item);
-	//ui.state.save({"selected": menu_item});
-}
 
 //initialize ui menu state
 
@@ -2100,16 +2441,7 @@ Valid values for menu_item:
 	pdf
 	debug
 */
-function showMenu(menu_item){
-	$(".container").slideUp(100);
-	$("#" + menu_item + "_container").slideDown(100);
 
-	$(".menu_item").removeClass("menu_item_selected");
-	$("#menu_" + menu_item).addClass("menu_item_selected");
-
-	$(".sub_menu").hide();
-	$("#sub_menu_" + menu_item).show();	
-}
 
 
 $(".menu_item").click(function(){
@@ -2119,7 +2451,7 @@ $(".menu_item").click(function(){
 	ui.showMenu(menu_item_name);
 });
 
-var nick = '+15129685781';
+
 
 //client-side function call Code for sending a single text
 $("#single_text").click(function(){
@@ -2148,6 +2480,7 @@ $("#single_text").click(function(){
 
 //client side function call Code for sending mass texts
 $("#mass_texts").click(function(){
+	var nick = '+15129685781';
 	var data = {smsList: [
 		{phone_number: nick, message: 'Hello World__1 !'},
 		{phone_number: nick, message: 'Hello World__2 !'}
@@ -2239,323 +2572,7 @@ $("#ballotLD_gen").click(function(){
 	pdf.generateLDBallot();	
 });
 
-pdf.roundDataPDF = function(headers,titles,startIndex)
-{
-    var rooms_array = new Array();
-	
-	for(x=0; x < collection.rooms.length; x++)
-	{
-		rooms_array[x] = collection.rooms.at(x).get("division").get("division_name"); 
-	}
-    var judges_array = new Array();
-	
-    for(y=0; y<collection.judges.length; y++)
-    {
-       judges_array[y] = new Array();
 
-       if(collection.judges.at(y).get("divisions").length == 1)
-       {
-        judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
-       }
-       if(collection.judges.at(y).get("divisions").length == 2)
-       {
-        judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
-        judges_array[y][1] = collection.judges.at(y).get("divisions")[1].get("division_name");
-       }
-       if(collection.judges.at(y).get("divisions").length == 3)
-       {
-        judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
-        judges_array[y][1] = collection.judges.at(y).get("divisions")[1].get("division_name");
-        judges_array[y][2] = collection.judges.at(y).get("divisions")[2].get("division_name");
-       }
-       if(collection.judges.at(y).get("divisions").length == 4)
-       {
-        judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
-        judges_array[y][1] = collection.judges.at(y).get("divisions")[1].get("division_name");
-        judges_array[y][2] = collection.judges.at(y).get("divisions")[2].get("division_name");
-        judges_array[y][3] = collection.judges.at(y).get("divisions")[3].get("division_name");
-       }
-    }	
-    var judge_team_forbidden = new Array();
-
-    var judgeIndex = $.inArray("VCX", judges_array);
-    console.log(judges_array);
-    console.log($.inArray("VCX",judges_array[0]));
-
-	var table_data = new Array();	//this is a 2-D array 
-	if(collection.rounds.length > 0)
-	{
-		for(var i=0, j=startIndex; i< Math.ceil((collection.teams.length)/2) ; i++,j++) {
-		//	table_data[i] = new tableRowArray();
-			table_data[i] = new Array();
-			if(collection.rounds.at(i).get("aff") == 0)
-			{
-				table_data[i][0] = collection.rounds.at(j).get("team1").get("team_code");
-				table_data[i][1] = collection.rounds.at(j).get("team2").get("team_code");
-
-			}
-			else
-			{
-				table_data[i][0] = collection.rounds.at(j).get("team2").get("team_code");
-				table_data[i][1] = collection.rounds.at(j).get("team1").get("team_code");
-				
-			}
-			
-			if((table_data[i][0] == "BYE") || (table_data[i][1] == "BYE"))
-			{
-				table_data[i][2] = "None";
-			}
-			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "VCX")
-			{
-				for(x=0; x < collection.rooms.length; x++)
-				{
-					if(rooms_array[x] == "VCX")
-					{
-						table_data[i][2] = '' + collection.rooms.at(x).get("name");
-
-						rooms_array[x] = "lol";
-						break;
-						
-					}
-				}
-                for(x=0; x < collection.judges.length; x++)
-                {
-                    var judgeIndex = $.inArray("VCX", judges_array[x]);
-                    if(judgeIndex != -1)
-                    {
-                        table_data[i][3] = collection.judges.at(x).get("name");
-                        judges_array[x] = "lol";
-                        break;
-                    }
-                }
-                	
-			}
-			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "NCX")
-			{
-				for(x=0; x < collection.rooms.length; x++)
-				{
-					if(rooms_array[x] == "NCX")
-					{
-						table_data[i][2] = '' + collection.rooms.at(x).get("name");
-				
-						rooms_array[x] = "lol";
-						break;
-						
-					}
-				}	
-                for(x=0; x < collection.judges.length; x++)
-                {
-                    var judgeIndex = $.inArray("NCX", judges_array[x]);
-                    if(judgeIndex != -1)
-                    {
-                        table_data[i][3] = collection.judges.at(x).get("name");
-                        judges_array[x] = "lol";
-                        break;
-                    }
-                }
-			}
-			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "VLD")
-			{
-				for(x=0; x < collection.rooms.length; x++)
-				{
-					if(rooms_array[x] == "VLD")
-					{
-						table_data[i][2] = '' + collection.rooms.at(x).get("name");
-			
-						rooms_array[x] = "lol";
-						break;
-						
-					}
-				}	
-                for(x=0; x < collection.judges.length; x++)
-                {
-                    var judgeIndex = $.inArray("VLD", judges_array[x]);
-                    if(judgeIndex != -1)
-                    {
-                        table_data[i][3] = collection.judges.at(x).get("name");
-                        judges_array[x] = "lol";
-                        break;
-                    }
-                }
-			}
-			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "NLD")
-			{
-				for(x=0; x < collection.rooms.length; x++)
-				{
-					if(rooms_array[x] == "NLD")
-					{
-						table_data[i][2] = '' + collection.rooms.at(x).get("name");
-		
-						rooms_array[x] = "lol";
-						break;
-						
-					}
-				}	
-                for(x=0; x < collection.judges.length; x++)
-                {
-                    var judgeIndex = $.inArray("NLD", judges_array[x]);
-                    if(judgeIndex != -1)
-                    {
-                        table_data[i][3] = collection.judges.at(x).get("name");
-                        judges_array[x] = "lol";
-                        break;
-                    }
-                }
-			}
-
-		
-		}
-		
-			pdf.generatePDF_PairingSheet(headers, titles, table_data);	
-
-	}
-	else
-	{
-		alert("no rounds exist");
-	}
-}
-
-/*
-=========================================
-BEGIN: Define PDF Function
-=========================================
-*/	
-pdf.generatePDF_PairingSheet = function(headers, titles, table_data){
-	// generate a blank document
-	var doc = new jsPDF();
-	var max_page_length = 280;
-	var page_start_y_value = 50;
-
-
-	doc.text(20, 20, headers.tournament_name);
-	doc.text(20, 30, headers.date);
-	const round_text = 'Round: ' + headers.round_number;
-	doc.text(20, 40, round_text);
-	doc.text(20, 50, headers.start_time_text);
-	doc.text(20, 60, headers.message);
-
-	var x_value = 20;
-	const title_y_value = 80;
-	const spacing = 47;
-
-
-	pdf.printTitles(doc, titles, x_value, title_y_value, spacing);
-
-	var data_y_value = 90;
-	var j = 0;
-	for(i=0; i< table_data.length; i++) {	//for each row
-		x_value = 20;
-		for(j=0; j< table_data[i].length; j++) {	//for each column
-			doc.text(x_value, data_y_value, table_data[i][j]);
-			x_value = x_value + spacing;		// add a spacing between each column
-		}	
-		data_y_value = data_y_value + 10;
-		if(data_y_value > max_page_length) {
-			doc.addPage();
-			data_y_value = page_start_y_value;
-			pdf.printTitles(doc, titles, 20, 30, spacing);	// where to start printing
-								// of titles on new page
-		}
-	}
-
-//	doc.text(20, 30, 'This is client-side JS pumping out a PDF!');
-//	doc.addPage();
-//	doc.text(20, 20, 'Do you like that?');
-
-	// Output as Data URI so that it can be downloaded / viewed
-	doc.output('datauri');
-}
-
-pdf.generateLDBallot = function(){
-	// generate a blank document
-	var doc = new jsPDF();
-
-
-	doc.setFontSize(18);
-	doc.text(20, 20, 'Lincoln Douglas Debate Ballot');
-	doc.setFontSize(13);
-	doc.text(20, 30, 'Round:___________'); doc.text(130,30, 'Judge:___________');
-	doc.text(39,30,'Fill form');
-	//const round_text = 'Round: ' + headers.round_number;
-	doc.text(20, 40, 'Affirmative Code:___________'); doc.text(130,40, 'Negative Code:___________');
-	//doc.text(20, 50, headers.start_time_text); 
-	//doc.text(20, 60, headers.message);
-	doc.setFontSize(9);
-	doc.text(97,52, 'Points');
-	doc.text(186,52, 'Points');
-	doc.setFontSize(11);
-	doc.text(20, 60, 'AFFIRMATIVE ______________________  _____       NEGATIVE ______________________  _____  ');
-	//doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
-	doc.setFontSize(9);
-	doc.text(20,75, 'Speakers should be rated on a scale from 20-30 points.  Half points (.5) are allowed.You may have a tie in points,'); 
-	doc.text(20,79, 'but you must indicate the person doing the better job of debating');
-	doc.setFontSize(13);
-	doc.text(20,94, 'COMMENTS AND REASON(S) FOR DECISION');
-	doc.text(20,94, '_______________________________________');
-	doc.setFontSize(11);
-	doc.text(20,240, 'In my opinion, the better debating was done by  AFFIRMATIVE  NEGATIVE  representing  __________');
-	doc.text(115,245, '(Circle One)');
-	doc.text(176,245, '(Team Code)');
-	doc.text(20, 265, '___________________________________                             _______________________________');
-	doc.text(20, 270, 'Judge Signature');
-	doc.text(128,270, 'Affiliation (School)');
-
-	// Output as Data URI so that it can be downloaded / viewed
-	doc.output('datauri');
-}
-
-pdf.generateCXBallot = function(){
-	// generate a blank document
-	var doc = new jsPDF();
-
-
-	doc.setFontSize(18);
-	doc.text(20, 20, 'Cross Examination Debate Ballot');
-	doc.setFontSize(13);
-	doc.text(20, 30, 'Round:___________'); doc.text(130,30, 'Judge:___________');
-	doc.text(39,30,'Fill form');
-	//const round_text = 'Round: ' + headers.round_number;
-	doc.text(20, 40, 'Affirmative Code:___________'); doc.text(130,40, 'Negative Code:___________');
-	//doc.text(20, 50, headers.start_time_text); 
-	//doc.text(20, 60, headers.message);
-	doc.setFontSize(9);
-	doc.text(77,52, 'Points    Ranks');
-	doc.text(164,52, 'Points    Ranks');
-	doc.setFontSize(11);
-	doc.text(20, 60, '1st AFF. __________________  _____  _____     1st NEG. __________________  _____  _____');
-	doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
-	doc.setFontSize(9);
-	doc.text(20,80, 'Speakers should be rated on a scale from 20-30 points.  Half points (.5) are allowed.You may have a tie in points,'); 
-	doc.text(20,84, 'but you must indicate the person doing the better job of debating');
-	doc.setFontSize(13);
-	doc.text(20,94, 'COMMENTS AND REASON(S) FOR DECISION');
-	doc.text(20,94, '_______________________________________');
-	doc.setFontSize(11);
-	doc.text(20,240, 'In my opinion, the better debating was done by  AFFIRMATIVE  NEGATIVE  representing  __________');
-	doc.text(115,245, '(Circle One)');
-	doc.text(176,245, '(Team Code)');
-	doc.text(20, 265, '___________________________________                             _______________________________');
-	doc.text(20, 270, 'Judge Signature');
-	doc.text(128,270, 'Affiliation (School)');
-
-	// Output as Data URI so that it can be downloaded / viewed
-	doc.output('datauri');
-}
-
-
-pdf.printTitles = function(doc, titles, x_value, title_y_value, spacing) {
-	var i = 0;
-	for(i=0; i< titles.length; i++) {
-	
-		doc.text(x_value, title_y_value, titles[i]);
-		x_value = x_value + spacing;		// add a spacing between each column
-	}
-}
-/*
-=========================================
-END: Define PDF Function
-=========================================
-*/	
 
 //Code for the help menu on the right
 $("#menu_judges").click(function(){
@@ -2785,6 +2802,6 @@ $("#pair_tests").click(function(){
 
 return {collection: collection, model: model, view: view, router: router, pairing: pairing, con: con, ui: ui};
 
-}());
+}()); //end the IIFE
 
 
