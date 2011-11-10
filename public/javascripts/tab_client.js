@@ -474,13 +474,84 @@ pairing.simulateRound = function(round_number){
 	for(var i = 0; i < collection.rounds.length; i++){
 		if(collection.rounds.at(i).get("round_number") === round_number){	
 		
-			//aff is either 0 or 1 (team1 or team2)
-			collection.rounds.at(i).set({aff: Math.floor(Math.random() * 2)});
+			
 			//result is 0 thru 3
-			collection.rounds.at(i).set({result: Math.floor(Math.random() * 3)});
+			collection.rounds.at(i).set({result: Math.floor(Math.random() * 4)});
 		}
 	}
 }
+
+
+//set the sides in a debate round by setting Round.aff to 0 (team1) or 1 (team2)
+//TODO: make better than random
+pairing.setSides = function(round_number, division){
+
+	//if round_number is one, choose sides randomly
+	if(round_number === 1){
+		for(var i = 0; i < collection.rounds.length; i++){
+			//skip irrelevant rounds
+			if(collection.rounds.at(i).get("round_number") != round_number || collection.rounds.at(i).get("division") != division){
+				continue;
+			}
+			collection.rounds.at(i).set({aff: Math.floor(Math.random() * 2)});
+		}
+		
+	} else{
+		//give aff to the team with fewer aff rounds
+		var sides = [];
+		//one pass over teams to initialize affs and negs to zero
+		for(var i = 0; i < collection.teams.length; i++){
+			if(collection.teams.at(i).get("division") != division){
+				continue;
+			}
+			sides[collection.teams.at(i).get("id")] = {aff: 0, neg: 0};
+		}
+
+		for(var i = 0; i < collection.rounds.length; i++){
+			//one pass over previous rounds to count affs and negs for each team
+			if(collection.rounds.at(i).get("round_number") >= round_number || collection.rounds.at(i).get("division") != division){
+				continue;
+			}
+			if(collection.rounds.at(i).get("team1").get("team_code") != "BYE" 
+				&& collection.rounds.at(i).get("team2").get("team_code") != "BYE"){
+					
+				if(collection.rounds.at(i).get("aff") === 0){
+					sides[collection.rounds.at(i).get("team1").get("id")].aff++;
+					sides[collection.rounds.at(i).get("team2").get("id")].neg++;
+				} else if(collection.rounds.at(i).get("aff") === 1){
+					sides[collection.rounds.at(i).get("team1").get("id")].neg++;
+					sides[collection.rounds.at(i).get("team2").get("id")].aff++;
+				} else {
+					con.write("WARNING: previous round had no side set");
+				}
+			
+			}
+		}
+		
+		//set sides according to past records
+		for(var i = 0; i < collection.rounds.length; i++){
+			//skip irrelevant rounds
+			if(collection.rounds.at(i).get("round_number") != round_number || collection.rounds.at(i).get("division") != division){
+				continue;
+			}
+			//skip bye rounds
+			if(collection.rounds.at(i).get("team1").get("team_code") === "BYE" 
+				|| collection.rounds.at(i).get("team2").get("team_code") === "BYE"){
+				continue;
+			}
+			if(sides[collection.rounds.at(i).get("team1").get("id")] > sides[collection.rounds.at(i).get("team2").get("id")]){
+				//team2 should be aff
+				collection.rounds.at(i).set({aff: 1});
+			} else {
+				//team1 should be aff
+				collection.rounds.at(i).set({aff: 0});
+			}
+
+		} 
+	}
+	
+}
+
 
 pairing.roundCount = function(round_number){
 	var count = 0;
@@ -494,7 +565,7 @@ pairing.roundCount = function(round_number){
 };
 pairing.printRecords = function(division){
 
-	con.write("############## TEAM RECORDS ###############");
+	con.write("############## TEAM RECORDS IN " + division.get("division_name") + " ###############");
 	for(var i = 0; i < collection.teams.length; i++){
 		if(collection.teams.at(i).get("division") != division){
 			continue;
@@ -526,8 +597,8 @@ pairing.alreadyDebated = function(team1, team2){
 /**
 Print pairings in the debug console. Does not modify anything. Just prints.
 **/
-pairing.printPairings = function(round_number){
-	con.write("############## ROUND " + round_number +" ###############");
+pairing.printPairings = function(round_number, division){
+	con.write("############## ROUND " + round_number +" in " + division.get("division_name") + "###############");
 	for(var i = 0; i < collection.rounds.length; i++){
 		if(collection.rounds.at(i).get("round_number") == round_number){
 			var padding = 30 - collection.rounds.at(i).get("team1").get("team_code").length;
@@ -1026,6 +1097,7 @@ pairing.pairRound = function(round_number, division){
 	}
 
 	pairing.fixRepeatedByes(round_number, division);
+	pairing.setSides(round_number, division);
 }
 
 /*
@@ -2400,6 +2472,22 @@ $("#pair_tests").click(function(){
 	pairing.updateRecords(div1);
 	pairing.sortTeams(div1);
 	pairing.printRecords(div1);
+
+	pairing.pairRound(1, div2);
+
+	pairing.printPairings(1, div2);
+	pairing.simulateRound(1, div2);
+
+	pairing.updateRecords(div2);
+	pairing.sortTeams(div2);
+	pairing.printRecords(div2);
+
+	pairing.pairRound(2, div2);
+	pairing.printPairings(2, div2);
+	pairing.simulateRound(2, div2);
+	pairing.updateRecords(div2);
+	pairing.sortTeams(div2);
+	pairing.printRecords(div2);
 /*
 	pairing.pairRound(3, div1);
 	pairing.printPairings(3, div1);
