@@ -28,8 +28,8 @@ var tab = (function (){
 	var ui = {};
 
 
-	//include jspdf
-	//var jspdf = require('jspdf/jspdf');
+	//functions for working with pdfs
+	var pdf = {};
 
 
 /*
@@ -2186,7 +2186,7 @@ $("#pdf_gen").click(function(){
 	];
 	
     var startIndex = 0;
-    roundDataPDF(headers,titles,startIndex);
+    pdf.roundDataPDF(headers,titles,startIndex);
 	
 
 });
@@ -2207,7 +2207,7 @@ $("#pdf_gen2").click(function(){
 	];
 	
 	var startIndex = (Math.ceil((collection.teams.length)/2));
-    roundDataPDF(headers,titles,startIndex);
+    pdf.roundDataPDF(headers,titles,startIndex);
 
 });
 
@@ -2227,11 +2227,19 @@ $("#pdf_gen3").click(function(){
 	];
 	
 	var startIndex = 2*(Math.ceil((collection.teams.length)/2));
-    roundDataPDF(headers,titles,startIndex);
+    pdf.roundDataPDF(headers,titles,startIndex);
 
 });
 
-function roundDataPDF(headers,titles,startIndex)
+$("#ballot_gen").click(function(){
+	pdf.generateCXBallot();	
+});
+
+$("#ballotLD_gen").click(function(){
+	pdf.generateLDBallot();	
+});
+
+pdf.roundDataPDF = function(headers,titles,startIndex)
 {
     var rooms_array = new Array();
 	
@@ -2394,18 +2402,11 @@ function roundDataPDF(headers,titles,startIndex)
                     }
                 }
 			}
-				
-			
-				
-				
-			//table_data[i][3] = "John Doe";
-		
-		
-		
+
 		
 		}
 		
-			generatePDF_PairingSheet(headers, titles, table_data);	
+			pdf.generatePDF_PairingSheet(headers, titles, table_data);	
 
 	}
 	else
@@ -2414,13 +2415,12 @@ function roundDataPDF(headers,titles,startIndex)
 	}
 }
 
-
 /*
 =========================================
 BEGIN: Define PDF Function
 =========================================
 */	
-function generatePDF_PairingSheet(headers, titles, table_data){
+pdf.generatePDF_PairingSheet = function(headers, titles, table_data){
 	// generate a blank document
 	var doc = new jsPDF();
 	var max_page_length = 280;
@@ -2433,15 +2433,13 @@ function generatePDF_PairingSheet(headers, titles, table_data){
 	doc.text(20, 40, round_text);
 	doc.text(20, 50, headers.start_time_text);
 	doc.text(20, 60, headers.message);
-	
+
 	var x_value = 20;
 	const title_y_value = 80;
 	const spacing = 47;
 
-	doc.setFontSize(20);
-	printTitles(doc, titles, x_value, title_y_value, spacing);
-	doc.setFontSize(14);
 
+	pdf.printTitles(doc, titles, x_value, title_y_value, spacing);
 
 	var data_y_value = 90;
 	var j = 0;
@@ -2455,7 +2453,7 @@ function generatePDF_PairingSheet(headers, titles, table_data){
 		if(data_y_value > max_page_length) {
 			doc.addPage();
 			data_y_value = page_start_y_value;
-			printTitles(doc, titles, 20, 30, spacing);	// where to start printing
+			pdf.printTitles(doc, titles, 20, 30, spacing);	// where to start printing
 								// of titles on new page
 		}
 	}
@@ -2468,7 +2466,84 @@ function generatePDF_PairingSheet(headers, titles, table_data){
 	doc.output('datauri');
 }
 
-function printTitles(doc, titles, x_value, title_y_value, spacing) {
+pdf.generateLDBallot = function(){
+	// generate a blank document
+	var doc = new jsPDF();
+
+
+	doc.setFontSize(18);
+	doc.text(20, 20, 'Lincoln Douglas Debate Ballot');
+	doc.setFontSize(13);
+	doc.text(20, 30, 'Round:___________'); doc.text(130,30, 'Judge:___________');
+	doc.text(39,30,'Fill form');
+	//const round_text = 'Round: ' + headers.round_number;
+	doc.text(20, 40, 'Affirmative Code:___________'); doc.text(130,40, 'Negative Code:___________');
+	//doc.text(20, 50, headers.start_time_text); 
+	//doc.text(20, 60, headers.message);
+	doc.setFontSize(9);
+	doc.text(97,52, 'Points');
+	doc.text(186,52, 'Points');
+	doc.setFontSize(11);
+	doc.text(20, 60, 'AFFIRMATIVE ______________________  _____       NEGATIVE ______________________  _____  ');
+	//doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
+	doc.setFontSize(9);
+	doc.text(20,75, 'Speakers should be rated on a scale from 20-30 points.  Half points (.5) are allowed.You may have a tie in points,'); 
+	doc.text(20,79, 'but you must indicate the person doing the better job of debating');
+	doc.setFontSize(13);
+	doc.text(20,94, 'COMMENTS AND REASON(S) FOR DECISION');
+	doc.text(20,94, '_______________________________________');
+	doc.setFontSize(11);
+	doc.text(20,240, 'In my opinion, the better debating was done by  AFFIRMATIVE  NEGATIVE  representing  __________');
+	doc.text(115,245, '(Circle One)');
+	doc.text(176,245, '(Team Code)');
+	doc.text(20, 265, '___________________________________                             _______________________________');
+	doc.text(20, 270, 'Judge Signature');
+	doc.text(128,270, 'Affiliation (School)');
+
+	// Output as Data URI so that it can be downloaded / viewed
+	doc.output('datauri');
+}
+
+pdf.generateCXBallot = function(){
+	// generate a blank document
+	var doc = new jsPDF();
+
+
+	doc.setFontSize(18);
+	doc.text(20, 20, 'Cross Examination Debate Ballot');
+	doc.setFontSize(13);
+	doc.text(20, 30, 'Round:___________'); doc.text(130,30, 'Judge:___________');
+	doc.text(39,30,'Fill form');
+	//const round_text = 'Round: ' + headers.round_number;
+	doc.text(20, 40, 'Affirmative Code:___________'); doc.text(130,40, 'Negative Code:___________');
+	//doc.text(20, 50, headers.start_time_text); 
+	//doc.text(20, 60, headers.message);
+	doc.setFontSize(9);
+	doc.text(77,52, 'Points    Ranks');
+	doc.text(164,52, 'Points    Ranks');
+	doc.setFontSize(11);
+	doc.text(20, 60, '1st AFF. __________________  _____  _____     1st NEG. __________________  _____  _____');
+	doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
+	doc.setFontSize(9);
+	doc.text(20,80, 'Speakers should be rated on a scale from 20-30 points.  Half points (.5) are allowed.You may have a tie in points,'); 
+	doc.text(20,84, 'but you must indicate the person doing the better job of debating');
+	doc.setFontSize(13);
+	doc.text(20,94, 'COMMENTS AND REASON(S) FOR DECISION');
+	doc.text(20,94, '_______________________________________');
+	doc.setFontSize(11);
+	doc.text(20,240, 'In my opinion, the better debating was done by  AFFIRMATIVE  NEGATIVE  representing  __________');
+	doc.text(115,245, '(Circle One)');
+	doc.text(176,245, '(Team Code)');
+	doc.text(20, 265, '___________________________________                             _______________________________');
+	doc.text(20, 270, 'Judge Signature');
+	doc.text(128,270, 'Affiliation (School)');
+
+	// Output as Data URI so that it can be downloaded / viewed
+	doc.output('datauri');
+}
+
+
+pdf.printTitles = function(doc, titles, x_value, title_y_value, spacing) {
 	var i = 0;
 	for(i=0; i< titles.length; i++) {
 	
