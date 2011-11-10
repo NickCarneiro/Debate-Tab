@@ -1275,12 +1275,7 @@ pairing.pairRooms = function(round_number, division){
 			} else {
 				//neither team had a previous room.
 				con.write("neither team had previous room");
-				console.log(team1_id);
-				console.log(team2_id);
-				console.log(prev_rooms);
-
-				console.log(room1);
-				console.log(room2);
+				
 				if(rooms.length > 0){
 					collection.rounds.at(i).set({room: rooms.pop()});
 				} else {
