@@ -44,8 +44,6 @@ con.write = function(text){
 }
 
 
-
-
 /*
 =========================================
 Define Backbone Models
@@ -1154,76 +1152,70 @@ BEGIN: Define PDF Function
 
 pdf.roundDataPDF = function(headers,titles,startIndex)
 {
-    var rooms_array = new Array();
-	
-	for(x=0; x < collection.rooms.length; x++)
-	{
+	var rooms_array = new Array();
+	var x;
+	var y;
+
+	//con.write(collection.rooms.length);
+	// TODO
+	// this turns out to be 0. This could be the reason why no pdf is being produced
+	// look into this
+
+	for(x=0; x < collection.rooms.length; x++) {
 		rooms_array[x] = collection.rooms.at(x).get("division").get("division_name"); 
 	}
-    var judges_array = new Array();
-	
-    for(y=0; y<collection.judges.length; y++)
-    {
-       judges_array[y] = new Array();
+	var judges_array = new Array();
+		
+	for(y=0; y<collection.judges.length; y++) {
+		judges_array[y] = new Array();
 
-       if(collection.judges.at(y).get("divisions").length == 1)
-       {
-        judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
-       }
-       if(collection.judges.at(y).get("divisions").length == 2)
-       {
-        judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
-        judges_array[y][1] = collection.judges.at(y).get("divisions")[1].get("division_name");
-       }
-       if(collection.judges.at(y).get("divisions").length == 3)
-       {
-        judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
-        judges_array[y][1] = collection.judges.at(y).get("divisions")[1].get("division_name");
-        judges_array[y][2] = collection.judges.at(y).get("divisions")[2].get("division_name");
-       }
-       if(collection.judges.at(y).get("divisions").length == 4)
-       {
-        judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
-        judges_array[y][1] = collection.judges.at(y).get("divisions")[1].get("division_name");
-        judges_array[y][2] = collection.judges.at(y).get("divisions")[2].get("division_name");
-        judges_array[y][3] = collection.judges.at(y).get("divisions")[3].get("division_name");
-       }
-    }	
-    var judge_team_forbidden = new Array();
+		if(collection.judges.at(y).get("divisions").length == 1) {
+			judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
+		}
+		if(collection.judges.at(y).get("divisions").length == 2) {
+			judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
+			judges_array[y][1] = collection.judges.at(y).get("divisions")[1].get("division_name");
+		}
+		if(collection.judges.at(y).get("divisions").length == 3) {
+			judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
+			judges_array[y][1] = collection.judges.at(y).get("divisions")[1].get("division_name");
+			judges_array[y][2] = collection.judges.at(y).get("divisions")[2].get("division_name");
+		}
+		if(collection.judges.at(y).get("divisions").length == 4) {
+			judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
+			judges_array[y][1] = collection.judges.at(y).get("divisions")[1].get("division_name");
+			judges_array[y][2] = collection.judges.at(y).get("divisions")[2].get("division_name");
+			judges_array[y][3] = collection.judges.at(y).get("divisions")[3].get("division_name");
+		}
+	}
+	var judge_team_forbidden = new Array();
 
-    var judgeIndex = $.inArray("VCX", judges_array);
-    console.log(judges_array);
-    console.log($.inArray("VCX",judges_array[0]));
+	var judgeIndex = $.inArray("VCX", judges_array);
+	console.log(judges_array);
+	console.log($.inArray("VCX",judges_array[0]));
 
 	var table_data = new Array();	//this is a 2-D array 
-	if(collection.rounds.length > 0)
-	{
+	if(collection.rounds.length > 0) {
 		for(var i=0, j=startIndex; i< Math.ceil((collection.teams.length)/2) ; i++,j++) {
 		//	table_data[i] = new tableRowArray();
 			table_data[i] = new Array();
-			if(collection.rounds.at(i).get("aff") == 0)
-			{
+			if(collection.rounds.at(i).get("aff") == 0) {
 				table_data[i][0] = collection.rounds.at(j).get("team1").get("team_code");
 				table_data[i][1] = collection.rounds.at(j).get("team2").get("team_code");
 
 			}
-			else
-			{
+			else {
 				table_data[i][0] = collection.rounds.at(j).get("team2").get("team_code");
 				table_data[i][1] = collection.rounds.at(j).get("team1").get("team_code");
 				
 			}
 			
-			if((table_data[i][0] == "BYE") || (table_data[i][1] == "BYE"))
-			{
+			if((table_data[i][0] == "BYE") || (table_data[i][1] == "BYE")) {
 				table_data[i][2] = "None";
 			}
-			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "VCX")
-			{
-				for(x=0; x < collection.rooms.length; x++)
-				{
-					if(rooms_array[x] == "VCX")
-					{
+			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "VCX") {
+				for(x=0; x < collection.rooms.length; x++) {
+					if(rooms_array[x] == "VCX") {
 						table_data[i][2] = '' + collection.rooms.at(x).get("name");
 
 						rooms_array[x] = "lol";
@@ -1231,24 +1223,19 @@ pdf.roundDataPDF = function(headers,titles,startIndex)
 						
 					}
 				}
-                for(x=0; x < collection.judges.length; x++)
-                {
-                    var judgeIndex = $.inArray("VCX", judges_array[x]);
-                    if(judgeIndex != -1)
-                    {
-                        table_data[i][3] = collection.judges.at(x).get("name");
-                        judges_array[x] = "lol";
-                        break;
-                    }
-                }
-                	
+				for(x=0; x < collection.judges.length; x++) {
+				    var judgeIndex = $.inArray("VCX", judges_array[x]);
+				    if(judgeIndex != -1)
+				    {
+					table_data[i][3] = collection.judges.at(x).get("name");
+					judges_array[x] = "lol";
+					break;
+				    }
+				}
 			}
-			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "NCX")
-			{
-				for(x=0; x < collection.rooms.length; x++)
-				{
-					if(rooms_array[x] == "NCX")
-					{
+			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "NCX") {
+				for(x=0; x < collection.rooms.length; x++) {
+					if(rooms_array[x] == "NCX") {
 						table_data[i][2] = '' + collection.rooms.at(x).get("name");
 				
 						rooms_array[x] = "lol";
@@ -1256,23 +1243,19 @@ pdf.roundDataPDF = function(headers,titles,startIndex)
 						
 					}
 				}	
-                for(x=0; x < collection.judges.length; x++)
-                {
-                    var judgeIndex = $.inArray("NCX", judges_array[x]);
-                    if(judgeIndex != -1)
-                    {
-                        table_data[i][3] = collection.judges.at(x).get("name");
-                        judges_array[x] = "lol";
-                        break;
-                    }
-                }
+				for(x=0; x < collection.judges.length; x++) {
+				    var judgeIndex = $.inArray("NCX", judges_array[x]);
+				    if(judgeIndex != -1)
+				    {
+					table_data[i][3] = collection.judges.at(x).get("name");
+					judges_array[x] = "lol";
+					break;
+				    }
+				}
 			}
-			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "VLD")
-			{
-				for(x=0; x < collection.rooms.length; x++)
-				{
-					if(rooms_array[x] == "VLD")
-					{
+			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "VLD") {
+				for(x=0; x < collection.rooms.length; x++) {
+					if(rooms_array[x] == "VLD") {
 						table_data[i][2] = '' + collection.rooms.at(x).get("name");
 			
 						rooms_array[x] = "lol";
@@ -1280,23 +1263,19 @@ pdf.roundDataPDF = function(headers,titles,startIndex)
 						
 					}
 				}	
-                for(x=0; x < collection.judges.length; x++)
-                {
-                    var judgeIndex = $.inArray("VLD", judges_array[x]);
-                    if(judgeIndex != -1)
-                    {
-                        table_data[i][3] = collection.judges.at(x).get("name");
-                        judges_array[x] = "lol";
-                        break;
-                    }
-                }
+				for(x=0; x < collection.judges.length; x++) {
+				    var judgeIndex = $.inArray("VLD", judges_array[x]);
+				    if(judgeIndex != -1)
+				    {
+					table_data[i][3] = collection.judges.at(x).get("name");
+					judges_array[x] = "lol";
+					break;
+				    }
+				}
 			}
-			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "NLD")
-			{
-				for(x=0; x < collection.rooms.length; x++)
-				{
-					if(rooms_array[x] == "NLD")
-					{
+			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "NLD") {
+				for(x=0; x < collection.rooms.length; x++) {
+					if(rooms_array[x] == "NLD") {
 						table_data[i][2] = '' + collection.rooms.at(x).get("name");
 		
 						rooms_array[x] = "lol";
@@ -1304,26 +1283,21 @@ pdf.roundDataPDF = function(headers,titles,startIndex)
 						
 					}
 				}	
-                for(x=0; x < collection.judges.length; x++)
-                {
-                    var judgeIndex = $.inArray("NLD", judges_array[x]);
-                    if(judgeIndex != -1)
-                    {
-                        table_data[i][3] = collection.judges.at(x).get("name");
-                        judges_array[x] = "lol";
-                        break;
-                    }
-                }
+				for(x=0; x < collection.judges.length; x++) {
+				    var judgeIndex = $.inArray("NLD", judges_array[x]);
+				    if(judgeIndex != -1)
+				    {
+					table_data[i][3] = collection.judges.at(x).get("name");
+					judges_array[x] = "lol";
+					break;
+				    }
+				}
 			}
-
-		
 		}
 		
-			pdf.generatePDF_PairingSheet(headers, titles, table_data);	
-
+		pdf.generatePDF_PairingSheet(headers, titles, table_data);	
 	}
-	else
-	{
+	else {
 		alert("no rounds exist");
 	}
 }
@@ -1365,10 +1339,6 @@ pdf.generatePDF_PairingSheet = function(headers, titles, table_data){
 								// of titles on new page
 		}
 	}
-
-//	doc.text(20, 30, 'This is client-side JS pumping out a PDF!');
-//	doc.addPage();
-//	doc.text(20, 20, 'Do you like that?');
 
 	// Output as Data URI so that it can be downloaded / viewed
 	doc.output('datauri');

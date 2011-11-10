@@ -13,7 +13,7 @@ var mongoose = require('mongoose'); //like include
 
 //Change port variable to your port when testing:
 
-var port = 3003;
+var port = 3007;
 
 /*
 'ali.debatetab.com': '127.0.0.1:3001',
