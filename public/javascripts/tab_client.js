@@ -1150,6 +1150,44 @@ BEGIN: Define PDF Function
 =========================================
 */	
 
+
+pdf.bracketsDataPDF = function() {
+	var date = '11/18/11';
+	var initial_teams = new Array();
+	var quarters = new Array();
+	var semis = new Array();
+	var finals = new Array();
+	var champion = new Array();
+
+	con.write('started bracketsDataPDF');
+
+	//temp generate teams
+	for(var i = 1; i<= 16; i++ ) {
+		var temp_team = 'Team ' + (i); 
+		initial_teams[i-1] = temp_team;
+
+		if(i%2 == 0) {
+			quarters[i/2 -1] = temp_team;
+		}
+		
+		if(i%4 == 0) {
+			semis[i/4 -1] = temp_team;
+		}
+
+		if(i%8 == 0) {
+			finals[i/8 -1] = temp_team;
+		}
+
+		if(i%16 == 0) {
+			champion[i/16 -1] = temp_team;
+			con.write('champion: ' + champion[0]);
+		}
+	}
+
+	con.write('set data variables');
+	pdf.generatePDF_Brackets(date, initial_teams, quarters, semis, finals, champion);
+}
+
 pdf.roundDataPDF = function(headers,titles,startIndex)
 {
 	var rooms_array = new Array();
@@ -1420,6 +1458,77 @@ pdf.generateCXBallot = function(){
 	doc.output('datauri');
 }
 
+// generate Brackets PDF
+// TODO for now the params are treated as arrays -- but we should change it to Linked List
+pdf.generatePDF_Brackets = function(date, initial_teams, quarters, semis, finals, champion){
+	var doc = new jsPDF();
+
+	// max page length in pixels after which we need a new page (trial and error) = 280 
+	var max_page_length = 285;
+
+	// max pixels of PDF file (trial and error) = 400
+	var max_page_width = 210;
+
+	// number of separations. i.e. initial, quarters .... champion = 5
+	var num_cols = 5;
+
+	doc.text(20, 20, 'Round Rock Tournament');
+	doc.text(20, 30, date);
+	
+	//start writing at this x and y value pixel
+	var page_start_x_value = 20;
+	var page_start_y_value = 40;
+
+	var y_value;
+	var x_value;
+
+	
+	con.write('set variables. Now setting Array');
+
+	var teamsArray = new Array();
+	teamsArray[0] = initial_teams;
+	teamsArray[1] = quarters;
+	teamsArray[2] = semis;
+	teamsArray[3] = finals;
+	teamsArray[4] = champion;
+	
+	con.write('Finals: ' + finals[0] + ', ' + finals[1]);
+	con.write('teamsArray[3](finals): ' + teamsArray[3][0] + ', ' + teamsArray[3][1]);
+	
+	const spacing_x = (max_page_width - page_start_x_value)/num_cols;
+	var spacing_y;
+
+	// set text for document	
+	x_value = page_start_x_value;
+
+	const vertical_line_pixels = 4;
+
+	for(var i=0; i< teamsArray.length; i++) {
+		spacing_y = (max_page_length - page_start_y_value)/teamsArray[i].length;
+		y_value = page_start_y_value;
+
+		for(var j = 0; j< teamsArray[i].length; j++) {
+		        y_value = y_value + spacing_y;
+			doc.text(x_value, y_value - spacing_y/2, teamsArray[i][j]);
+			doc.text(x_value - 2, y_value - spacing_y/2, '____________');
+
+			// do for all columns except the first
+			if(i!=0) {
+				// print the line for the bracket
+				for(var k = 0; k< spacing_y/4; k = k + vertical_line_pixels ) { 	//above
+					doc.text(x_value - 2.5, y_value - spacing_y/2 - k, '|');
+				}
+				for(var k = 0; k< spacing_y/4; k = k + vertical_line_pixels ) { 	//below
+					doc.text(x_value - 2.5, y_value - spacing_y/2 + k + vertical_line_pixels, '|');
+				}
+			}
+		}
+		x_value = x_value + spacing_x;
+	}
+
+	// Output as Data URI so that it can be downloaded / viewed
+	doc.output('datauri');
+}
 
 pdf.printTitles = function(doc, titles, x_value, title_y_value, spacing) {
 	var i = 0;
@@ -2540,6 +2649,11 @@ $("#ballot_gen").click(function(){
 
 $("#ballotLD_gen").click(function(){
 	pdf.generateLDBallot();	
+});
+
+//Code for PDF Brackets Generation
+$("#pdf_brackets_gen").click(function(){
+	pdf.bracketsDataPDF();
 });
 
 
