@@ -24,10 +24,8 @@ var tab = (function (){
 	//debug console
 	var con = {};
 	//functions to maniulate the interface and ui state
+	
 	var ui = {};
-
-	//functions for working with pdfs
-	var pdf = {};
 
 
 	//include jspdf
@@ -86,7 +84,8 @@ model.Team = Backbone.Model.extend({
 model.School = Backbone.Model.extend({
 	default: {
 		id: null,
-		school_name: "DEFAULT_SCHOOL_NAME"
+		school_name: "DEFAULT_SCHOOL_NAME",
+		division: null
 
 	} ,
 	initialize: function() {
@@ -101,7 +100,8 @@ model.School = Backbone.Model.extend({
 model.Room = Backbone.Model.extend({
 	default: {
 		id: null,
-		school_name: "DEFAULT_ROOM_NAME"
+		school_name: "DEFAULT_ROOM_NAME",
+		division: null
 
 	} ,
 	initialize: function() {
@@ -403,23 +403,33 @@ pairing.restoreReferences = function(){
 		}
 		
 	}
+	
+		//######
+	//restore references for Rooms
+	//######
+	for(var i = 0; i < collection.rooms.length; i++){
+		if(collection.rooms.at(i).get("division") != undefined){
+			var div_id = collection.rooms.at(i).get("division").id;
+			var div = pairing.getDivisionFromId(div_id);
+			collection.rooms.at(i).set({division: div});
+		}
+
+	}
 }
 
 pairing.prelimRoundValid = function (team1, team2, round){
+		//this case is for round 1 or a tournament with no power matching
 		
 		if(team1.get("division") != team2.get("division")){
 			//are from the same school
 			con.write("WARNING: checked for valid round between teams from different divisions.");
 		} 
 		if(team1.get("school") === team2.get("school")){
-			//are from the same school
 			return false;
 		} else {
 			if(round === 1 || round === undefined){
-				//first round. can't have already debated.
 				return true;
 			} else {
-				//make sure they haven't already debated
 				if(pairing.alreadyDebated(team1, team2)){
 					return false;
 				} else {
@@ -463,7 +473,7 @@ pairing.deleteAllRounds = function(){
 	con.write("rounds length " + collection.rounds.length);
 	while(collection.rounds.at(0) != undefined){
 	
-		//con.write("removing round " + collection.rounds.at(0).get("team1").get("team_code"));
+		con.write("removing round " + collection.rounds.at(0).get("team1").get("team_code"));
 		collection.rounds.at(0).destroy();
 		//collection.rounds.remove(round);
 	}
@@ -583,7 +593,7 @@ pairing.printRecords = function(division){
 //returns true if two teams have already debated each other in prelims
 
 pairing.alreadyDebated = function(team1, team2){
-	for(var i = 0; i < collection.rounds.length; i++){
+	for(var i = 0; i < rounds.length; i++){
 		if(collection.rounds.at(i).get("team1") == team1 && collection.rounds.at(i).get("team2") == team2){
 			return true;
 		} else if(collection.rounds.at(i).get("team1") == team2 && collection.rounds.at(i).get("team2") == team1){
@@ -614,118 +624,6 @@ pairing.printPairings = function(round_number, division){
 
 }
 
-/*
-Make sure no team gets a BYE if they have already had one in a previous round
-*/
-pairing.fixRepeatedByes = function(round_number, division){
-	var bye = undefined; //team that has a bye
-	for(var i = 0; i < collection.rounds.length; i++){
-		//skip all irrelevant rounds
-		if(collection.rounds.at(i).get("round_number") != round_number || collection.rounds.at(i).get("division") != division){
-			//con.write("skipping.");
-			continue;
-		}
-
-		var team1 = collection.rounds.at(i).get("team1");
-		var team2 = collection.rounds.at(i).get("team2");
-
-		
-
-		if(team1 === undefined || team2 === undefined){
-			con.write("FATAL ERROR: a team was found to be undefined in fixRepeatedByes");
-		} else {
-			//check to see if round is a bye
-			var bye;
-			if(team1.get("team_code") === "BYE"){
-				bye = team2;
-				//round with one real team and one fake bye team
-				
-
-			} else if (team2.get("team_code") === "BYE"){
-				bye = team1;
-				//round with one real team and one fake bye team
-				
-
-			} else {
-				//this round is not a bye. go to the next one.
-				continue;
-			}
-
-			var bye_round = collection.rounds.at(i);
-			var bye_index = i;
-			break; //we found the bye round. stop searching.
-
-		}
-	}
-
-	if(bye != undefined){
-		//con.write("bye found: " + bye.get("team_code"));
-		if(pairing.alreadyHadBye(bye, round_number, division) === true){
-			//find someone who can debate against bye in bye_round
-			//con.write(bye.get("team_code") + " has already had a bye. Finding valid opponent.");
-			//this code is run after the power match so rounds are in sorted order of most wins to fewest.
-			//first try to go downwards to find a valid opponent.
-			//con.write("going downward to find team to swap for bye");
-			for(var i = bye_index + 1; i < collection.rounds.length; i++){
-				//try to take team1
-				if(pairing.prelimRoundValid(bye, collection.rounds.at(i).get("team1"))){
-					if(!pairing.alreadyHadBye(collection.rounds.at(i).get("team2"))){
-						//found a valid switch. 
-						pairing.replaceByeWithTeam(bye_round, collection.rounds.at(i).get("team1"));
-						return;
-					}
-				}
-				//couldn't take team1. try team2.
-				if(!pairing.prelimRoundValid(bye, collection.rounds.at(i).get("team2"))){
-					if(!pairing.alreadyHadBye(collection.rounds.at(i).get("team1"))){
-						//found a valid switch. 
-						pairing.replaceByeWithTeam(bye_round, collection.rounds.at(i).get("team2"));
-						return;
-					}
-				}
-			}
-
-			//con.write("going upward to find team to swap for bye");
-			//try going upward from the bye round if nothing below works.
-			for(var i = bye_index - 1; i >= 0; i--){
-				//try to take team1
-				if(pairing.prelimRoundValid(bye, collection.rounds.at(i).get("team1"))){
-					if(!pairing.alreadyHadBye(collection.rounds.at(i).get("team2"))){
-						//found a valid switch. 
-						pairing.replaceByeWithTeam(bye_round, collection.rounds.at(i).get("team1"));
-						//over write source team with bye
-						//create BYE team to put in place
-						var bye_team = new model.Team();
-						bye_team.set({"team_code": "BYE"});
-						collection.rounds.at(i).set({"team1": bye_team});
-
-						return;
-					}
-				}
-				//couldn't take team1. try team2.
-				if(!pairing.prelimRoundValid(bye, collection.rounds.at(i).get("team2"))){
-					if(!pairing.alreadyHadBye(collection.rounds.at(i).get("team1"))){
-						//found a valid switch. 
-						pairing.replaceByeWithTeam(bye_round, collection.rounds.at(i).get("team2"));
-						//over write source team with bye
-						//create BYE team to put in place
-						var bye_team = new model.Team();
-						bye_team.set({"team_code": "BYE"});
-						collection.rounds.at(i).set({"team2": bye_team});
-
-						return;
-					}
-				}
-			}
-
-			con.write("ERROR: could not fix bye by switching teams");
-
-		}
-	} else {
-		//no byes found
-	}
-
-}
 
 //@round is the bye round that is being modified
 //@team is the real team replacing the bye team in @round
@@ -784,6 +682,7 @@ pairing.teamsInDivision = function(division){
 /*
 Creates round models for specified round_number and division.
 */
+
 pairing.pairRound = function(round_number, division){
 	var total_teams = pairing.teamsInDivision(division);
 	var total_rounds = Math.ceil(total_teams / 2);
@@ -804,7 +703,6 @@ pairing.pairRound = function(round_number, division){
 			
 		}
 		for (var i = 0; i < total_rounds; i++){
-
 			var team = temp_teams.pop();
 			var round = new model.Round();
 			round.set({"round_number": round_number});
@@ -855,7 +753,6 @@ pairing.pairRound = function(round_number, division){
 				//set team2 in this round to a fake bye team
 				var bye_team = new model.Team();
 				bye_team.set({team_code: "BYE"});
-				bye_team.set({division: division});
 				collection.rounds.at(i).set({team2: bye_team});
 			}
 		}
@@ -958,7 +855,6 @@ pairing.pairRound = function(round_number, division){
 					round.set({"team1": collection.teams.at(i)});
 					round.set({"team2": collection.teams.at(j)});
 					round.set({"round_number": round_number});
-					round.set({"division": division});
 					collection.rounds.add(round);
 					//keep track of teams that have been paired
 					paired.push(collection.teams.at(i));
@@ -974,6 +870,7 @@ pairing.pairRound = function(round_number, division){
 		//array of models
 		var unpaired = [];
 		//count unpaired teams
+		con.write("desired round count " + desiredRoundCount)
 		for(var i = 0; i < collection.teams.length; i++){
 			//ignore teams not in this division
 			if(collection.teams.at(i).get("division") != division){
@@ -991,7 +888,7 @@ pairing.pairRound = function(round_number, division){
 					bye_team.set({"team_code": "BYE"});
 					round.set({"team2":  bye_team});
 					round.set({"round_number": round_number});
-					round.set({"division": division});
+					round.set({division: division});
 					paired.push(collection.teams.at(i));
 					collection.rounds.add(round);
 
@@ -1004,7 +901,8 @@ pairing.pairRound = function(round_number, division){
 
 			
 		}
-		
+
+		con.write(unpaired.length + " teams were left unpaired:");
 		var byes = 0;
 		for(var k = 0; k < collection.rounds.length; k++){
 			//This addresses byes in  order that they appear
@@ -1015,17 +913,15 @@ pairing.pairRound = function(round_number, division){
 				
 			}
 		}
-
-		if(unpaired.length > 0){
-			con.write(unpaired.length + " teams were left unpaired:");
-			//print out unpared teams
-			for(var i = 0; i < unpaired.length; i++){
-				con.write(unpaired[i].get("team_code"));
-			}
+		
+		for(var i = 0; i < unpaired.length; i++){
+			con.write(unpaired[i].get("team_code"));
 		}
-		
+		con.write("number of byes " + byes);
+		if(unpaired.length > 0){
+			pairing.printPairings(round_number);
 
-		
+		}
 		//if there are an even number of teams OR
 		//there are an odd number but more than 1 is unpaired, fix pairings
 		if((collection.teams.length % 2 === 0  && unpaired.length > 0 ) || unpaired.length > 1 || byes > 1){
@@ -1087,7 +983,6 @@ pairing.pairRound = function(round_number, division){
 		
 	}
 
-	//count and print number of rounds
 	var round_count = 0;
 	for(var i = 0; i < collection.rounds.length; i++){
 		//con.write(collection.rounds.at(i).get("team1").get("team_code"));
@@ -1098,6 +993,7 @@ pairing.pairRound = function(round_number, division){
 
 	pairing.fixRepeatedByes(round_number, division);
 	pairing.setSides(round_number, division);
+	con.write("Debates created for round " + round_number + ":" +round_count);
 }
 
 /*
@@ -1429,19 +1325,26 @@ view.Judge = Backbone.View.extend({
 	} ,
 
 	remove: function(judge){
-
-		this.model.destroy();
+	//	$(function () {
+			$('.simpledialog').simpleDialog();
+	//	});
+	//	this.model.destroy();
+		
 	} ,
 	render: function(){
 		var school = this.model.get("school") === undefined ? "None" : this.model.get("school").get("school_name");
 		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' + this.model.get("id") + 
-			'</td><td>'+ school +'</td><td class="remove">Remove</td>');
+			'</td><td>'+ school +'</td><td><a href="#" rel="dialog_content" class="simpledialog">Remove</a></td>');
 		return this; //required for chainable call, .render().el ( in appendJudge)
 	} ,
 	unrender: function(){
 		$(this.el).remove();
 	}
 });
+
+		
+		$('.simpledialog').simpleDialog();
+
 
 view.JudgeTable = Backbone.View.extend({
 	el: $("#judges") , // attaches `this.el` to an existing element.
@@ -1564,8 +1467,8 @@ view.Room = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
-		return this; //required for chainable call, .render().el ( in appendRoom)
+		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' +this.model.get("division").get("division_name") + '</td> <td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
+		return this; //required for chainable call, .render().el ( in appendRoom)			.get("division_name")
 	} ,
 	unrender: function(){
 		$(this.el).remove();
@@ -1611,14 +1514,19 @@ view.RoomTable = Backbone.View.extend({
 	addRoom: function(){
 		console.log("room");
 		//TODO: validate room name
+			//	
+		//pairing.restoreReferences();
+
 		var room_name = $("#newroom_name").val();
-
+		var div_name_id = $("#newroom_division").val();
+		var division = pairing.getDivisionFromId(div_name_id);
+		console.log(division);
 		var room = new model.Room();
-		room.set({name: room_name});
-
+		room.set({name: room_name, division: division});
 		collection.rooms.add(room);
 		room.save();
 		$("#newroom_name").val("");
+		
 	} ,
 
 	appendRoom: function(room){
@@ -2116,8 +2024,51 @@ $("#menu_pdf").click(function(){
 	$("#help_text").text("This is the PDF Menu")
 });
 
+
+
 //Code for Generate PDF Button
 $("#pdf_gen").click(function(){
+	const headers = {
+		tournament_name: 'Round Rock HS Tournament',
+		date: '11/18/11',
+		round_number: '1',
+		start_time_text: 'Start: 3:00 PM',
+		message: 'Welcome to the Round Rock Tournament run by DebateTab!'
+	};
+
+	const titles = [ "Affirmative",
+			"Negative",
+			"Room",
+			"Judge"
+	];
+	
+    var startIndex = 0;
+    roundDataPDF(headers,titles,startIndex);
+	
+
+});
+
+$("#pdf_gen2").click(function(){
+	const headers = {
+		tournament_name: 'Round Rock HS Tournament',
+		date: '11/18/11',
+		round_number: '2',
+		start_time_text: 'Start: 3:00 PM',
+		message: 'Welcome to the Round Rock Tournament run by DebateTab!'
+	};
+
+	const titles = [ "Affirmative",
+			"Negative",
+			"Room",
+			"Judge"
+	];
+	
+	var startIndex = (Math.ceil((collection.teams.length)/2));
+    roundDataPDF(headers,titles,startIndex);
+
+});
+
+$("#pdf_gen3").click(function(){
 	const headers = {
 		tournament_name: 'Round Rock HS Tournament',
 		date: '11/18/11',
@@ -2131,39 +2082,194 @@ $("#pdf_gen").click(function(){
 			"Room",
 			"Judge"
 	];
+	
+	var startIndex = 2*(Math.ceil((collection.teams.length)/2));
+    roundDataPDF(headers,titles,startIndex);
+
+});
+
+function roundDataPDF(headers,titles,startIndex)
+{
+    var rooms_array = new Array();
+	
+	for(x=0; x < collection.rooms.length; x++)
+	{
+		rooms_array[x] = collection.rooms.at(x).get("division").get("division_name"); 
+	}
+    var judges_array = new Array();
+	
+    for(y=0; y<collection.judges.length; y++)
+    {
+       judges_array[y] = new Array();
+
+       if(collection.judges.at(y).get("divisions").length == 1)
+       {
+        judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
+       }
+       if(collection.judges.at(y).get("divisions").length == 2)
+       {
+        judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
+        judges_array[y][1] = collection.judges.at(y).get("divisions")[1].get("division_name");
+       }
+       if(collection.judges.at(y).get("divisions").length == 3)
+       {
+        judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
+        judges_array[y][1] = collection.judges.at(y).get("divisions")[1].get("division_name");
+        judges_array[y][2] = collection.judges.at(y).get("divisions")[2].get("division_name");
+       }
+       if(collection.judges.at(y).get("divisions").length == 4)
+       {
+        judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
+        judges_array[y][1] = collection.judges.at(y).get("divisions")[1].get("division_name");
+        judges_array[y][2] = collection.judges.at(y).get("divisions")[2].get("division_name");
+        judges_array[y][3] = collection.judges.at(y).get("divisions")[3].get("division_name");
+       }
+    }	
+    var judge_team_forbidden = new Array();
+
+    var judgeIndex = $.inArray("VCX", judges_array);
+    console.log(judges_array);
+    console.log($.inArray("VCX",judges_array[0]));
 
 	var table_data = new Array();	//this is a 2-D array 
-	for(var i=0; i<100; i++) {
-	//	table_data[i] = new tableRowArray();
-		table_data[i] = new Array();
-		table_data[i][0] = "Robby";
-		table_data[i][1] = "Tom";
-		table_data[i][2] = '' + Math.floor(Math.random()*100);	//random number 1-100.
-									//needs to be a string?
-		table_data[i][3] = "John Doe";
+	if(collection.rounds.length > 0)
+	{
+		for(var i=0, j=startIndex; i< Math.ceil((collection.teams.length)/2) ; i++,j++) {
+		//	table_data[i] = new tableRowArray();
+			table_data[i] = new Array();
+			if(collection.rounds.at(i).get("aff") == 0)
+			{
+				table_data[i][0] = collection.rounds.at(j).get("team1").get("team_code");
+				table_data[i][1] = collection.rounds.at(j).get("team2").get("team_code");
+
+			}
+			else
+			{
+				table_data[i][0] = collection.rounds.at(j).get("team2").get("team_code");
+				table_data[i][1] = collection.rounds.at(j).get("team1").get("team_code");
+				
+			}
+			
+			if((table_data[i][0] == "BYE") || (table_data[i][1] == "BYE"))
+			{
+				table_data[i][2] = "None";
+			}
+			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "VCX")
+			{
+				for(x=0; x < collection.rooms.length; x++)
+				{
+					if(rooms_array[x] == "VCX")
+					{
+						table_data[i][2] = '' + collection.rooms.at(x).get("name");
+
+						rooms_array[x] = "lol";
+						break;
+						
+					}
+				}
+                for(x=0; x < collection.judges.length; x++)
+                {
+                    var judgeIndex = $.inArray("VCX", judges_array[x]);
+                    if(judgeIndex != -1)
+                    {
+                        table_data[i][3] = collection.judges.at(x).get("name");
+                        judges_array[x] = "lol";
+                        break;
+                    }
+                }
+                	
+			}
+			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "NCX")
+			{
+				for(x=0; x < collection.rooms.length; x++)
+				{
+					if(rooms_array[x] == "NCX")
+					{
+						table_data[i][2] = '' + collection.rooms.at(x).get("name");
+				
+						rooms_array[x] = "lol";
+						break;
+						
+					}
+				}	
+                for(x=0; x < collection.judges.length; x++)
+                {
+                    var judgeIndex = $.inArray("NCX", judges_array[x]);
+                    if(judgeIndex != -1)
+                    {
+                        table_data[i][3] = collection.judges.at(x).get("name");
+                        judges_array[x] = "lol";
+                        break;
+                    }
+                }
+			}
+			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "VLD")
+			{
+				for(x=0; x < collection.rooms.length; x++)
+				{
+					if(rooms_array[x] == "VLD")
+					{
+						table_data[i][2] = '' + collection.rooms.at(x).get("name");
+			
+						rooms_array[x] = "lol";
+						break;
+						
+					}
+				}	
+                for(x=0; x < collection.judges.length; x++)
+                {
+                    var judgeIndex = $.inArray("VLD", judges_array[x]);
+                    if(judgeIndex != -1)
+                    {
+                        table_data[i][3] = collection.judges.at(x).get("name");
+                        judges_array[x] = "lol";
+                        break;
+                    }
+                }
+			}
+			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "NLD")
+			{
+				for(x=0; x < collection.rooms.length; x++)
+				{
+					if(rooms_array[x] == "NLD")
+					{
+						table_data[i][2] = '' + collection.rooms.at(x).get("name");
+		
+						rooms_array[x] = "lol";
+						break;
+						
+					}
+				}	
+                for(x=0; x < collection.judges.length; x++)
+                {
+                    var judgeIndex = $.inArray("NLD", judges_array[x]);
+                    if(judgeIndex != -1)
+                    {
+                        table_data[i][3] = collection.judges.at(x).get("name");
+                        judges_array[x] = "lol";
+                        break;
+                    }
+                }
+			}
+				
+			
+				
+				
+			//table_data[i][3] = "John Doe";
+		
+		
+		
+		
+		}
+		
+			generatePDF_PairingSheet(headers, titles, table_data);	
+
 	}
-
-	pdf.generatePDF_PairingSheet(headers, titles, table_data);	
-});
-
-
-$("#ballot_gen").click(function(){
-	pdf.generateCXBallot();	
-});
-
-$("#ballotLD_gen").click(function(){
-	pdf.generateLDBallot();	
-});
-
-// my attempt to make each row into a function, bt it is not working although it is
-// doing the same thing
-//function tableRowArray() {
-//	this = new Array();
-//	this[0] = "Rob";
-//	this[1] = "Roy";
-//	this[2] = "2";
-//	this[3] = "Sherlock Holmes";
-//}
+	else
+	{
+		alert("no rounds exist");
+	}
+}
 
 
 /*
@@ -2171,7 +2277,7 @@ $("#ballotLD_gen").click(function(){
 BEGIN: Define PDF Function
 =========================================
 */	
-pdf.generatePDF_PairingSheet = function(headers, titles, table_data){
+function generatePDF_PairingSheet(headers, titles, table_data){
 	// generate a blank document
 	var doc = new jsPDF();
 	var max_page_length = 280;
@@ -2189,8 +2295,10 @@ pdf.generatePDF_PairingSheet = function(headers, titles, table_data){
 	const title_y_value = 80;
 	const spacing = 47;
 
-
+	doc.setFontSize(20);
 	printTitles(doc, titles, x_value, title_y_value, spacing);
+	doc.setFontSize(14);
+
 
 	var data_y_value = 90;
 	var j = 0;
@@ -2217,85 +2325,10 @@ pdf.generatePDF_PairingSheet = function(headers, titles, table_data){
 	doc.output('datauri');
 }
 
-pdf.generateLDBallot = function(){
-	// generate a blank document
-	var doc = new jsPDF();
-
-
-	doc.setFontSize(18);
-	doc.text(20, 20, 'Lincoln Douglas Debate Ballot');
-	doc.setFontSize(13);
-	doc.text(20, 30, 'Round:___________'); doc.text(130,30, 'Judge:___________');
-	doc.text(39,30,'Fill form');
-	//const round_text = 'Round: ' + headers.round_number;
-	doc.text(20, 40, 'Affirmative Code:___________'); doc.text(130,40, 'Negative Code:___________');
-	//doc.text(20, 50, headers.start_time_text); 
-	//doc.text(20, 60, headers.message);
-	doc.setFontSize(9);
-	doc.text(97,52, 'Points');
-	doc.text(186,52, 'Points');
-	doc.setFontSize(11);
-	doc.text(20, 60, 'AFFIRMATIVE ______________________  _____       NEGATIVE ______________________  _____  ');
-	//doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
-	doc.setFontSize(9);
-	doc.text(20,75, 'Speakers should be rated on a scale from 20-30 points.  Half points (.5) are allowed.You may have a tie in points,'); 
-	doc.text(20,79, 'but you must indicate the person doing the better job of debating');
-	doc.setFontSize(13);
-	doc.text(20,94, 'COMMENTS AND REASON(S) FOR DECISION');
-	doc.text(20,94, '_______________________________________');
-	doc.setFontSize(11);
-	doc.text(20,240, 'In my opinion, the better debating was done by  AFFIRMATIVE  NEGATIVE  representing  __________');
-	doc.text(115,245, '(Circle One)');
-	doc.text(176,245, '(Team Code)');
-	doc.text(20, 265, '___________________________________                             _______________________________');
-	doc.text(20, 270, 'Judge Signature');
-	doc.text(128,270, 'Affiliation (School)');
-
-	// Output as Data URI so that it can be downloaded / viewed
-	doc.output('datauri');
-}
-
-pdf.generateCXBallot = function(){
-	// generate a blank document
-	var doc = new jsPDF();
-
-
-	doc.setFontSize(18);
-	doc.text(20, 20, 'Cross Examination Debate Ballot');
-	doc.setFontSize(13);
-	doc.text(20, 30, 'Round:___________'); doc.text(130,30, 'Judge:___________');
-	doc.text(39,30,'Fill form');
-	//const round_text = 'Round: ' + headers.round_number;
-	doc.text(20, 40, 'Affirmative Code:___________'); doc.text(130,40, 'Negative Code:___________');
-	//doc.text(20, 50, headers.start_time_text); 
-	//doc.text(20, 60, headers.message);
-	doc.setFontSize(9);
-	doc.text(77,52, 'Points    Ranks');
-	doc.text(164,52, 'Points    Ranks');
-	doc.setFontSize(11);
-	doc.text(20, 60, '1st AFF. __________________  _____  _____     1st NEG. __________________  _____  _____');
-	doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
-	doc.setFontSize(9);
-	doc.text(20,80, 'Speakers should be rated on a scale from 20-30 points.  Half points (.5) are allowed.You may have a tie in points,'); 
-	doc.text(20,84, 'but you must indicate the person doing the better job of debating');
-	doc.setFontSize(13);
-	doc.text(20,94, 'COMMENTS AND REASON(S) FOR DECISION');
-	doc.text(20,94, '_______________________________________');
-	doc.setFontSize(11);
-	doc.text(20,240, 'In my opinion, the better debating was done by  AFFIRMATIVE  NEGATIVE  representing  __________');
-	doc.text(115,245, '(Circle One)');
-	doc.text(176,245, '(Team Code)');
-	doc.text(20, 265, '___________________________________                             _______________________________');
-	doc.text(20, 270, 'Judge Signature');
-	doc.text(128,270, 'Affiliation (School)');
-
-	// Output as Data URI so that it can be downloaded / viewed
-	doc.output('datauri');
-}
-
 function printTitles(doc, titles, x_value, title_y_value, spacing) {
 	var i = 0;
 	for(i=0; i< titles.length; i++) {
+	
 		doc.text(x_value, title_y_value, titles[i]);
 		x_value = x_value + spacing;		// add a spacing between each column
 	}
@@ -2503,6 +2536,7 @@ $("#pair_tests").click(function(){
 	pairing.sortTeams(div1);
 	//pairing.printRecords();
 */
+
 	con.write("number of teams: " + collection.teams.length);
 	con.write("number of rounds: " + collection.rounds.length);
 		

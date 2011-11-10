@@ -118,7 +118,7 @@ var jsPDF = function(){
 		// TODO: Only supports core font hardcoded to Helvetica
 		newObject();
 		fontNumber = objectNumber;
-		name = 'Helvetica';
+		name = 'Helvetica-Bold';
 		out('<</Type /Font');
 		out('/BaseFont /' + name);
 		out('/Subtype /Type1');
