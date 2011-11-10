@@ -280,7 +280,7 @@ collection.Rooms = Backbone.Collection.extend({
 
 		var pattern = new RegExp(letters,"gi");
 		return _(this.filter(function(data) {
-		  	return pattern.test(data.get("room_name"));
+		  	return pattern.test(data.get("name"));
 		}));
 	} ,
 	localStorage: new Store("Rooms")
@@ -329,6 +329,15 @@ pairing.getTeamFromId = function(team_id){
 	return undefined;
 }
 
+pairing.getRoomFromId = function(room_id){
+	for(var i = 0; i < collection.rooms.length; i++){
+		if(room_id === collection.rooms.at(i).get("id")){
+			return collection.rooms.at(i);
+		}
+	}
+	return undefined;
+}
+
 //object references to backbone models get turned into plain old objects 
 //when they are loaded from localstorage.
 //this function looks at the ObjectIds of the objects and turns the plain old
@@ -364,6 +373,7 @@ pairing.restoreReferences = function(){
 	//restore references for rounds
 	//######
 	for(var i = 0; i < collection.rounds.length; i++){
+		//fix team references
 		if(collection.rounds.at(i).get("team1") != undefined){
 			var team1_id = collection.rounds.at(i).get("team1").id;
 			var team1 = pairing.getTeamFromId(team1_id);
@@ -381,7 +391,6 @@ pairing.restoreReferences = function(){
 		collection.rounds.at(i).set({team2: team2});
 
 		//fix division reference
-		//restore division reference
 		var division_id = collection.rounds.at(i).get("division").id;
 		if(division_id != undefined){
 			var division = pairing.getDivisionFromId(division_id);
@@ -406,6 +415,22 @@ pairing.restoreReferences = function(){
 		} else {
 			con.write("WARNING: division id was undefined when restoring reference for round");
 		}
+		//fix room references
+		if(collection.rounds.at(i).get("room")!= undefined){
+			var room_id = collection.rounds.at(i).get("room").id;
+			if(room_id != undefined){
+				var room = pairing.getRoomFromId(room_id);
+				if(room != undefined){
+					collection.rounds.at(i).set({room: room});
+				} else {
+					con.write("WARNING: room was undefined when searching for id");
+				}
+			} else {
+				con.write("WARNING: room id was undefined when restoring reference for round")
+			} 
+		}
+		
+
 	}
 
 	//######
@@ -639,13 +664,26 @@ pairing.printPairings = function(round_number, division){
 	for(var i = 0; i < collection.rounds.length; i++){
 		if(collection.rounds.at(i).get("round_number") === round_number
 			&& collection.rounds.at(i).get("division") === division){
-			var padding = 30 - collection.rounds.at(i).get("team1").get("team_code").length;
+			if(collection.rounds.at(i).get("aff") === 0 || 
+				collection.rounds.at(i).get("aff") === undefined){
+				var left_team = collection.rounds.at(i).get("team1");
+				var right_team = collection.rounds.at(i).get("team2");
+			}else {
+				var left_team = collection.rounds.at(i).get("team2");
+				var right_team = collection.rounds.at(i).get("team1");
+			}
+			
+			var padding = 30 - left_team.get("team_code").length;
 			var spaces = "";
 			for(var j = 0; j < padding; j++){
 				spaces = spaces + "&nbsp;";
 			}
-			con.write(collection.rounds.at(i).get("team1").get("team_code") + spaces + 
-				collection.rounds.at(i).get("team2").get("team_code"));
+			var room = "";
+			if(collection.rounds.at(i).get("room") != undefined){
+				room = collection.rounds.at(i).get("room").get("name");
+			}
+			con.write(left_team.get("team_code") + spaces + 
+				right_team.get("team_code") + " " + room);
 			}
 		
 	}
@@ -1137,7 +1175,129 @@ pairing.pairRound = function(round_number, division){
 
 	pairing.fixRepeatedByes(round_number, division);
 	pairing.setSides(round_number, division);
+	pairing.pairRooms(round_number, division);
 }
+
+
+pairing.pairRooms = function(round_number, division){
+	//put all available rooms into an array.
+	var rooms = [];
+	for(var i = 0; i < collection.rooms.length; i++){
+		if(collection.rooms.at(i).get("division") === division){
+			rooms.push(collection.rooms.at(i));
+		}
+	}
+
+	//minimize room moves by keeping team1 in the same room.
+	if(round_number === 1){
+		//just randomly assign rooms
+
+		
+		var room_count = rooms.length;
+		var round_count = 0;
+		//stick a room in every round in this division with the right round number
+		for(var i = 0; i < collection.rounds.length; i++){
+			//only give out rooms to valid rounds
+			if(collection.rounds.at(i).get("division") != division 
+				|| collection.rounds.at(i).get("round_number") != round_number){
+				continue;
+			}
+			//don't give byes a room
+			if(collection.rounds.at(i).get("team1").get("team_code") === "BYE" ||
+				collection.rounds.at(i).get("team2").get("team_code") === "BYE"){
+				continue;
+			}
+
+			round_count++;
+			if(rooms.length > 0){
+				room = rooms.pop();
+				collection.rounds.at(i).set({room: room});
+			} else {
+				con.write("WARNING: Needed another room.")
+			}
+
+
+		}
+
+		if(room_count < round_count){
+			con.write("WARNING: Only had " + room_count + " rooms. Needed " + round_count);
+		}
+	} else {
+		//construct associative array of team1's and rooms.
+		var prev_rooms = {};
+		for(var i = 0; i < collection.rounds.length; i++){
+			//only look at previous round in this division
+			if(collection.rounds.at(i).get("division") != division 
+				|| collection.rounds.at(i).get("round_number") != round_number - 1){
+				continue;
+			}
+			//byes don't have rooms to get
+			if(collection.rounds.at(i).get("team1").get("team_code") === "BYE" ||
+				collection.rounds.at(i).get("team2").get("team_code") === "BYE"){
+				continue;
+			}
+			var team1_id = collection.rounds.at(i).get("team1").get("id");
+			prev_rooms[team1_id] = collection.rounds.at(i).get("room");
+		}
+		//now dish out rooms based on where team1 was last round
+
+		for(var i = 0; i < collection.rounds.length; i++){
+			//only give out rooms to valid rounds
+			if(collection.rounds.at(i).get("division") != division 
+				|| collection.rounds.at(i).get("round_number") != round_number){
+				continue;
+			}
+			//don't give byes a room
+			if(collection.rounds.at(i).get("team1").get("team_code") === "BYE" ||
+				collection.rounds.at(i).get("team2").get("team_code") === "BYE"){
+				continue;
+			}
+
+			round_count++;
+			var team1_id = collection.rounds.at(i).get("team1").get("id");
+			var team2_id = collection.rounds.at(i).get("team2").get("id");
+			var room1 = prev_rooms[team1_id];
+			var room2 = prev_rooms[team2_id];
+			if(room1 != undefined && rooms.indexOf(room1) > -1){
+				//team1 stays in same room		
+				var room_index = rooms.indexOf(room1);
+				
+				collection.rounds.at(i).set({room: room1});
+				rooms.splice(room_index, 1);
+				
+				
+			} else if(room2 != undefined && rooms.indexOf(room2) > -1){
+				//team2 stays in same room
+				var room_index = rooms.indexOf(room2);
+				collection.rounds.at(i).set({room: room2});
+				rooms.splice(room_index, 1);
+				
+			} else {
+				//neither team had a previous room.
+				con.write("neither team had previous room");
+				console.log(team1_id);
+				console.log(team2_id);
+				console.log(prev_rooms);
+
+				console.log(room1);
+				console.log(room2);
+				if(rooms.length > 0){
+					collection.rounds.at(i).set({room: rooms.pop()});
+				} else {
+					con.write("WARNING: Needed another room");
+				} 
+			}
+
+
+		}
+
+	}
+};
+
+pairing.pairJudges = function(round_number, divisions){
+	
+
+};
 
 /*
 =========================================
@@ -1638,7 +1798,8 @@ view.TeamTable = Backbone.View.extend({
 				var names_2 = whole_name_2.split(" ");
 				var last_name_2 = names_2[names_2.length-1];
 
-				team_code += " " + last_name.substr(0,1) + last_name_2.substr(0,1);
+				team_code += " " + last_name.substr(0,1).toUpperCase() 
+					+ last_name_2.substr(0,1).toUpperCase();
 				
 			} else {
 				//can't generate team code
@@ -2020,15 +2181,13 @@ view.RoomTable = Backbone.View.extend({
 		$("#newroom_division", this.el).append(divOptionView.render().el);
 	} ,
 	addRoom: function(){
-		console.log("room");
 		//TODO: validate room name
 			//	
-		//pairing.restoreReferences();
+		
 
 		var room_name = $("#newroom_name").val();
 		var div_name_id = $("#newroom_division").val();
 		var division = pairing.getDivisionFromId(div_name_id);
-		console.log(division);
 		var room = new model.Room();
 		room.set({name: room_name, division: division});
 		collection.rooms.add(room);
