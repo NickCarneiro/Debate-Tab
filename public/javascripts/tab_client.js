@@ -1428,6 +1428,8 @@ pdf.generatePairingSheet = function(headers, titles, round_number, division){
 
 	var data_y_value = 90;
 	var j = 0;
+
+	//loop through every round and print it out into the pdf if it's applicable
 	for(var i = 0; i < collection.rounds.length; i++){
 		//don't print irrelevant rounds
 		if(collection.rounds.at(i).get("round_number") != round_number || collection.rounds.at(i).get("division") != division){
@@ -1445,6 +1447,7 @@ pdf.generatePairingSheet = function(headers, titles, round_number, division){
 			aff = team2;
 			neg = team1;
 		}
+		//print out round info
 		doc.text(x_value, data_y_value, aff); //AFF
 		x_value = x_value + spacing;		// add a spacing between each column
 		doc.text(x_value, data_y_value, neg); //NEG
@@ -1465,11 +1468,6 @@ pdf.generatePairingSheet = function(headers, titles, round_number, division){
 								// of titles on new page
 		}
 	}
-
-	
-//	doc.text(20, 30, 'This is client-side JS pumping out a PDF!');
-//	doc.addPage();
-//	doc.text(20, 20, 'Do you like that?');
 
 	// Output as Data URI so that it can be downloaded / viewed
 	doc.output('datauri');
