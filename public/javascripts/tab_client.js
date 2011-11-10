@@ -1418,9 +1418,8 @@ pdf.generatePairingSheet = function(headers, titles, round_number, division){
 	doc.text(20, 30, headers.date);
 	const round_text = 'Round: ' + headers.round_number;
 	doc.text(20, 40, round_text);
-	doc.text(20, 50, headers.start_time_text);
+	doc.text(20, 50, headers.division.get("division_name") + " : " + headers.start_time_text);
 	doc.text(20, 60, headers.message);
-
 	
 	var spacing = 47;
 
@@ -2610,7 +2609,8 @@ $("#pdf_gen").click(function(){
 		date: '11/18/11',
 		round_number: '1',
 		start_time_text: 'Start: 3:00 PM',
-		message: 'Welcome to the Round Rock Tournament run by DebateTab!'
+		message: 'Welcome to the Round Rock Tournament run by DebateTab!',
+		division: collection.divisions.at(0)
 	};
 
 	const titles = [ "Affirmative",
