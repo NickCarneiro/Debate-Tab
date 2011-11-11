@@ -280,7 +280,7 @@ collection.Rooms = Backbone.Collection.extend({
 
 		var pattern = new RegExp(letters,"gi");
 		return _(this.filter(function(data) {
-		  	return pattern.test(data.get("room_name"));
+		  	return pattern.test(data.get("name"));
 		}));
 	} ,
 	localStorage: new Store("Rooms")
@@ -329,6 +329,24 @@ pairing.getTeamFromId = function(team_id){
 	return undefined;
 }
 
+pairing.getRoomFromId = function(room_id){
+	for(var i = 0; i < collection.rooms.length; i++){
+		if(room_id === collection.rooms.at(i).get("id")){
+			return collection.rooms.at(i);
+		}
+	}
+	return undefined;
+}
+
+pairing.getJudgeFromId = function(judge_id){
+	for(var i = 0; i < collection.judges.length; i++){
+		if(judge_id === collection.judges.at(i).get("id")){
+			return collection.judges.at(i);
+		}
+	}
+	return undefined;
+}
+
 //object references to backbone models get turned into plain old objects 
 //when they are loaded from localstorage.
 //this function looks at the ObjectIds of the objects and turns the plain old
@@ -364,6 +382,7 @@ pairing.restoreReferences = function(){
 	//restore references for rounds
 	//######
 	for(var i = 0; i < collection.rounds.length; i++){
+		//fix team references
 		if(collection.rounds.at(i).get("team1") != undefined){
 			var team1_id = collection.rounds.at(i).get("team1").id;
 			var team1 = pairing.getTeamFromId(team1_id);
@@ -381,7 +400,6 @@ pairing.restoreReferences = function(){
 		collection.rounds.at(i).set({team2: team2});
 
 		//fix division reference
-		//restore division reference
 		var division_id = collection.rounds.at(i).get("division").id;
 		if(division_id != undefined){
 			var division = pairing.getDivisionFromId(division_id);
@@ -406,6 +424,36 @@ pairing.restoreReferences = function(){
 		} else {
 			con.write("WARNING: division id was undefined when restoring reference for round");
 		}
+		//fix room references
+		if(collection.rounds.at(i).get("room")!= undefined){
+			var room_id = collection.rounds.at(i).get("room").id;
+			if(room_id != undefined){
+				var room = pairing.getRoomFromId(room_id);
+				if(room != undefined){
+					collection.rounds.at(i).set({room: room});
+				} else {
+					con.write("WARNING: room was undefined when searching for id");
+				}
+			} else {
+				con.write("WARNING: room id was undefined when restoring reference for round")
+			} 
+		}
+
+		//fix judge references
+		if(collection.rounds.at(i).get("judge")!= undefined){
+			var judge_id = collection.rounds.at(i).get("judge").id;
+			if(judge_id != undefined){
+				var judge = pairing.getJudgeFromId(judge_id);
+				if(judge != undefined){
+					collection.rounds.at(i).set({judge: judge});
+				} else {
+					con.write("WARNING: judge was undefined when searching for id");
+				}
+			} else {
+				con.write("WARNING: judge id was undefined when restoring reference for round")
+			} 
+		}
+
 	}
 
 	//######
@@ -639,13 +687,31 @@ pairing.printPairings = function(round_number, division){
 	for(var i = 0; i < collection.rounds.length; i++){
 		if(collection.rounds.at(i).get("round_number") === round_number
 			&& collection.rounds.at(i).get("division") === division){
-			var padding = 30 - collection.rounds.at(i).get("team1").get("team_code").length;
+			if(collection.rounds.at(i).get("aff") === 0 || 
+				collection.rounds.at(i).get("aff") === undefined){
+				var left_team = collection.rounds.at(i).get("team1");
+				var right_team = collection.rounds.at(i).get("team2");
+			}else {
+				var left_team = collection.rounds.at(i).get("team2");
+				var right_team = collection.rounds.at(i).get("team1");
+			}
+			
+			var padding = 30 - left_team.get("team_code").length;
 			var spaces = "";
 			for(var j = 0; j < padding; j++){
 				spaces = spaces + "&nbsp;";
 			}
-			con.write(collection.rounds.at(i).get("team1").get("team_code") + spaces + 
-				collection.rounds.at(i).get("team2").get("team_code"));
+			var room = "";
+			if(collection.rounds.at(i).get("room") != undefined){
+				room = collection.rounds.at(i).get("room").get("name");
+			}
+
+			var judge = "#";
+			if(collection.rounds.at(i).get("judge") != undefined){
+				judge = collection.rounds.at(i).get("judge").get("name");
+			}
+			con.write(left_team.get("team_code") + spaces + 
+				right_team.get("team_code") + " " + room + " " + judge);
 			}
 		
 	}
@@ -1137,7 +1203,195 @@ pairing.pairRound = function(round_number, division){
 
 	pairing.fixRepeatedByes(round_number, division);
 	pairing.setSides(round_number, division);
+	pairing.pairRooms(round_number, division);
+	pairing.pairJudges(round_number, division);
 }
+
+
+pairing.pairJudges = function(round_number, division){
+	//shuffle the judges
+	collection.judges = $.shuffle(collection.judges);
+	//copy judges into working array
+	var paired_judges = [];
+	
+
+	for(var i = 0; i < collection.rounds.length; i++){
+		if(collection.rounds.at(i).get("division") != division 
+			|| collection.rounds.at(i).get("round_number") != round_number){
+			continue;
+		}
+		//don't give byes a judge
+		if(collection.rounds.at(i).get("team1").get("team_code") === "BYE" ||
+			collection.rounds.at(i).get("team2").get("team_code") === "BYE"){
+			continue;
+		}
+
+		for(var j = 0; j < collection.judges.length; j++){
+			var judge = collection.judges.at(j);
+			//don't pair judges that have already been placed in a round
+			if(paired_judges.indexOf(judge) != -1){
+				//console.log("judge has already been paired.");
+				continue;
+			}
+			//don't pair judges that can't judge this division
+			if(judge.get("divisions").indexOf(division) === -1){
+				console.log(judge.get("divisions"));
+				continue;
+			}
+			
+
+			if(pairing.canJudge(collection.rounds.at(i).get("team1"), collection.rounds.at(i).get("team2"), judge, round_number, division)){
+				con.write("successfully paired " + judge.get("name"));
+				collection.rounds.at(i).set({judge: judge});
+				paired_judges.push(judge);
+				
+				break; //successfully paired a judge to this round. go to next round.
+			} else {
+				//con.write("could not pair " + judge.get("name"));
+			}
+
+		}
+
+	}
+}
+
+//
+pairing.canJudge = function(team1, team2, judge, round_number, division){
+	//check for school affiliations
+	var school1 = team1.get("school");
+	var school2 = team2.get("school");
+	if(judge.get("school") === school1 || judge.get("school") === school2){
+		return false;
+	}
+	for(var i = 0; i < collection.rounds.length; i++){
+		//check to see if judge has judged the either of the teams before
+		if(collection.rounds.at(i).get("team1") === team1 && collection.rounds.at(i).get("judge") === judge){
+			return false;
+		}
+		else if(collection.rounds.at(i).get("team2") === team1 && collection.rounds.at(i).get("judge") === judge){
+			return false;
+		}
+		else if(collection.rounds.at(i).get("team1") === team2 && collection.rounds.at(i).get("judge") === judge){
+			return false;
+		}
+		else if(collection.rounds.at(i).get("team2") === team2 && collection.rounds.at(i).get("judge") === judge){
+			return false;
+		}
+	}
+	
+	return true;	
+}
+pairing.pairRooms = function(round_number, division){
+	//put all available rooms into an array.
+	var rooms = [];
+	for(var i = 0; i < collection.rooms.length; i++){
+		if(collection.rooms.at(i).get("division") === division){
+			rooms.push(collection.rooms.at(i));
+		}
+	}
+
+	//minimize room moves by keeping team1 in the same room.
+	if(round_number === 1){
+		//just randomly assign rooms
+
+		
+		var room_count = rooms.length;
+		var round_count = 0;
+		//stick a room in every round in this division with the right round number
+		for(var i = 0; i < collection.rounds.length; i++){
+			//only give out rooms to valid rounds
+			if(collection.rounds.at(i).get("division") != division 
+				|| collection.rounds.at(i).get("round_number") != round_number){
+				continue;
+			}
+			//don't give byes a room
+			if(collection.rounds.at(i).get("team1").get("team_code") === "BYE" ||
+				collection.rounds.at(i).get("team2").get("team_code") === "BYE"){
+				continue;
+			}
+
+			round_count++;
+			if(rooms.length > 0){
+				room = rooms.pop();
+				collection.rounds.at(i).set({room: room});
+			} else {
+				con.write("WARNING: Needed another room.")
+			}
+
+
+		}
+
+		if(room_count < round_count){
+			con.write("WARNING: Only had " + room_count + " rooms. Needed " + round_count);
+		}
+	} else {
+		//construct associative array of team1's and rooms.
+		var prev_rooms = {};
+		for(var i = 0; i < collection.rounds.length; i++){
+			//only look at previous round in this division
+			if(collection.rounds.at(i).get("division") != division 
+				|| collection.rounds.at(i).get("round_number") != round_number - 1){
+				continue;
+			}
+			//byes don't have rooms to get
+			if(collection.rounds.at(i).get("team1").get("team_code") === "BYE" ||
+				collection.rounds.at(i).get("team2").get("team_code") === "BYE"){
+				continue;
+			}
+			var team1_id = collection.rounds.at(i).get("team1").get("id");
+			prev_rooms[team1_id] = collection.rounds.at(i).get("room");
+		}
+		//now dish out rooms based on where team1 was last round
+
+		for(var i = 0; i < collection.rounds.length; i++){
+			//only give out rooms to valid rounds
+			if(collection.rounds.at(i).get("division") != division 
+				|| collection.rounds.at(i).get("round_number") != round_number){
+				continue;
+			}
+			//don't give byes a room
+			if(collection.rounds.at(i).get("team1").get("team_code") === "BYE" ||
+				collection.rounds.at(i).get("team2").get("team_code") === "BYE"){
+				continue;
+			}
+
+			round_count++;
+			var team1_id = collection.rounds.at(i).get("team1").get("id");
+			var team2_id = collection.rounds.at(i).get("team2").get("id");
+			var room1 = prev_rooms[team1_id];
+			var room2 = prev_rooms[team2_id];
+			if(room1 != undefined && rooms.indexOf(room1) > -1){
+				//team1 stays in same room		
+				var room_index = rooms.indexOf(room1);
+				
+				collection.rounds.at(i).set({room: room1});
+				rooms.splice(room_index, 1);
+				
+				
+			} else if(room2 != undefined && rooms.indexOf(room2) > -1){
+				//team2 stays in same room
+				var room_index = rooms.indexOf(room2);
+				collection.rounds.at(i).set({room: room2});
+				rooms.splice(room_index, 1);
+				
+			} else {
+				//neither team had a previous room.
+				con.write("neither team had previous room");
+				
+				if(rooms.length > 0){
+					collection.rounds.at(i).set({room: rooms.pop()});
+				} else {
+					con.write("WARNING: Needed another room");
+				} 
+			}
+
+
+		}
+
+	}
+};
+
+
 
 /*
 =========================================
@@ -1152,183 +1406,8 @@ BEGIN: Define PDF Function
 =========================================
 */	
 
-pdf.roundDataPDF = function(headers,titles,startIndex)
-{
-    var rooms_array = new Array();
-	
-	for(x=0; x < collection.rooms.length; x++)
-	{
-		rooms_array[x] = collection.rooms.at(x).get("division").get("division_name"); 
-	}
-    var judges_array = new Array();
-	
-    for(y=0; y<collection.judges.length; y++)
-    {
-       judges_array[y] = new Array();
 
-       if(collection.judges.at(y).get("divisions").length == 1)
-       {
-        judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
-       }
-       if(collection.judges.at(y).get("divisions").length == 2)
-       {
-        judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
-        judges_array[y][1] = collection.judges.at(y).get("divisions")[1].get("division_name");
-       }
-       if(collection.judges.at(y).get("divisions").length == 3)
-       {
-        judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
-        judges_array[y][1] = collection.judges.at(y).get("divisions")[1].get("division_name");
-        judges_array[y][2] = collection.judges.at(y).get("divisions")[2].get("division_name");
-       }
-       if(collection.judges.at(y).get("divisions").length == 4)
-       {
-        judges_array[y][0] = collection.judges.at(y).get("divisions")[0].get("division_name");
-        judges_array[y][1] = collection.judges.at(y).get("divisions")[1].get("division_name");
-        judges_array[y][2] = collection.judges.at(y).get("divisions")[2].get("division_name");
-        judges_array[y][3] = collection.judges.at(y).get("divisions")[3].get("division_name");
-       }
-    }	
-    var judge_team_forbidden = new Array();
-
-    var judgeIndex = $.inArray("VCX", judges_array);
-    console.log(judges_array);
-    console.log($.inArray("VCX",judges_array[0]));
-
-	var table_data = new Array();	//this is a 2-D array 
-	if(collection.rounds.length > 0)
-	{
-		for(var i=0, j=startIndex; i< Math.ceil((collection.teams.length)/2) ; i++,j++) {
-		//	table_data[i] = new tableRowArray();
-			table_data[i] = new Array();
-			if(collection.rounds.at(i).get("aff") == 0)
-			{
-				table_data[i][0] = collection.rounds.at(j).get("team1").get("team_code");
-				table_data[i][1] = collection.rounds.at(j).get("team2").get("team_code");
-
-			}
-			else
-			{
-				table_data[i][0] = collection.rounds.at(j).get("team2").get("team_code");
-				table_data[i][1] = collection.rounds.at(j).get("team1").get("team_code");
-				
-			}
-			
-			if((table_data[i][0] == "BYE") || (table_data[i][1] == "BYE"))
-			{
-				table_data[i][2] = "None";
-			}
-			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "VCX")
-			{
-				for(x=0; x < collection.rooms.length; x++)
-				{
-					if(rooms_array[x] == "VCX")
-					{
-						table_data[i][2] = '' + collection.rooms.at(x).get("name");
-
-						rooms_array[x] = "lol";
-						break;
-						
-					}
-				}
-                for(x=0; x < collection.judges.length; x++)
-                {
-                    var judgeIndex = $.inArray("VCX", judges_array[x]);
-                    if(judgeIndex != -1)
-                    {
-                        table_data[i][3] = collection.judges.at(x).get("name");
-                        judges_array[x] = "lol";
-                        break;
-                    }
-                }
-                	
-			}
-			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "NCX")
-			{
-				for(x=0; x < collection.rooms.length; x++)
-				{
-					if(rooms_array[x] == "NCX")
-					{
-						table_data[i][2] = '' + collection.rooms.at(x).get("name");
-				
-						rooms_array[x] = "lol";
-						break;
-						
-					}
-				}	
-                for(x=0; x < collection.judges.length; x++)
-                {
-                    var judgeIndex = $.inArray("NCX", judges_array[x]);
-                    if(judgeIndex != -1)
-                    {
-                        table_data[i][3] = collection.judges.at(x).get("name");
-                        judges_array[x] = "lol";
-                        break;
-                    }
-                }
-			}
-			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "VLD")
-			{
-				for(x=0; x < collection.rooms.length; x++)
-				{
-					if(rooms_array[x] == "VLD")
-					{
-						table_data[i][2] = '' + collection.rooms.at(x).get("name");
-			
-						rooms_array[x] = "lol";
-						break;
-						
-					}
-				}	
-                for(x=0; x < collection.judges.length; x++)
-                {
-                    var judgeIndex = $.inArray("VLD", judges_array[x]);
-                    if(judgeIndex != -1)
-                    {
-                        table_data[i][3] = collection.judges.at(x).get("name");
-                        judges_array[x] = "lol";
-                        break;
-                    }
-                }
-			}
-			else if(collection.rounds.at(j).get("team1").get("division").get("division_name") == "NLD")
-			{
-				for(x=0; x < collection.rooms.length; x++)
-				{
-					if(rooms_array[x] == "NLD")
-					{
-						table_data[i][2] = '' + collection.rooms.at(x).get("name");
-		
-						rooms_array[x] = "lol";
-						break;
-						
-					}
-				}	
-                for(x=0; x < collection.judges.length; x++)
-                {
-                    var judgeIndex = $.inArray("NLD", judges_array[x]);
-                    if(judgeIndex != -1)
-                    {
-                        table_data[i][3] = collection.judges.at(x).get("name");
-                        judges_array[x] = "lol";
-                        break;
-                    }
-                }
-			}
-
-		
-		}
-		
-			pdf.generatePDF_PairingSheet(headers, titles, table_data);	
-
-	}
-	else
-	{
-		alert("no rounds exist");
-	}
-}
-
-pdf.generatePDF_PairingSheet = function(headers, titles, table_data){
+pdf.generatePairingSheet = function(headers, titles, round_number, division){
 	// generate a blank document
 	var doc = new jsPDF();
 	var max_page_length = 280;
@@ -1337,26 +1416,50 @@ pdf.generatePDF_PairingSheet = function(headers, titles, table_data){
 
 	doc.text(20, 20, headers.tournament_name);
 	doc.text(20, 30, headers.date);
-	const round_text = 'Round: ' + headers.round_number;
+	var round_text = 'Round: ' + headers.round_number;
 	doc.text(20, 40, round_text);
-	doc.text(20, 50, headers.start_time_text);
+	doc.text(20, 50, headers.division.get("division_name") + " : " + headers.start_time_text);
 	doc.text(20, 60, headers.message);
-
-	var x_value = 20;
-	const title_y_value = 80;
-	const spacing = 47;
+	
+	var spacing = 47;
 
 
-	pdf.printTitles(doc, titles, x_value, title_y_value, spacing);
+	pdf.printTitles(doc, titles, 20, 80, spacing);
 
 	var data_y_value = 90;
 	var j = 0;
-	for(i=0; i< table_data.length; i++) {	//for each row
-		x_value = 20;
-		for(j=0; j< table_data[i].length; j++) {	//for each column
-			doc.text(x_value, data_y_value, table_data[i][j]);
-			x_value = x_value + spacing;		// add a spacing between each column
-		}	
+
+	//loop through every round and print it out into the pdf if it's applicable
+	for(var i = 0; i < collection.rounds.length; i++){
+		//don't print irrelevant rounds
+		if(collection.rounds.at(i).get("round_number") != round_number || collection.rounds.at(i).get("division") != division){
+			continue;
+		}
+		var x_value = 20;
+		var team1 = collection.rounds.at(i).get("team1").get("team_code");
+		var team2 = collection.rounds.at(i).get("team2").get("team_code");
+		var aff;
+		var neg;
+		if(collection.rounds.at(i).get("aff") === 0){
+			aff = team1;
+			neg = team2;
+		} else {
+			aff = team2;
+			neg = team1;
+		}
+		//print out round info
+		doc.text(x_value, data_y_value, aff); //AFF
+		x_value = x_value + spacing;		// add a spacing between each column
+		doc.text(x_value, data_y_value, neg); //NEG
+		x_value = x_value + spacing;
+		var judge_name = collection.rounds.at(i).get("judge") != undefined ? collection.rounds.at(i).get("judge").get("name") : "";
+		doc.text(x_value, data_y_value, judge_name); //JUDGE
+		x_value = x_value + spacing;
+
+		var room_name = collection.rounds.at(i).get("room") != undefined ? collection.rounds.at(i).get("room").get("name") : "";
+		doc.text(x_value, data_y_value, room_name); //ROOM
+		x_value = x_value + spacing;
+
 		data_y_value = data_y_value + 10;
 		if(data_y_value > max_page_length) {
 			doc.addPage();
@@ -1365,10 +1468,6 @@ pdf.generatePDF_PairingSheet = function(headers, titles, table_data){
 								// of titles on new page
 		}
 	}
-
-//	doc.text(20, 30, 'This is client-side JS pumping out a PDF!');
-//	doc.addPage();
-//	doc.text(20, 20, 'Do you like that?');
 
 	// Output as Data URI so that it can be downloaded / viewed
 	doc.output('datauri');
@@ -1638,7 +1737,8 @@ view.TeamTable = Backbone.View.extend({
 				var names_2 = whole_name_2.split(" ");
 				var last_name_2 = names_2[names_2.length-1];
 
-				team_code += " " + last_name.substr(0,1) + last_name_2.substr(0,1);
+				team_code += " " + last_name.substr(0,1).toUpperCase() 
+					+ last_name_2.substr(0,1).toUpperCase();
 				
 			} else {
 				//can't generate team code
@@ -2020,15 +2120,13 @@ view.RoomTable = Backbone.View.extend({
 		$("#newroom_division", this.el).append(divOptionView.render().el);
 	} ,
 	addRoom: function(){
-		console.log("room");
 		//TODO: validate room name
 			//	
-		//pairing.restoreReferences();
+		
 
 		var room_name = $("#newroom_name").val();
 		var div_name_id = $("#newroom_division").val();
 		var division = pairing.getDivisionFromId(div_name_id);
-		console.log(division);
 		var room = new model.Room();
 		room.set({name: room_name, division: division});
 		collection.rooms.add(room);
@@ -2504,65 +2602,27 @@ $("#menu_pdf").click(function(){
 
 //Code for Generate PDF Button
 $("#pdf_gen").click(function(){
-	const headers = {
+	var headers = {
 		tournament_name: 'Round Rock HS Tournament',
 		date: '11/18/11',
 		round_number: '1',
 		start_time_text: 'Start: 3:00 PM',
-		message: 'Welcome to the Round Rock Tournament run by DebateTab!'
+		message: 'Welcome to the Round Rock Tournament run by DebateTab!',
+		division: collection.divisions.at(0)
 	};
 
-	const titles = [ "Affirmative",
+	var titles = [ "Affirmative",
 			"Negative",
-			"Room",
-			"Judge"
+			"Judge",
+			"Room"
 	];
 	
-    var startIndex = 0;
-    pdf.roundDataPDF(headers,titles,startIndex);
+    pdf.generatePairingSheet(headers,titles, 1, collection.divisions.at(0));
 	
 
 });
 
-$("#pdf_gen2").click(function(){
-	const headers = {
-		tournament_name: 'Round Rock HS Tournament',
-		date: '11/18/11',
-		round_number: '2',
-		start_time_text: 'Start: 3:00 PM',
-		message: 'Welcome to the Round Rock Tournament run by DebateTab!'
-	};
 
-	const titles = [ "Affirmative",
-			"Negative",
-			"Room",
-			"Judge"
-	];
-	
-	var startIndex = (Math.ceil((collection.teams.length)/2));
-    pdf.roundDataPDF(headers,titles,startIndex);
-
-});
-
-$("#pdf_gen3").click(function(){
-	const headers = {
-		tournament_name: 'Round Rock HS Tournament',
-		date: '11/18/11',
-		round_number: '3',
-		start_time_text: 'Start: 3:00 PM',
-		message: 'Welcome to the Round Rock Tournament run by DebateTab!'
-	};
-
-	const titles = [ "Affirmative",
-			"Negative",
-			"Room",
-			"Judge"
-	];
-	
-	var startIndex = 2*(Math.ceil((collection.teams.length)/2));
-    pdf.roundDataPDF(headers,titles,startIndex);
-
-});
 
 $("#ballot_gen").click(function(){
 	pdf.generateCXBallot();	
