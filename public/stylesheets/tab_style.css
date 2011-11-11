@@ -34,7 +34,8 @@ html { font-size: 100%; overflow-y: scroll; -webkit-text-size-adjust: 100%; -ms-
 
 body { margin: 0; font-size: 13px; line-height: 1.231; }
 
-body, button, input, select, textarea { font-family: sans-serif; color: #222; }
+body, button, input, select, textarea { font-family: sans-serif; color: #222; border: 2px solid #E8E8E8; border-radius: 6px;
+}
 
 /* 
  * Remove text-shadow in selection highlight: h5bp.com/i
@@ -246,6 +247,11 @@ a:hover {
 	margin:0;
 	text-align:center;
 	color:#FFF;
+	
+	border: 7px solid #F8F8F8;
+	background-color: #F8F8F8;
+	opacity: .9;
+	
 	}
 #header h1 {
 	color: #666;
@@ -273,6 +279,8 @@ a:hover {
 	padding:10px;
 	background:#fff;
 	z-index:100;
+	
+
 
 	}
 #right_col {
@@ -288,6 +296,8 @@ a:hover {
 	padding:10px;
 	background:#fff;
 	z-index:99;
+	border: 2px solid #E0E0E0;
+
 	
 	
 	}
@@ -342,9 +352,17 @@ a:hover {
 
 .menu_item {
 	margin:0px, 3px, 6px, 3px;
+	border: 2px solid #F0F0F0;
+	border-radius: 8px;
+	text-align: center;
+	background-color: #E8E8E8;
+	opacity: .9;
+	
+
 }
 .menu_item:hover{
 	font-weight: bold;
+	border: 2px solid #E0E0E0;
 	cursor: pointer;
 }
 
@@ -441,6 +459,9 @@ ul.autocomplete li.selected {
 
 .menu_item_selected {
 	font-weight: bold;
+	border: 2px solid #E0E0E0;
+
+	
 }
 
 

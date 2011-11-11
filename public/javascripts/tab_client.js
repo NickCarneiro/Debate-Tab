@@ -1834,15 +1834,15 @@ view.Judge = Backbone.View.extend({
 
 	remove: function(judge){
 	//	$(function () {
-			$('.simpledialog').simpleDialog();
+		//	$('.simpledialog').simpleDialog();
 	//	});
-	//	this.model.destroy();
+		this.model.destroy();
 		
 	} ,
 	render: function(){
 		var school = this.model.get("school") === undefined ? "None" : this.model.get("school").get("school_name");
 		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' + this.model.get("id") + 
-			'</td><td>'+ school +'</td><td><a href="#" rel="dialog_content" class="simpledialog">Remove</a></td>');
+			'</td><td>'+ school +'</td><td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el ( in appendJudge)
 	} ,
 	unrender: function(){
