@@ -297,7 +297,9 @@ collection.Rounds = Backbone.Collection.extend({
 		localStorage: new Store("Rounds"),
 		filterRounds: function(round_number, division){
 			return _(this.filter(function(data){
-				if(data.get("division") === division && data.get("round_number") === round_number){
+				
+				if(data.get("division") === division && data.get("round_number") == round_number){
+					
 					return true;
 				} else {
 					return false;
@@ -2441,9 +2443,10 @@ view.RoundTable = Backbone.View.extend({
 	} ,
 
 	filterDivisions: function(){
+		console.log("filtering divisions");
 		var division_id = $("#rounds_division_select").val();
 		var division = pairing.getDivisionFromId(division_id);
-		var round_number = $("#round_round_number_select").val();
+		var round_number = $("#rounds_round_number_select").val();
 		this.renderSearch(collection.rounds.filterRounds(round_number, division));
 	} ,
 	search: function(e){
