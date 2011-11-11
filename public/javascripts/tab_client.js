@@ -127,6 +127,8 @@ model.Judge = Backbone.Model.extend({
     
 });
 
+
+
 model.Round = Backbone.Model.extend({
 	default: {
 		division	: null, //ref to division
@@ -198,8 +200,9 @@ model.Division = Backbone.Model.extend({
 		record_ranks	: true ,
 		max_speaks		: 30 , //maximum speaker points possible
 		flighted_rounds : false ,
-		prelims			: 4 , //
-		prelim_matching : []
+		prelims			: -1 , //
+		prelim_matching : [] ,
+		schedule		: [] //array of round info objects that contain a round_number and powermatching_method
 	} ,
 	initialize: function(){
 		if(!this.id == undefined){
@@ -291,7 +294,16 @@ collection.Divisions = Backbone.Collection.extend({
 
 collection.Rounds = Backbone.Collection.extend({
 		model: model.Round ,
-		localStorage: new Store("Rounds")
+		localStorage: new Store("Rounds"),
+		filterRounds: function(round_number, division){
+			return _(this.filter(function(data){
+				if(data.get("division") === division && data.get("round_number") === round_number){
+					return true;
+				} else {
+					return false;
+				}
+			}));
+		}
 });	
 
 /*
@@ -1730,6 +1742,7 @@ Define Backbone Views
 
 //An individual division option 
 //managed by view.TeamTable
+//also used in roundsTable filter
 view.DivisionOption = Backbone.View.extend({
 	tagName: "option",
 	initialize: function(){
@@ -1754,6 +1767,8 @@ view.DivisionOption = Backbone.View.extend({
 		$(this.el).remove();
 	}
 });
+
+
 
 //An individual school option 
 //managed by view.TeamTable
@@ -2336,25 +2351,72 @@ view.RoundTable = Backbone.View.extend({
 	events: {
 		
 		"keyup #rounds_search": "search",
-		"click #pair_round_button" : "pairRound"
+		"click #pair_round_button" : "pairRound",
+		"change #rounds_division_select" : "filterDivisions",
+		"change #rounds_division_select" : "renderRoundNumberSelect",
+		"change #rounds_round_number_select" : "filterDivisions"
 	} ,
 	initialize: function(){
-		_.bindAll(this, "render", "addRound", "appendRound");
+		_.bindAll(this, "render", "addRound", "appendRound", "renderRoundNumberSelect");
 		
 		collection.rounds.bind("add", this.appendRound);
 		collection.rounds.bind("reset", this.render, this);
 		collection.rounds.bind("change", this.render, this);
+
+		collection.divisions.bind("change", this.renderDivisionSelect, this);
+		collection.divisions.bind("reset", this.renderDivisionSelect, this);
 		this.render();
 		
 	} ,
 	pairRound: function(){
-		pairing.pairRound(1, collection.divisions.at(0));
-	},
+		
+	} ,
+
+	renderRoundNumberSelect: function(){
+		$("#rounds_round_number_select").empty();
+		//show round options for selected division
+		var div_id = $("#rounds_division_select").val();
+		var div = pairing.getDivisionFromId(div_id);
+		if(div === undefined){
+			return;
+		}
+		if(div.get("schedule") != undefined){
+			for(var i = 0; i < div.get("schedule").length; i++){
+				this.appendRoundNumberOption(div.get("schedule")[i].round_number);
+			}
+		}
+	} ,
+	appendRoundNumberOption: function(round_number){
+		//since the objects in the schedule array are not models, we don't have a bonafide option subview.
+		$("#rounds_round_number_select", this.el).append('<option value="'+round_number+'">'+round_number+'</option>');
+		
+	} ,
+    
+    	
+	
+	renderDivisionSelect: function(){
+		$("#rounds_division_select").empty();
+		collection.divisions.each(function(division){ // in case collection is not empty
+        	this.appendDivisionOption(division);
+    	}, this);
+	} ,
+
+	appendDivisionOption: function(division){
+		var divOptionView = new view.DivisionOption({
+			model: division
+		});
+		$("#rounds_division_select", this.el).append(divOptionView.render().el);
+		
+	} ,
+
 	render: function(){
 		$("#rounds_table").empty();
 		_(collection.rounds.models).each(function(round){ // in case collection is not empty
         	this.appendRound(round);
     	}, this);
+
+    	this.renderDivisionSelect();
+    	this.renderRoundNumberSelect();
 	} ,
 
 	addRound: function(){
@@ -2376,6 +2438,13 @@ view.RoundTable = Backbone.View.extend({
 		$("#rounds_table", this.el).append(roundView.render().el);
 		//save round to localstorage
 		round.save();
+	} ,
+
+	filterDivisions: function(){
+		var division_id = $("#rounds_division_select").val();
+		var division = pairing.getDivisionFromId(division_id);
+		var round_number = $("#round_round_number_select").val();
+		this.renderSearch(collection.rounds.filterRounds(round_number, division));
 	} ,
 	search: function(e){
 		var letters = $("#rounds_search").val();
@@ -2536,6 +2605,11 @@ view.DivisionTable = Backbone.View.extend({
 		var break_to = $("#newdiv_break_to").val();
 		var max_speaks = parseInt($("#newdiv_max_speaks").val());
 		var prelims = parseInt($("#newdiv_prelims").val());
+		var schedule = [];
+		for(var i = 0; i < prelims; i++){
+			var num = i + 1;
+			schedule.push({round_number: num, matching: "power"});
+		}
 		division.set({
 			id				: (new ObjectId).toString(),
 			division_name	: division_name,
@@ -2543,7 +2617,8 @@ view.DivisionTable = Backbone.View.extend({
 			flighted_rounds	: flighted_rounds,
 			break_to		: break_to,
 			max_speaks		: max_speaks,
-			prelims			: prelims
+			prelims			: prelims,
+			schedule		: schedule
 
 		});
 		collection.divisions.add(division);
