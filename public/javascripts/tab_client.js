@@ -6,7 +6,23 @@ Nick Carneiro
 ============================
 */
 
+var name2debate = {};
+// define HashMap of round names to num_debates_that_take_place
+name2debate["triple octafinals"] = 32;
+name2debate["double octafinals"] = 16;
+name2debate["octafinals"] = 8;
+name2debate["quarterfinals"] = 4;
+name2debate["semifinals"] = 2;
+name2debate["finals"] = 1;
 
+var debate2name = {};
+//define HashMap of num_debates_that_take_place to round names
+debate2name["32"] = "triple octafinals";
+debate2name["16"] = "double octafinals";
+debate2name["8"] = "octafinals";
+debate2name["4"] = "quarterfinals";
+debate2name["2"] = "semifinals";
+debate2name["1"] = "finals";
 
 //module pattern
 //see http://www.adequatelygood.com/2010/3/JavaScript-Module-Pattern-In-Depth
@@ -1419,43 +1435,13 @@ BEGIN: Define PDF Function
 =========================================
 */	
 
-
-
 pdf.bracketsDataPDF = function() {
-	var date = '11/18/11';
-	var initial_teams = new Array();
-	var quarters = new Array();
-	var semis = new Array();
-	var finals = new Array();
-	var champion = new Array();
+	const date = '11/18/11';
+	const round_number = 'quarterfinals';
+	const title = 'Round Rock Tournament';
+	const division = 'div1';
 
-	con.write('started bracketsDataPDF');
-
-	//temp generate teams
-	for(var i = 1; i<= 16; i++ ) {
-		var temp_team = 'Team ' + (i); 
-		initial_teams[i-1] = temp_team;
-
-		if(i%2 == 0) {
-			quarters[i/2 -1] = temp_team;
-		}
-		
-		if(i%4 == 0) {
-			semis[i/4 -1] = temp_team;
-		}
-
-		if(i%8 == 0) {
-			finals[i/8 -1] = temp_team;
-		}
-
-		if(i%16 == 0) {
-			champion[i/16 -1] = temp_team;
-			con.write('champion: ' + champion[0]);
-		}
-	}
-
-	con.write('set data variables');
-	pdf.generatePDF_Brackets(date, initial_teams, quarters, semis, finals, champion);
+	pdf.generatePDF_Brackets(round_number, division, date, title);
 }
 
 pdf.generatePairingSheet = function(headers, titles, round_number, division){
@@ -1463,7 +1449,6 @@ pdf.generatePairingSheet = function(headers, titles, round_number, division){
 	var doc = new jsPDF();
 	var max_page_length = 280;
 	var page_start_y_value = 50;
-
 
 	doc.text(20, 20, headers.tournament_name);
 	doc.text(20, 30, headers.date);
@@ -1602,41 +1587,81 @@ pdf.generateCXBallot = function(){
 
 // generate Brackets PDF
 // TODO for now the params are treated as arrays -- but we should change it to Linked List
-pdf.generatePDF_Brackets = function(date, initial_teams, quarters, semis, finals, champion){
+pdf.generatePDF_Brackets = function(round_number, division, date, title) {
+	var teamsArray = new Array();
+
+	// name2debate returns the number of debates that takes place. so number of teams = number of debates x 2
+	const num_initial_teams = name2debate[round_number] * 2;
+
+	// number of separations. i.e. log2(num_initial_teams) + 1 (for the winner)
+	const num_cols = Math.log(num_initial_teams)/Math.log(2) + 1;
+	
+	// make an array to keep track of the counters of the indexes as we add to teamsArray
+	var teamsArrayIndexCounters = new Array(num_cols);
+	
+	// create new arrays in teamsArray based on num_initial_teams
+	//teamsArray[len - 1] = finals
+	for(var i=0; i<num_cols; i++) {		
+		// set length in a quadratic fashion based on which column it is in
+		teamsArray[i] = new Array( Math.pow(2, num_cols - i - 1) );
+		//set counter for teamsArray[i] to 0
+		teamsArrayIndexCounters[i] = 0;
+		//con.write('teamsArray[' + i + '].length: ' + teamsArray[i].length);
+	}
+
+	// iterate through rounds and fill up teamsArray
+	// this will be adding two teams per iteration, if at all -- round.get("team1") and round.get("team2")
+	for(var i = 0; i < collection.rounds.length; i++) {
+		//get i-th round
+		const round = collection.rounds.at(i);
+
+		if(round.get("division") === division) {
+			//get the number of the round
+			const number = name2debate(round.get("round_number")) * 2;		// multiply by 2 to get number of teams in round
+
+			// check if the round should be included
+			// if it is a round equal to or after the initial round, then include it
+			if(num_initial_teams >= number) {
+				// add to teamsArray
+				// the teamsArrays is organized in this way..
+				// 	index num_cols-1 is for finals
+				//	index num_cols-2 is for semifinals etc.
+
+				// formula explanation => maxColumns - 1 - log2(number_of_teams_in_this_round)
+				//this tells us what the index is for teamsArray i.e. what index does the array correspond to
+				const index_to_add_at = num_cols - 1 - Math.log(number)/Math.log(2);
+
+				// add first team to the brackets
+				teamsArray[index_to_add_at][teamsArrayIndexCounters[index_to_add_at]] = round.get("team1");
+				teamsArrayIndexCounters[index_to_add_at] += 1;
+
+				// add second team to brackets
+				teamsArray[index_to_add_at][teamsArrayIndexCounters[index_to_add_at]] = round.get("team2");
+				teamsArrayIndexCounters[index_to_add_at] += 1;
+			}
+		}
+	}
+
+	// now we have teamsArray set. Now we just need to convert it to PDF
+
 	var doc = new jsPDF();
 
-	// max page length in pixels after which we need a new page (trial and error) = 280 
-	var max_page_length = 285;
+	// max page length in pixels after which we need a new page (trial and error)
+	const max_page_length = 285;
 
-	// max pixels of PDF file (trial and error) = 400
-	var max_page_width = 210;
+	// max pixels of PDF file (trial and error)
+	const max_page_width = 210;
 
-	// number of separations. i.e. initial, quarters .... champion = 5
-	var num_cols = 5;
-
-	doc.text(20, 20, 'Round Rock Tournament');
+	doc.text(20, 20, title);
 	doc.text(20, 30, date);
 	
 	//start writing at this x and y value pixel
-	var page_start_x_value = 20;
-	var page_start_y_value = 40;
+	const page_start_x_value = 20;
+	const page_start_y_value = 40;
 
 	var y_value;
 	var x_value;
 
-	
-	con.write('set variables. Now setting Array');
-
-	var teamsArray = new Array();
-	teamsArray[0] = initial_teams;
-	teamsArray[1] = quarters;
-	teamsArray[2] = semis;
-	teamsArray[3] = finals;
-	teamsArray[4] = champion;
-	
-	con.write('Finals: ' + finals[0] + ', ' + finals[1]);
-	con.write('teamsArray[3](finals): ' + teamsArray[3][0] + ', ' + teamsArray[3][1]);
-	
 	const spacing_x = (max_page_width - page_start_x_value)/num_cols;
 	var spacing_y;
 
@@ -1644,28 +1669,36 @@ pdf.generatePDF_Brackets = function(date, initial_teams, quarters, semis, finals
 	x_value = page_start_x_value;
 
 	const vertical_line_pixels = 4;
+	
+	if(teamsArray != undefined) {
+		for(var i=0; i<teamsArray.length; i++) {
+			if(teamsArray[i] != undefined) {
+				spacing_y = (max_page_length - page_start_y_value)/teamsArray[i].length;
+				y_value = page_start_y_value;
 
-	for(var i=0; i< teamsArray.length; i++) {
-		spacing_y = (max_page_length - page_start_y_value)/teamsArray[i].length;
-		y_value = page_start_y_value;
+				for(var j = 0; j< teamsArray[i].length; j++) {
+					if(teamsArray[i][j] != undefined) {
+						y_value = y_value + spacing_y;
+						con.write('teamsArray['+i+']['+j+'] = ' + teamsArray[i][j]);	// debug print
 
-		for(var j = 0; j< teamsArray[i].length; j++) {
-		        y_value = y_value + spacing_y;
-			doc.text(x_value, y_value - spacing_y/2, teamsArray[i][j]);
-			doc.text(x_value - 2, y_value - spacing_y/2, '____________');
+						doc.text(x_value, y_value - spacing_y/2, teamsArray[i][j]);
+						doc.text(x_value - 2, y_value - spacing_y/2, '____________');
 
-			// do for all columns except the first
-			if(i!=0) {
-				// print the line for the bracket
-				for(var k = 0; k< spacing_y/4; k = k + vertical_line_pixels ) { 	//above
-					doc.text(x_value - 2.5, y_value - spacing_y/2 - k, '|');
+						// do for all columns except the first
+						if(i!=0) {
+							// print the line for the bracket
+							for(var k = 0; k< spacing_y/4; k = k + vertical_line_pixels ) { 	//above
+								doc.text(x_value - 2.5, y_value - spacing_y/2 - k, '|');
+							}
+							for(var k = 0; k< spacing_y/4; k = k + vertical_line_pixels ) { 	//below
+								doc.text(x_value - 2.5, y_value - spacing_y/2 + k + vertical_line_pixels, '|');
+							}
+						}
+					}
 				}
-				for(var k = 0; k< spacing_y/4; k = k + vertical_line_pixels ) { 	//below
-					doc.text(x_value - 2.5, y_value - spacing_y/2 + k + vertical_line_pixels, '|');
-				}
+				x_value = x_value + spacing_x;
 			}
 		}
-		x_value = x_value + spacing_x;
 	}
 
 	// Output as Data URI so that it can be downloaded / viewed
