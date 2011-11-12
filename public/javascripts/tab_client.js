@@ -79,6 +79,8 @@ model.Team = Backbone.Model.extend({
 		team_code	: "default team_code" ,
 		division	: null , //reference to division
 		school	: null , //reference to school
+		wins:	0,
+		losses:	0,
 
 		stop_scheduling : false ,
 		competitors : []
@@ -375,6 +377,15 @@ pairing.getJudgeFromId = function(judge_id){
 	return undefined;
 }
 
+//returns true if round has already been paired
+pairing.alreadyPaired = function(round_number, division){
+	for(var i = 0; i < collection.rounds.length; i++){
+		if(collection.rounds.at(i).get("division") === division && collection.rounds.at(i).get("round_number") === round_number){
+			return true;
+		}
+	}
+	return false;
+}
 //object references to backbone models get turned into plain old objects 
 //when they are loaded from localstorage.
 //this function looks at the ObjectIds of the objects and turns the plain old
@@ -569,6 +580,7 @@ pairing.updateRecords = function(){
 				collection.teams.at(i).set({losses: new_losses});
 			}
 		}
+		collection.teams.at(i).save();
 	}
 }
 
@@ -1009,10 +1021,12 @@ pairing.pairRound = function(round_number, division){
 			}
 		}		
 
-		if(temp_teams.length > 0 && collection.teams.length % 2 == 0 || byes > 1){
+
+		if((byes > 1) || (total_teams % 2 == 0 && byes > 0)){
 			//if there are an even number of teams but someone has a bye, fix it.
 			con.write("fixing byes");	
-
+			con.write("temp_teams: " + temp_teams.length);
+			con.write("byes: " + byes);
 
 			//Teams that haven't been paired are still in temp_teams 
 			for(var i = 0; i < temp_teams.length; i++){
@@ -1263,13 +1277,12 @@ pairing.pairJudges = function(round_number, division){
 			}
 			//don't pair judges that can't judge this division
 			if(judge.get("divisions").indexOf(division) === -1){
-				console.log(judge.get("divisions"));
 				continue;
 			}
 			
 
 			if(pairing.canJudge(collection.rounds.at(i).get("team1"), collection.rounds.at(i).get("team2"), judge, round_number, division)){
-				con.write("successfully paired " + judge.get("name"));
+				//con.write("successfully paired " + judge.get("name"));
 				collection.rounds.at(i).set({judge: judge});
 				paired_judges.push(judge);
 				
@@ -1405,7 +1418,7 @@ pairing.pairRooms = function(round_number, division){
 				
 			} else {
 				//neither team had a previous room.
-				con.write("neither team had previous room");
+				//con.write("neither team had previous room");
 				
 				if(rooms.length > 0){
 					collection.rounds.at(i).set({room: rooms.pop()});
@@ -1880,7 +1893,7 @@ view.TeamTable = Backbone.View.extend({
 			//case 1: 1 competitor. Use initials like
 			//Nick Carneiro => Round Rock NC
 			if(competitors.length === 1){
-				var whole_name = competitors.get(0).val();
+				var whole_name = $(competitors.get(0)).val();
 				var names = whole_name.split(" ");
 				if(names.length >= 2){
 					
@@ -2041,9 +2054,11 @@ view.Team = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
+		var wins = this.model.get("losses") || "0";
+		var losses = this.model.get("wins") || "0";
 		$(this.el).html('<td>' + this.model.get("team_code") + 
 			'</td> <td>'+this.model.get("division").get("division_name") +'</td><td>' + 
-			this.model.get("id") + '</td><td class="remove">Remove</td>');
+			wins + "-"+ losses + '</td><td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el ( in appendTeam)
 	} ,
 	unrender: function(){
@@ -2098,9 +2113,14 @@ view.Judge = Backbone.View.extend({
 		
 	} ,
 	render: function(){
+		var divisions = this.model.get("divisions");
+		var div_string = "";
+		for(var i = 0; i < divisions.length; i++){
+			var div = divisions[i].get("division_name");
+			div_string = div_string + div + " ";
+		}
 		var school = this.model.get("school") === undefined ? "None" : this.model.get("school").get("school_name");
-		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' + this.model.get("id") + 
-			'</td><td>'+ school +'</td><td class="remove">Remove</td>');
+		$(this.el).html('<td>' + this.model.get("name") + '</td><td>'+ school +'</td><td>' + div_string + '</td><td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el ( in appendJudge)
 	} ,
 	unrender: function(){
@@ -2233,7 +2253,7 @@ view.Room = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' +this.model.get("division").get("division_name") + '</td> <td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
+		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' +this.model.get("division").get("division_name") + '</td><td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el ( in appendRoom)			.get("division_name")
 	} ,
 	unrender: function(){
@@ -2365,14 +2385,30 @@ view.Round = Backbone.View.extend({
 		if(team1 != undefined){
 			var team1_cd = team1.get("team_code");
 		} else {
-			team1_cd = "BYE";
+			team1_cd = "Error";
 		}
 		if(team2 != undefined){
 			var team2_cd = team2.get("team_code");
 		} else {
-			team2_cd = "BYE";
+			team2_cd = "Error";
 		}
-		$(this.el).html('<td>' + team1_cd + '</td> <td>' + team2_cd + '</td><td class="remove">Remove</td>');
+		if(this.model.get("aff") === 0){
+			var aff = team1_cd;
+			var neg = team2_cd;
+		} else {
+			var aff = team2_cd;
+			var neg = team1_cd;
+		}
+
+		var judge = "";
+		var room = "";
+		if(this.model.get("judge") != undefined){
+			judge = this.model.get("judge").get("name");
+		}
+		if(this.model.get("room") != undefined){
+			room = this.model.get("room").get("name");
+		}
+		$(this.el).html('<td>' + aff + '</td> <td>' + neg + '</td><td>'+judge+'</td><td>'+room+'</td><td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el
 	} ,
 	unrender: function(){
@@ -2387,7 +2423,6 @@ view.RoundTable = Backbone.View.extend({
 		
 		"keyup #rounds_search": "search",
 		"click #pair_round_button" : "pairRound",
-		"change #rounds_division_select" : "filterDivisions",
 		"change #rounds_division_select" : "renderRoundNumberSelect",
 		"change #rounds_round_number_select" : "filterDivisions"
 	} ,
@@ -2400,6 +2435,7 @@ view.RoundTable = Backbone.View.extend({
 
 		collection.divisions.bind("change", this.renderDivisionSelect, this);
 		collection.divisions.bind("reset", this.renderDivisionSelect, this);
+		collection.divisions.bind("add", this.renderDivisionSelect, this);
 		this.render();
 		
 	} ,
@@ -2420,6 +2456,8 @@ view.RoundTable = Backbone.View.extend({
 				this.appendRoundNumberOption(div.get("schedule")[i].round_number);
 			}
 		}
+
+		this.filterDivisions();
 	} ,
 	appendRoundNumberOption: function(round_number){
 		//since the objects in the schedule array are not models, we don't have a bonafide option subview.
@@ -2452,6 +2490,7 @@ view.RoundTable = Backbone.View.extend({
 
     	this.renderDivisionSelect();
     	this.renderRoundNumberSelect();
+    	this.filterDivisions();
 	} ,
 
 	addRound: function(){
@@ -2476,7 +2515,6 @@ view.RoundTable = Backbone.View.extend({
 	} ,
 
 	filterDivisions: function(){
-		console.log("filtering divisions");
 		var division_id = $("#rounds_division_select").val();
 		var division = pairing.getDivisionFromId(division_id);
 		var round_number = $("#rounds_round_number_select").val();
@@ -2516,7 +2554,7 @@ view.School = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("school_name") + '</td> <td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
+		$(this.el).html('<td>' + this.model.get("school_name") + '</td> <td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el
 	} ,
 	unrender: function(){
@@ -2598,7 +2636,7 @@ view.Division = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("division_name") + '</td> <td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
+		$(this.el).html('<td>' + this.model.get("division_name") + '</td><td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el ( in appendTeam)
 	} ,
 	unrender: function(){
@@ -2642,9 +2680,25 @@ view.DivisionTable = Backbone.View.extend({
 		var max_speaks = parseInt($("#newdiv_max_speaks").val());
 		var prelims = parseInt($("#newdiv_prelims").val());
 		var schedule = [];
+
 		for(var i = 0; i < prelims; i++){
 			var num = i + 1;
-			schedule.push({round_number: num, matching: "power"});
+			schedule.push({round_number: num, type: "prelim", matching: "power"});
+		}
+		var elims = [
+			{name:	"triple octafinals", debates: 64}, 
+			{name: "double octafinals", debates: 32},
+			{name: "octafinals", debates: 16},
+			{name: "quarterfinals", debates: 8},
+			{name:  "semifinals", debates: 2},
+			{name: "finals", debates: 1}
+		];
+
+
+		for(var i = 0; i < elims.length; i++){
+			if(break_to >= elims[i].debates){
+				schedule.push({round_number:elims[i].name, type: "elim"});
+			}
 		}
 		division.set({
 			id				: (new ObjectId).toString(),
@@ -2739,6 +2793,8 @@ con.write("Rounds: " + collection.rounds.length);
 $(".container").hide();
 $(".sub_menu").hide();
 $("#rounds_container").show();
+
+$(".input_form").hide();
 
 /*
 =========================================
@@ -2973,10 +3029,67 @@ $("#mass_texts").mouseover(
 
 /*
 =========================================
-Team Controls
+Collection Controls
 =========================================
 */
+//school controls
+$("#toggle_school_form").click(function(){
+	$("#school_form").slideToggle();
+});
 
+//judge controls
+
+$("#toggle_judge_form").click(function(){
+	$("#judge_form").slideToggle();
+});
+
+//room controls
+$("#toggle_room_form").click(function(){
+	$("#room_form").slideToggle();
+});
+
+//division controls
+$("#toggle_division_form").click(function(){
+	$("#division_form").slideToggle();
+});
+
+//team controls
+$("#toggle_team_form").click(function(){
+	$("#team_form").slideToggle();
+});
+
+//round controls
+$("#pair_round_button").click(function(){
+	var div_id = $("#rounds_division_select").val();
+	var div = pairing.getDivisionFromId(div_id);
+	var round_number = $("#rounds_round_number_select").val();
+	//check if round has already been paired.
+	var already_paired = pairing.alreadyPaired(round_number, div);
+	if(already_paired === true){
+		//pop up dialog for confirmation
+		$.confirm({
+			'title'		: 'Repair Confirmation',
+			'message'	: 'You are about to repair a round that has already been paired. <br />It cannot be restored at a later time! Continue?',
+			'buttons'	: {
+				'Yes'	: {
+					'class'	: 'blue',
+					'action': function(){
+						pairing.pairRound(round_number, div);
+					}
+				},
+				'No'	: {
+					'class'	: 'gray',
+					'action': function(){}	// Nothing to do in this case. You can as well omit the action property.
+				}
+			}
+		});
+	} else {
+		pairing.pairRound(round_number, div);
+	}
+
+
+	
+});
 /*
 =========================================
 Debug Controls
