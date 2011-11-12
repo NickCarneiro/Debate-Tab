@@ -3,19 +3,15 @@
 JS includes
 ====================== 
 -->
+<div class="container_12">
 
-
-<div id="header"><!-- begin header -->
+<div id="header" class="grid_12"><!-- begin header -->
 	<h1>DebateTab.com</h1>
 </div><!-- end header -->
 
-<div id="wrapper_1"><!-- sets background to white and creates full length leftcol-->
-	
-	<div id="wrapper_2"><!-- sets background to white and creates full length rightcol-->
-	
-		<div id="main_col"><!-- begin main content area -->
+
 				
-			<div id="left_col"><!-- begin leftcol -->
+			<div class="grid_2 left_col"><!-- begin leftcol -->
 				<ul id="main_menu" class="menu">
 					<li class="menu_item" id="menu_rounds">Rounds</li>
 					
@@ -29,18 +25,18 @@ JS includes
 					</ul>
 				
 				
-			</div><!-- end leftcol -->
-				
-			<div id="right_col"><!-- begin rightcol -->
-				<span class="context_help" id="help_text">Click on a round to record or modify it.</span>
-			</div><!-- end righttcol -->
+			</div>
 			
-			<div id="center_col"><!-- begin centercol -->
+			<div class="grid_10" id="right_col"><!-- begin rightcol -->
 			
 		<div id="rounds_container" class="container">
 			<div id="rounds">
-			<input type="text" class="search_box" id="rounds_search_box" /> 
-				<button id="rounds_search" class="search_button">Find</button>
+			<span>Division: </span><select id="rounds_division_select">
+			</select>
+			<span>Round Number: </span><select id="rounds_round_number_select">
+			</select>
+				<br />
+				<br />
 				<table id="rounds_table">
 				</table>
 				<br />
@@ -52,17 +48,9 @@ JS includes
 
 		<div id="teams_container" class="container">
 			<div id="teams">
-			<div class="search_container">
-				<input type="text" class="search_box" id="teams_search" /> 
-				<button id="teams_search_button" class="search_button">Find</button>
-				<br />
-			</div>
-			<table id="teams_table">
-
-			</table>
-			
-			
-			<span class="generic_error" id="add_team_error"></span><br />
+			<span id="toggle_team_form">Add Team</span>
+			<div id="team_form" class="input_form">
+						<span class="generic_error" id="add_team_error"></span><br />
 			<label>
 			Division: <br />
 				<select id="newteam_division">
@@ -84,11 +72,19 @@ JS includes
 				<input id="newteam_name" />
 			</label> <br />
 			<label>
-			
-			
-			
 
 			<button id="add_team_button">Add team</button>
+			</div>
+			<div class="search_container">
+				<input type="text" class="search_box" id="teams_search" /> 
+				<button id="teams_search_button" class="search_button">Find</button>
+				<br />
+				<br />
+			</div>
+			<table id="teams_table">
+
+			</table>
+			
 			</div>
 			
 			
@@ -96,40 +92,40 @@ JS includes
 
 		<div id="judges_container" class="container">
 			<div id="judges">
-				<input type="text" class="search_box" id="judges_search_box" /> 
-				<button id="judges_search" class="search_button">Find</button>
-				<table id="judges_table">
-				</table>
-				<br />
-				<label>
-				Judge Name: <br />
-					<input id="new_judge_name" type="text"/>
-				</label> <br />
-				<label>
-				School Affiliation <br />
-				<select id="newjudge_school">
-				</select>
-				</label>
-
-			
-				<br />
-				Divisions
-				<br />
-				<ul id="newjudge_divisions">
+				<span id="toggle_judge_form">Add Judge</span>
+				<div id="judge_form" class="input_form">
+					<label>
+					Judge Name: <br />
+						<input id="new_judge_name" type="text"/>
+					</label> <br />
+					<label>
+					School Affiliation <br />
+					<select id="newjudge_school">
+					</select>
+					<ul id="newjudge_divisions">
 				</ul>
 				<br />
 				<button id="add_judge_button">Add Judge</button>
+					</label>
+				</div>
+				
+				<br />
+				<br />
+				<table id="judges_table">
+				</table>
+				
+
+			
+				
+				
 
 			</div>
 		</div>
 
 		<div id="rooms_container" class="container">
 			<div id="rooms">
-				<input type="text" class="search_box" id="rooms" /> 
-				<button id="rooms_search" class="search_button">Find</button>
-				<table id="rooms_table">
-				</table>
-				<br />
+			<span id="toggle_room_form">Add Room</span>
+			<div id="room_form" class="input_form">
 				<label>
 				Room Name: <br />
 					<input id="newroom_name" type="text"/>
@@ -139,32 +135,41 @@ JS includes
 					<select id="newroom_division" type="text">
 					</select>
 				</label> <br />
+				<button id="add_room_button">Add Room</button>
+			</div>
+				<table id="rooms_table">
+				</table>
+				
 				
 
-				<button id="add_room_button">Add Room</button>
+				
 			</div>
 		</div>
 
 		<div id="schools_container" class="container">
+			
 			<div id="schools">
-				<input type="text" class="search_box" id="schools_search" /> 
-				<button id="schools_search" class="search_button">Find</button>
-				<table id="schools_table">
-				</table>
-				<br />
+				<span id="toggle_school_form">Add School ⇩</span>
+				<div id="school_form" class="input_form">
 				<label>
 				School Name: <br />
 					<input id="newschool_name" />
 				</label> <br />
 				<button id="add_school_button">Add School</button>
+				</div>
+				<br />
+				<br />
+				<table id="schools_table">
+				</table>
+				
+				
 			</div>
 		</div>
 		<div id="divisions_container" class="container">
 			<div id="divisions">
-				<table id="divisions_table">
-				</table>
-				<br />
-				<label>
+			<span id="toggle_division_form">Add Division</span> <br />
+			<div id="division_form" class="input_form">
+			<label>
 					Division Name: <br />
 					<input id="newdiv_division_name" type="text"/>
 				</label> <br />
@@ -179,12 +184,12 @@ JS includes
 				<label>
 					Break to: <br />
 					<select id="newdiv_break_to">
-						<option value="triple_octofinals">Triple Octofinals</option>
-						<option value="double_octofinals">Double Octofinals</option>
-						<option value="octofinals">Octofinals</option>
-						<option selected="yes" value="quarterfinals">Quarterfinals</option>
-						<option value="semifinals">Semifinals</option>
-						<option value="finals">Finals</option>
+						<option value="64">Triple Octofinals</option>
+						<option value="32">Double Octofinals</option>
+						<option value="16">Octofinals</option>
+						<option selected="yes" value="8">Quarterfinals</option>
+						<option value="4">Semifinals</option>
+						<option value="2">Finals</option>
 					</select> 
 				</label> <br />
 				<label>
@@ -198,6 +203,12 @@ JS includes
 				<br />
 
 				<button id="add_division_button">Add Division</button>
+			</div>
+				<table id="divisions_table">
+				</table>
+			
+				<br />
+				
 			</div>
 		</div>
 		
@@ -223,15 +234,16 @@ JS includes
 				<h1>SMS</h1>
 				<button id="single_text">Single Text</button> <br />
 				<button id="mass_texts">Mass Text</button> <br />
-				Phone Number: <input type="text" size=30 id="debug_sms_input_phone"/><br />
-				Message: <br /> <input type="text" size=100 id="debug_sms_input_message"/><br />
+				Phone Number: <input type="text" id="debug_sms_input_phone"/><br />
+				Message: <br /> <input type="text" id="debug_sms_input_message"/><br />
 				<h1>PDF</h1>
 				<button id="pdf_gen">Round 1 PDF</button> <br />
-				
-
 				<button id="ballot_gen">Generate CX Ballot</button> <br />
 				<button id="ballotLD_gen">Generate LD Ballot</button> <br />
 				<button id="ballotOF_gen">Generate Public Forum Ballot</button> <br />
+				<br />
+				<button id="pdf_brackets_gen">Generate Brackets</button> <br />
+
 				
 				<a href="#" rel="dialog_content" class="simpledialog">show dialog!</a>
 
@@ -250,19 +262,15 @@ JS includes
 				<span id="tournament_date">November 18-19, 2011</span>
 			</div>
 		</div>
-
-			</div><!-- end centercol -->
+</div><!-- end rightcol -->
 				
-		</div><!-- end main content area -->
 				
-		<div id="footer"><!-- begin footer -->
-			
-		</div><!-- end footer -->
+		
 	
-	</div><!-- end wrapper1 -->
 
-</div><!-- end wrapper2 -->
 
-<div id="credit">
+<div class="grid_12" id="credit">
 	<p>© 2011 Trillworks LLC</p>
+</div>
+
 </div>

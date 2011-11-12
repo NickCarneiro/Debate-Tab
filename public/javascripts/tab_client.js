@@ -44,8 +44,6 @@ con.write = function(text){
 }
 
 
-
-
 /*
 =========================================
 Define Backbone Models
@@ -65,6 +63,8 @@ model.Team = Backbone.Model.extend({
 		team_code	: "default team_code" ,
 		division	: null , //reference to division
 		school	: null , //reference to school
+		wins:	0,
+		losses:	0,
 
 		stop_scheduling : false ,
 		competitors : []
@@ -129,6 +129,8 @@ model.Judge = Backbone.Model.extend({
 	}
     
 });
+
+
 
 model.Round = Backbone.Model.extend({
 	default: {
@@ -202,8 +204,9 @@ model.Division = Backbone.Model.extend({
 		record_ranks	: true ,
 		max_speaks		: 30 , //maximum speaker points possible
 		flighted_rounds : false ,
-		prelims			: 4 , //
-		prelim_matching : []
+		prelims			: -1 , //
+		prelim_matching : [] ,
+		schedule		: [] //array of round info objects that contain a round_number and powermatching_method
 	} ,
 	initialize: function(){
 		if(!this.id == undefined){
@@ -295,7 +298,18 @@ collection.Divisions = Backbone.Collection.extend({
 
 collection.Rounds = Backbone.Collection.extend({
 		model: model.Round ,
-		localStorage: new Store("Rounds")
+		localStorage: new Store("Rounds"),
+		filterRounds: function(round_number, division){
+			return _(this.filter(function(data){
+				
+				if(data.get("division") === division && data.get("round_number") == round_number){
+					
+					return true;
+				} else {
+					return false;
+				}
+			}));
+		}
 });	
 
 /*
@@ -543,6 +557,7 @@ pairing.updateRecords = function(){
 				collection.teams.at(i).set({losses: new_losses});
 			}
 		}
+		collection.teams.at(i).save();
 	}
 }
 
@@ -983,10 +998,12 @@ pairing.pairRound = function(round_number, division){
 			}
 		}		
 
-		if(temp_teams.length > 0 && collection.teams.length % 2 == 0 || byes > 1){
+
+		if((byes > 1) || (total_teams % 2 == 0 && byes > 0)){
 			//if there are an even number of teams but someone has a bye, fix it.
 			con.write("fixing byes");	
-
+			con.write("temp_teams: " + temp_teams.length);
+			con.write("byes: " + byes);
 
 			//Teams that haven't been paired are still in temp_teams 
 			for(var i = 0; i < temp_teams.length; i++){
@@ -1237,13 +1254,12 @@ pairing.pairJudges = function(round_number, division){
 			}
 			//don't pair judges that can't judge this division
 			if(judge.get("divisions").indexOf(division) === -1){
-				console.log(judge.get("divisions"));
 				continue;
 			}
 			
 
 			if(pairing.canJudge(collection.rounds.at(i).get("team1"), collection.rounds.at(i).get("team2"), judge, round_number, division)){
-				con.write("successfully paired " + judge.get("name"));
+				//con.write("successfully paired " + judge.get("name"));
 				collection.rounds.at(i).set({judge: judge});
 				paired_judges.push(judge);
 				
@@ -1295,6 +1311,7 @@ pairing.pairRooms = function(round_number, division){
 	//minimize room moves by keeping team1 in the same room.
 	if(round_number === 1){
 		//just randomly assign rooms
+
 
 		
 		var room_count = rooms.length;
@@ -1378,7 +1395,7 @@ pairing.pairRooms = function(round_number, division){
 				
 			} else {
 				//neither team had a previous room.
-				con.write("neither team had previous room");
+				//con.write("neither team had previous room");
 				
 				if(rooms.length > 0){
 					collection.rounds.at(i).set({room: rooms.pop()});
@@ -1408,6 +1425,44 @@ BEGIN: Define PDF Function
 =========================================
 */	
 
+
+
+pdf.bracketsDataPDF = function() {
+	var date = '11/18/11';
+	var initial_teams = new Array();
+	var quarters = new Array();
+	var semis = new Array();
+	var finals = new Array();
+	var champion = new Array();
+
+	con.write('started bracketsDataPDF');
+
+	//temp generate teams
+	for(var i = 1; i<= 16; i++ ) {
+		var temp_team = 'Team ' + (i); 
+		initial_teams[i-1] = temp_team;
+
+		if(i%2 == 0) {
+			quarters[i/2 -1] = temp_team;
+		}
+		
+		if(i%4 == 0) {
+			semis[i/4 -1] = temp_team;
+		}
+
+		if(i%8 == 0) {
+			finals[i/8 -1] = temp_team;
+		}
+
+		if(i%16 == 0) {
+			champion[i/16 -1] = temp_team;
+			con.write('champion: ' + champion[0]);
+		}
+	}
+
+	con.write('set data variables');
+	pdf.generatePDF_Brackets(date, initial_teams, quarters, semis, finals, champion);
+}
 
 pdf.generatePairingSheet = function(headers, titles, round_number, division){
 	// generate a blank document
@@ -1518,42 +1573,47 @@ pdf.generateCXBallot = function(){
 	// generate a blank document
 	var doc = new jsPDF();
 	//collection.rounds.at(0).get("team1".get("team_code"));
-	//console.log(collection.rounds.length);
+	console.log('Size: ' + collection.rounds.length);
 	//console.log('adfasfads');
-	for(var i = 0; i < /*collection.rounds.length */ 3; i++){
-		//var affCode = collection.rounds.at(i).get("aff") || "";
+	for(var i = 0; i < collection.rounds.length ; i++){
+		console.log('i:' + i);
+		var affCode = collection.rounds.at(i).get("aff") || "";
 		var affTeam;
 		var negTeam;
-		/*
 		if (affCode == 0){
-			affTeam = collection.rounds.at(i).get("team1").get("team_code"));
+			affTeam = collection.rounds.at(i).get("team1").get("team_code");
 			negTeam = collection.rounds.at(i).get("team2").get("team_code");
 		}
 		else if (affCode == 1){
 			affTeam = collection.rounds.at(i).get("team2").get("team_code");
 			negTeam = collection.rounds.at(i).get("team1").get("team_code");
-		} */
-		console.log(affTeam);
-		console.log(negTeam);
+		} 
+		//console.log(affTeam);
+		//console.log(negTeam);
 		doc.setFontSize(18);
 		doc.text(20, 20, 'Cross Examination Debate Ballot');
 
 		doc.setFontSize(13);
-		doc.text(130, 20, 'Room #:__________');
-		//var room = collection.rounds.at(i).get("room").get("name"));
-		doc.text(149, 20, 'Fill Room');
-		//doc.text(149, 20, room);
+		doc.text(130, 20, 'Room #:________');
+		var room = collection.rounds.at(i).get("room").get("name") ;
+		//console.log(room);
+		//doc.text(149, 20, 'Fill Room');
+		doc.text(149, 20, room);
 		doc.text(20, 30, 'Round:___________'); doc.text(130,30, 'Judge:___________');
-		doc.text(38,30,'Fill Round');
-		doc.text(146,30,'Fill judge');
-		//doc.text(38,30, collection.rounds.at(i).get("round_number"));
+		//doc.text(38,30,'Fill Round');
+		var roundName = collection.rounds.at(i).get("round_number").toString();		//debug this
+		doc.text(38,30, roundName);
+		console.log('Round: ' + roundName);
+
+		var judgeName = collection.rounds.at(i).get("judge").get("name");
+		doc.text(146,30, judgeName);
 
 		//const round_text = 'Round: ' + headers.round_number;
 		doc.text(20, 40, 'Affirmative Code:___________'); doc.text(130,40, 'Negative Code:___________');
-		doc.text(59, 40 ,'Fill aff code');
-		doc.text(164, 40, 'Fill neg code');
-		//doc.text(59, 40, affTeam);
-		//doc.text(164, 40, negTeam);
+		//doc.text(59, 40 ,'Fill aff code');
+		//doc.text(164, 40, 'Fill neg code');
+		doc.text(59, 40, affTeam);
+		doc.text(164, 40, negTeam);
 		//doc.text(20, 50, headers.start_time_text); 
 		//doc.text(20, 60, headers.message);
 		doc.setFontSize(9);
@@ -1584,7 +1644,6 @@ pdf.generateCXBallot = function(){
 pdf.generateOFBallot = function(){
 	// generate a blank document
 	var doc = new jsPDF();
-
 
 	doc.setFontSize(18);
 	doc.text(20, 20, 'Public Forum Debate Ballot');
@@ -1673,6 +1732,77 @@ pdf.generateOFBallot = function(){
 	doc.output('datauri');
 }
 
+// generate Brackets PDF
+// TODO for now the params are treated as arrays -- but we should change it to Linked List
+pdf.generatePDF_Brackets = function(date, initial_teams, quarters, semis, finals, champion){
+	var doc = new jsPDF();
+
+	// max page length in pixels after which we need a new page (trial and error) = 280 
+	var max_page_length = 285;
+
+	// max pixels of PDF file (trial and error) = 400
+	var max_page_width = 210;
+
+	// number of separations. i.e. initial, quarters .... champion = 5
+	var num_cols = 5;
+
+	doc.text(20, 20, 'Round Rock Tournament');
+	doc.text(20, 30, date);
+	
+	//start writing at this x and y value pixel
+	var page_start_x_value = 20;
+	var page_start_y_value = 40;
+
+	var y_value;
+	var x_value;
+
+	
+	con.write('set variables. Now setting Array');
+
+	var teamsArray = new Array();
+	teamsArray[0] = initial_teams;
+	teamsArray[1] = quarters;
+	teamsArray[2] = semis;
+	teamsArray[3] = finals;
+	teamsArray[4] = champion;
+	
+	con.write('Finals: ' + finals[0] + ', ' + finals[1]);
+	con.write('teamsArray[3](finals): ' + teamsArray[3][0] + ', ' + teamsArray[3][1]);
+	
+	const spacing_x = (max_page_width - page_start_x_value)/num_cols;
+	var spacing_y;
+
+	// set text for document	
+	x_value = page_start_x_value;
+
+	const vertical_line_pixels = 4;
+
+	for(var i=0; i< teamsArray.length; i++) {
+		spacing_y = (max_page_length - page_start_y_value)/teamsArray[i].length;
+		y_value = page_start_y_value;
+
+		for(var j = 0; j< teamsArray[i].length; j++) {
+		        y_value = y_value + spacing_y;
+			doc.text(x_value, y_value - spacing_y/2, teamsArray[i][j]);
+			doc.text(x_value - 2, y_value - spacing_y/2, '____________');
+
+			// do for all columns except the first
+			if(i!=0) {
+				// print the line for the bracket
+				for(var k = 0; k< spacing_y/4; k = k + vertical_line_pixels ) { 	//above
+					doc.text(x_value - 2.5, y_value - spacing_y/2 - k, '|');
+				}
+				for(var k = 0; k< spacing_y/4; k = k + vertical_line_pixels ) { 	//below
+					doc.text(x_value - 2.5, y_value - spacing_y/2 + k + vertical_line_pixels, '|');
+				}
+			}
+		}
+		x_value = x_value + spacing_x;
+	}
+
+	// Output as Data URI so that it can be downloaded / viewed
+	doc.output('datauri');
+}
 
 pdf.printTitles = function(doc, titles, x_value, title_y_value, spacing) {
 	var i = 0;
@@ -1746,6 +1876,7 @@ Define Backbone Views
 
 //An individual division option 
 //managed by view.TeamTable
+//also used in roundsTable filter
 view.DivisionOption = Backbone.View.extend({
 	tagName: "option",
 	initialize: function(){
@@ -1770,6 +1901,8 @@ view.DivisionOption = Backbone.View.extend({
 		$(this.el).remove();
 	}
 });
+
+
 
 //An individual school option 
 //managed by view.TeamTable
@@ -1846,7 +1979,7 @@ view.TeamTable = Backbone.View.extend({
 			//case 1: 1 competitor. Use initials like
 			//Nick Carneiro => Round Rock NC
 			if(competitors.length === 1){
-				var whole_name = competitors.get(0).val();
+				var whole_name = $(competitors.get(0)).val();
 				var names = whole_name.split(" ");
 				if(names.length >= 2){
 					
@@ -2007,9 +2140,11 @@ view.Team = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
+		var wins = this.model.get("losses") || "0";
+		var losses = this.model.get("wins") || "0";
 		$(this.el).html('<td>' + this.model.get("team_code") + 
 			'</td> <td>'+this.model.get("division").get("division_name") +'</td><td>' + 
-			this.model.get("id") + '</td><td class="remove">Remove</td>');
+			wins + "-"+ losses + '</td><td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el ( in appendTeam)
 	} ,
 	unrender: function(){
@@ -2058,15 +2193,20 @@ view.Judge = Backbone.View.extend({
 
 	remove: function(judge){
 	//	$(function () {
-			$('.simpledialog').simpleDialog();
+		//	$('.simpledialog').simpleDialog();
 	//	});
-	//	this.model.destroy();
+		this.model.destroy();
 		
 	} ,
 	render: function(){
+		var divisions = this.model.get("divisions");
+		var div_string = "";
+		for(var i = 0; i < divisions.length; i++){
+			var div = divisions[i].get("division_name");
+			div_string = div_string + div + " ";
+		}
 		var school = this.model.get("school") === undefined ? "None" : this.model.get("school").get("school_name");
-		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' + this.model.get("id") + 
-			'</td><td>'+ school +'</td><td><a href="#" rel="dialog_content" class="simpledialog">Remove</a></td>');
+		$(this.el).html('<td>' + this.model.get("name") + '</td><td>'+ school +'</td><td>' + div_string + '</td><td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el ( in appendJudge)
 	} ,
 	unrender: function(){
@@ -2199,7 +2339,7 @@ view.Room = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' +this.model.get("division").get("division_name") + '</td> <td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
+		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' +this.model.get("division").get("division_name") + '</td><td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el ( in appendRoom)			.get("division_name")
 	} ,
 	unrender: function(){
@@ -2331,14 +2471,30 @@ view.Round = Backbone.View.extend({
 		if(team1 != undefined){
 			var team1_cd = team1.get("team_code");
 		} else {
-			team1_cd = "BYE";
+			team1_cd = "Error";
 		}
 		if(team2 != undefined){
 			var team2_cd = team2.get("team_code");
 		} else {
-			team2_cd = "BYE";
+			team2_cd = "Error";
 		}
-		$(this.el).html('<td>' + team1_cd + '</td> <td>' + team2_cd + '</td><td class="remove">Remove</td>');
+		if(this.model.get("aff") === 0){
+			var aff = team1_cd;
+			var neg = team2_cd;
+		} else {
+			var aff = team2_cd;
+			var neg = team1_cd;
+		}
+
+		var judge = "";
+		var room = "";
+		if(this.model.get("judge") != undefined){
+			judge = this.model.get("judge").get("name");
+		}
+		if(this.model.get("room") != undefined){
+			room = this.model.get("room").get("name");
+		}
+		$(this.el).html('<td>' + aff + '</td> <td>' + neg + '</td><td>'+judge+'</td><td>'+room+'</td><td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el
 	} ,
 	unrender: function(){
@@ -2352,25 +2508,75 @@ view.RoundTable = Backbone.View.extend({
 	events: {
 		
 		"keyup #rounds_search": "search",
-		"click #pair_round_button" : "pairRound"
+		"click #pair_round_button" : "pairRound",
+		"change #rounds_division_select" : "renderRoundNumberSelect",
+		"change #rounds_round_number_select" : "filterDivisions"
 	} ,
 	initialize: function(){
-		_.bindAll(this, "render", "addRound", "appendRound");
+		_.bindAll(this, "render", "addRound", "appendRound", "renderRoundNumberSelect");
 		
 		collection.rounds.bind("add", this.appendRound);
 		collection.rounds.bind("reset", this.render, this);
 		collection.rounds.bind("change", this.render, this);
+
+		collection.divisions.bind("change", this.renderDivisionSelect, this);
+		collection.divisions.bind("reset", this.renderDivisionSelect, this);
+		collection.divisions.bind("add", this.renderDivisionSelect, this);
 		this.render();
 		
 	} ,
 	pairRound: function(){
-		pairing.pairRound(1, collection.divisions.at(0));
-	},
+		
+	} ,
+
+	renderRoundNumberSelect: function(){
+		$("#rounds_round_number_select").empty();
+		//show round options for selected division
+		var div_id = $("#rounds_division_select").val();
+		var div = pairing.getDivisionFromId(div_id);
+		if(div === undefined){
+			return;
+		}
+		if(div.get("schedule") != undefined){
+			for(var i = 0; i < div.get("schedule").length; i++){
+				this.appendRoundNumberOption(div.get("schedule")[i].round_number);
+			}
+		}
+
+		this.filterDivisions();
+	} ,
+	appendRoundNumberOption: function(round_number){
+		//since the objects in the schedule array are not models, we don't have a bonafide option subview.
+		$("#rounds_round_number_select", this.el).append('<option value="'+round_number+'">'+round_number+'</option>');
+		
+	} ,
+    
+    	
+	
+	renderDivisionSelect: function(){
+		$("#rounds_division_select").empty();
+		collection.divisions.each(function(division){ // in case collection is not empty
+        	this.appendDivisionOption(division);
+    	}, this);
+	} ,
+
+	appendDivisionOption: function(division){
+		var divOptionView = new view.DivisionOption({
+			model: division
+		});
+		$("#rounds_division_select", this.el).append(divOptionView.render().el);
+		
+	} ,
+
 	render: function(){
 		$("#rounds_table").empty();
 		_(collection.rounds.models).each(function(round){ // in case collection is not empty
         	this.appendRound(round);
     	}, this);
+
+    	this.renderDivisionSelect();
+    	this.renderRoundNumberSelect();
+    	this.filterDivisions();
 	} ,
 
 	addRound: function(){
@@ -2392,6 +2598,13 @@ view.RoundTable = Backbone.View.extend({
 		$("#rounds_table", this.el).append(roundView.render().el);
 		//save round to localstorage
 		round.save();
+	} ,
+
+	filterDivisions: function(){
+		var division_id = $("#rounds_division_select").val();
+		var division = pairing.getDivisionFromId(division_id);
+		var round_number = $("#rounds_round_number_select").val();
+		this.renderSearch(collection.rounds.filterRounds(round_number, division));
 	} ,
 	search: function(e){
 		var letters = $("#rounds_search").val();
@@ -2427,7 +2640,7 @@ view.School = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("school_name") + '</td> <td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
+		$(this.el).html('<td>' + this.model.get("school_name") + '</td> <td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el
 	} ,
 	unrender: function(){
@@ -2509,7 +2722,7 @@ view.Division = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("division_name") + '</td> <td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
+		$(this.el).html('<td>' + this.model.get("division_name") + '</td><td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el ( in appendTeam)
 	} ,
 	unrender: function(){
@@ -2552,6 +2765,27 @@ view.DivisionTable = Backbone.View.extend({
 		var break_to = $("#newdiv_break_to").val();
 		var max_speaks = parseInt($("#newdiv_max_speaks").val());
 		var prelims = parseInt($("#newdiv_prelims").val());
+		var schedule = [];
+
+		for(var i = 0; i < prelims; i++){
+			var num = i + 1;
+			schedule.push({round_number: num, type: "prelim", matching: "power"});
+		}
+		var elims = [
+			{name:	"triple octafinals", debates: 64}, 
+			{name: "double octafinals", debates: 32},
+			{name: "octafinals", debates: 16},
+			{name: "quarterfinals", debates: 8},
+			{name:  "semifinals", debates: 2},
+			{name: "finals", debates: 1}
+		];
+
+
+		for(var i = 0; i < elims.length; i++){
+			if(break_to >= elims[i].debates){
+				schedule.push({round_number:elims[i].name, type: "elim"});
+			}
+		}
 		division.set({
 			id				: (new ObjectId).toString(),
 			division_name	: division_name,
@@ -2559,7 +2793,8 @@ view.DivisionTable = Backbone.View.extend({
 			flighted_rounds	: flighted_rounds,
 			break_to		: break_to,
 			max_speaks		: max_speaks,
-			prelims			: prelims
+			prelims			: prelims,
+			schedule		: schedule
 
 		});
 		collection.divisions.add(division);
@@ -2644,6 +2879,8 @@ con.write("Rounds: " + collection.rounds.length);
 $(".container").hide();
 $(".sub_menu").hide();
 $("#rounds_container").show();
+
+$(".input_form").hide();
 
 /*
 =========================================
@@ -2757,6 +2994,11 @@ $("#ballotLD_gen").click(function(){
 });
 $("#ballotOF_gen").click(function(){
 	pdf.generateOFBallot();	
+});
+
+//Code for PDF Brackets Generation
+$("#pdf_brackets_gen").click(function(){
+	pdf.bracketsDataPDF();
 });
 
 
@@ -2876,10 +3118,29 @@ $("#mass_texts").mouseover(
 
 /*
 =========================================
-Team Controls
+Collection Controls
 =========================================
 */
+//school controls
+$("#toggle_school_form").click(function(){
+	$("#school_form").slideToggle();
+});
 
+$("#toggle_judge_form").click(function(){
+	$("#judge_form").slideToggle();
+});
+
+$("#toggle_room_form").click(function(){
+	$("#room_form").slideToggle();
+});
+
+$("#toggle_division_form").click(function(){
+	$("#division_form").slideToggle();
+});
+
+$("#toggle_team_form").click(function(){
+	$("#team_form").slideToggle();
+});
 /*
 =========================================
 Debug Controls
