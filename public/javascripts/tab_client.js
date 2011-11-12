@@ -63,6 +63,8 @@ model.Team = Backbone.Model.extend({
 		team_code	: "default team_code" ,
 		division	: null , //reference to division
 		school	: null , //reference to school
+		wins:	0,
+		losses:	0,
 
 		stop_scheduling : false ,
 		competitors : []
@@ -553,6 +555,7 @@ pairing.updateRecords = function(){
 				collection.teams.at(i).set({losses: new_losses});
 			}
 		}
+		collection.teams.at(i).save();
 	}
 }
 
@@ -993,10 +996,12 @@ pairing.pairRound = function(round_number, division){
 			}
 		}		
 
-		if(temp_teams.length > 0 && collection.teams.length % 2 == 0 || byes > 1){
+
+		if((byes > 1) || (total_teams % 2 == 0 && byes > 0)){
 			//if there are an even number of teams but someone has a bye, fix it.
 			con.write("fixing byes");	
-
+			con.write("temp_teams: " + temp_teams.length);
+			con.write("byes: " + byes);
 
 			//Teams that haven't been paired are still in temp_teams 
 			for(var i = 0; i < temp_teams.length; i++){
@@ -1247,13 +1252,12 @@ pairing.pairJudges = function(round_number, division){
 			}
 			//don't pair judges that can't judge this division
 			if(judge.get("divisions").indexOf(division) === -1){
-				console.log(judge.get("divisions"));
 				continue;
 			}
 			
 
 			if(pairing.canJudge(collection.rounds.at(i).get("team1"), collection.rounds.at(i).get("team2"), judge, round_number, division)){
-				con.write("successfully paired " + judge.get("name"));
+				//con.write("successfully paired " + judge.get("name"));
 				collection.rounds.at(i).set({judge: judge});
 				paired_judges.push(judge);
 				
@@ -1389,7 +1393,7 @@ pairing.pairRooms = function(round_number, division){
 				
 			} else {
 				//neither team had a previous room.
-				con.write("neither team had previous room");
+				//con.write("neither team had previous room");
 				
 				if(rooms.length > 0){
 					collection.rounds.at(i).set({room: rooms.pop()});
@@ -2008,9 +2012,11 @@ view.Team = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
+		var wins = this.model.get("losses") || "0";
+		var losses = this.model.get("wins") || "0";
 		$(this.el).html('<td>' + this.model.get("team_code") + 
 			'</td> <td>'+this.model.get("division").get("division_name") +'</td><td>' + 
-			this.model.get("id") + '</td><td class="remove">Remove</td>');
+			wins + "-"+ losses + '</td><td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el ( in appendTeam)
 	} ,
 	unrender: function(){
@@ -2066,8 +2072,7 @@ view.Judge = Backbone.View.extend({
 	} ,
 	render: function(){
 		var school = this.model.get("school") === undefined ? "None" : this.model.get("school").get("school_name");
-		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' + this.model.get("id") + 
-			'</td><td>'+ school +'</td><td class="remove">Remove</td>');
+		$(this.el).html('<td>' + this.model.get("name") + '</td><td>'+ school +'</td><td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el ( in appendJudge)
 	} ,
 	unrender: function(){
@@ -2200,7 +2205,7 @@ view.Room = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' +this.model.get("division").get("division_name") + '</td> <td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
+		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' +this.model.get("division").get("division_name") + '</td><td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el ( in appendRoom)			.get("division_name")
 	} ,
 	unrender: function(){
@@ -2344,7 +2349,7 @@ view.Round = Backbone.View.extend({
 			var neg = team2_cd;
 		} else {
 			var aff = team2_cd;
-			var neg = team2_cd;
+			var neg = team1_cd;
 		}
 
 		var judge = "";
@@ -2436,6 +2441,7 @@ view.RoundTable = Backbone.View.extend({
 
     	this.renderDivisionSelect();
     	this.renderRoundNumberSelect();
+    	this.filterDivisions();
 	} ,
 
 	addRound: function(){
@@ -2460,7 +2466,6 @@ view.RoundTable = Backbone.View.extend({
 	} ,
 
 	filterDivisions: function(){
-		console.log("filtering divisions");
 		var division_id = $("#rounds_division_select").val();
 		var division = pairing.getDivisionFromId(division_id);
 		var round_number = $("#rounds_round_number_select").val();
@@ -2500,7 +2505,7 @@ view.School = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("school_name") + '</td> <td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
+		$(this.el).html('<td>' + this.model.get("school_name") + '</td> <td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el
 	} ,
 	unrender: function(){
@@ -2582,7 +2587,7 @@ view.Division = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("division_name") + '</td> <td>' + this.model.get("id") + '</td><td class="remove">Remove</td>');
+		$(this.el).html('<td>' + this.model.get("division_name") + '</td><td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el ( in appendTeam)
 	} ,
 	unrender: function(){
@@ -2739,6 +2744,8 @@ con.write("Rounds: " + collection.rounds.length);
 $(".container").hide();
 $(".sub_menu").hide();
 $("#rounds_container").show();
+
+$(".input_form").hide();
 
 /*
 =========================================
@@ -2973,10 +2980,29 @@ $("#mass_texts").mouseover(
 
 /*
 =========================================
-Team Controls
+Collection Controls
 =========================================
 */
+//school controls
+$("#toggle_school_form").click(function(){
+	$("#school_form").slideToggle();
+});
 
+$("#toggle_judge_form").click(function(){
+	$("#judge_form").slideToggle();
+});
+
+$("#toggle_room_form").click(function(){
+	$("#room_form").slideToggle();
+});
+
+$("#toggle_division_form").click(function(){
+	$("#division_form").slideToggle();
+});
+
+$("#toggle_team_form").click(function(){
+	$("#team_form").slideToggle();
+});
 /*
 =========================================
 Debug Controls
