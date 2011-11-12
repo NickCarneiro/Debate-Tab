@@ -2332,14 +2332,30 @@ view.Round = Backbone.View.extend({
 		if(team1 != undefined){
 			var team1_cd = team1.get("team_code");
 		} else {
-			team1_cd = "BYE";
+			team1_cd = "Error";
 		}
 		if(team2 != undefined){
 			var team2_cd = team2.get("team_code");
 		} else {
-			team2_cd = "BYE";
+			team2_cd = "Error";
 		}
-		$(this.el).html('<td>' + team1_cd + '</td> <td>' + team2_cd + '</td><td class="remove">Remove</td>');
+		if(this.model.get("aff") === 0){
+			var aff = team1_cd;
+			var neg = team2_cd;
+		} else {
+			var aff = team2_cd;
+			var neg = team2_cd;
+		}
+
+		var judge = "";
+		var room = "";
+		if(this.model.get("judge") != undefined){
+			judge = this.model.get("judge").get("name");
+		}
+		if(this.model.get("room") != undefined){
+			room = this.model.get("room").get("name");
+		}
+		$(this.el).html('<td>' + aff + '</td> <td>' + neg + '</td><td>'+judge+'</td><td>'+room+'</td><td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el
 	} ,
 	unrender: function(){
@@ -2367,6 +2383,7 @@ view.RoundTable = Backbone.View.extend({
 
 		collection.divisions.bind("change", this.renderDivisionSelect, this);
 		collection.divisions.bind("reset", this.renderDivisionSelect, this);
+		collection.divisions.bind("add", this.renderDivisionSelect, this);
 		this.render();
 		
 	} ,
@@ -2609,9 +2626,25 @@ view.DivisionTable = Backbone.View.extend({
 		var max_speaks = parseInt($("#newdiv_max_speaks").val());
 		var prelims = parseInt($("#newdiv_prelims").val());
 		var schedule = [];
+
 		for(var i = 0; i < prelims; i++){
 			var num = i + 1;
-			schedule.push({round_number: num, matching: "power"});
+			schedule.push({round_number: num, type: "prelim", matching: "power"});
+		}
+		var elims = [
+			{name:	"triple octafinals", debates: 64}, 
+			{name: "double octafinals", debates: 32},
+			{name: "octafinals", debates: 16},
+			{name: "quarterfinals", debates: 8},
+			{name:  "semifinals", debates: 2},
+			{name: "finals", debates: 1}
+		];
+
+
+		for(var i = 0; i < elims.length; i++){
+			if(break_to >= elims[i].debates){
+				schedule.push({round_number:elims[i].name, type: "elim"});
+			}
 		}
 		division.set({
 			id				: (new ObjectId).toString(),

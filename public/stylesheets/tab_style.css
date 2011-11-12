@@ -1011,7 +1011,8 @@ font-size: 20px;
 }
 
 td {
-padding: 0 80px 6px 0;
+padding: 0 20px 6px 0;
+font-size: 16px;
 }
 
 
