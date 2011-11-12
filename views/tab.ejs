@@ -3,19 +3,15 @@
 JS includes
 ====================== 
 -->
+<div class="container_12">
 
-
-<div id="header"><!-- begin header -->
+<div id="header" class="grid_12"><!-- begin header -->
 	<h1>DebateTab.com</h1>
 </div><!-- end header -->
 
-<div id="wrapper_1"><!-- sets background to white and creates full length leftcol-->
-	
-	<div id="wrapper_2"><!-- sets background to white and creates full length rightcol-->
-	
-		<div id="main_col"><!-- begin main content area -->
+
 				
-			<div id="left_col"><!-- begin leftcol -->
+			<div class="grid_2 left_col"><!-- begin leftcol -->
 				<ul id="main_menu" class="menu">
 					<li class="menu_item" id="menu_rounds">Rounds</li>
 					
@@ -29,18 +25,18 @@ JS includes
 					</ul>
 				
 				
-			</div><!-- end leftcol -->
-				
-			<div id="right_col"><!-- begin rightcol -->
-				<span class="context_help" id="help_text">Click on a round to record or modify it.</span>
-			</div><!-- end righttcol -->
+			</div>
 			
-			<div id="center_col"><!-- begin centercol -->
+			<div class="grid_10" id="right_col"><!-- begin rightcol -->
 			
 		<div id="rounds_container" class="container">
 			<div id="rounds">
-			<input type="text" class="search_box" id="rounds_search_box" /> 
-				<button id="rounds_search" class="search_button">Find</button>
+			<select id="rounds_division_select">
+			</select>
+			<select id="rounds_round_number_select">
+			</select>
+				<br />
+				<br />
 				<table id="rounds_table">
 				</table>
 				<br />
@@ -56,8 +52,9 @@ JS includes
 				<input type="text" class="search_box" id="teams_search" /> 
 				<button id="teams_search_button" class="search_button">Find</button>
 				<br />
+				<br />
 			</div>
-			<table id="teams_table">
+			<table id="teams_table" style="margin-left:auto;margin-right:auto" cellpadding="2" cellspacing="2">
 
 			</table>
 			
@@ -98,7 +95,9 @@ JS includes
 			<div id="judges">
 				<input type="text" class="search_box" id="judges_search_box" /> 
 				<button id="judges_search" class="search_button">Find</button>
-				<table id="judges_table">
+				<br />
+				<br />
+				<table id="judges_table" style="margin-left:auto;margin-right:auto" cellpadding="2" cellspacing="2">
 				</table>
 				<br />
 				<label>
@@ -127,7 +126,9 @@ JS includes
 			<div id="rooms">
 				<input type="text" class="search_box" id="rooms" /> 
 				<button id="rooms_search" class="search_button">Find</button>
-				<table id="rooms_table">
+				<br />
+				<br />
+				<table id="rooms_table" style="margin-left:auto;margin-right:auto" cellpadding="2" cellspacing="2">
 				</table>
 				<br />
 				<label>
@@ -149,7 +150,9 @@ JS includes
 			<div id="schools">
 				<input type="text" class="search_box" id="schools_search" /> 
 				<button id="schools_search" class="search_button">Find</button>
-				<table id="schools_table">
+				<br />
+				<br />
+				<table id="schools_table" style="margin-left:auto;margin-right:auto" cellpadding="2" cellspacing="2">
 				</table>
 				<br />
 				<label>
@@ -161,7 +164,7 @@ JS includes
 		</div>
 		<div id="divisions_container" class="container">
 			<div id="divisions">
-				<table id="divisions_table">
+				<table id="divisions_table" style="margin-left:auto;margin-right:auto" cellpadding="2" cellspacing="2">
 				</table>
 				<br />
 				<label>
@@ -223,13 +226,10 @@ JS includes
 				<h1>SMS</h1>
 				<button id="single_text">Single Text</button> <br />
 				<button id="mass_texts">Mass Text</button> <br />
-				Phone Number: <input type="text" size=30 id="debug_sms_input_phone"/><br />
-				Message: <br /> <input type="text" size=100 id="debug_sms_input_message"/><br />
+				Phone Number: <input type="text" id="debug_sms_input_phone"/><br />
+				Message: <br /> <input type="text" id="debug_sms_input_message"/><br />
 				<h1>PDF</h1>
 				<button id="pdf_gen">Round 1 PDF</button> <br />
-				<button id="pdf_gen2">Round 2 PDF</button> <br />
-				<button id="pdf_gen3">Round 3 PDF</button> <br />
-				<br />
 				<button id="ballot_gen">Generate CX Ballot</button> <br />
 				<button id="ballotLD_gen">Generate LD Ballot</button> <br />
 				<br />
@@ -252,19 +252,15 @@ JS includes
 				<span id="tournament_date">November 18-19, 2011</span>
 			</div>
 		</div>
-
-			</div><!-- end centercol -->
+</div><!-- end rightcol -->
 				
-		</div><!-- end main content area -->
 				
-		<div id="footer"><!-- begin footer -->
-			
-		</div><!-- end footer -->
+		
 	
-	</div><!-- end wrapper1 -->
 
-</div><!-- end wrapper2 -->
 
-<div id="credit">
+<div class="grid_12" id="credit">
 	<p>© 2011 Trillworks LLC</p>
+</div>
+
 </div>
