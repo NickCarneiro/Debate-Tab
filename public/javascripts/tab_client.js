@@ -2377,7 +2377,25 @@ view.Round = Backbone.View.extend({
 
 	} ,
 	remove: function(round){
-		this.model.destroy();
+		$.confirm({
+			'title'		: 'Delete Round',
+			'message'	: 'You are about to delete a round <br />It cannot be restored at a later time! Continue?',
+			'buttons'	: {
+				'Yes'	: {
+					'this_model': round,
+					'class'	: 'blue',
+					'action': function(){
+						console.log(this.this_model);
+						this.this_model.destroy();
+					}
+				},
+				'No'	: {
+					'class'	: 'gray',
+					'action': function(){}	
+				}
+			},
+			
+		});
 	} ,
 	render: function(){
 		var team1 = this.model.get("team1");
@@ -2680,6 +2698,7 @@ view.DivisionTable = Backbone.View.extend({
 		var max_speaks = parseInt($("#newdiv_max_speaks").val());
 		var prelims = parseInt($("#newdiv_prelims").val());
 		var schedule = [];
+		var ballot_type = $("#newdiv_ballot_type").val();
 
 		for(var i = 0; i < prelims; i++){
 			var num = i + 1;
@@ -2708,7 +2727,8 @@ view.DivisionTable = Backbone.View.extend({
 			break_to		: break_to,
 			max_speaks		: max_speaks,
 			prelims			: prelims,
-			schedule		: schedule
+			schedule		: schedule,
+			ballot_type		: ballot_type
 
 		});
 		collection.divisions.add(division);
