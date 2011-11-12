@@ -2344,7 +2344,25 @@ view.Round = Backbone.View.extend({
 
 	} ,
 	remove: function(round){
-		this.model.destroy();
+		$.confirm({
+			'title'		: 'Delete Round',
+			'message'	: 'You are about to delete a round <br />It cannot be restored at a later time! Continue?',
+			'buttons'	: {
+				'Yes'	: {
+					'this_model': round,
+					'class'	: 'blue',
+					'action': function(){
+						console.log(this.this_model);
+						this.this_model.destroy();
+					}
+				},
+				'No'	: {
+					'class'	: 'gray',
+					'action': function(){}	
+				}
+			},
+			
+		});
 	} ,
 	render: function(){
 		var team1 = this.model.get("team1");
