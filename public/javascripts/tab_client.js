@@ -2665,6 +2665,7 @@ view.DivisionTable = Backbone.View.extend({
 		var max_speaks = parseInt($("#newdiv_max_speaks").val());
 		var prelims = parseInt($("#newdiv_prelims").val());
 		var schedule = [];
+		var ballot_type = $("#newdiv_ballot_type").val();
 
 		for(var i = 0; i < prelims; i++){
 			var num = i + 1;
@@ -2693,7 +2694,8 @@ view.DivisionTable = Backbone.View.extend({
 			break_to		: break_to,
 			max_speaks		: max_speaks,
 			prelims			: prelims,
-			schedule		: schedule
+			schedule		: schedule,
+			ballot_type		: ballot_type
 
 		});
 		collection.divisions.add(division);
