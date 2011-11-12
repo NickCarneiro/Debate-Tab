@@ -2071,8 +2071,14 @@ view.Judge = Backbone.View.extend({
 		
 	} ,
 	render: function(){
+		var divisions = this.model.get("divisions");
+		var div_string = "";
+		for(var i = 0; i < divisions.length; i++){
+			var div = divisions[i].get("division_name");
+			div_string = div_string + div + " ";
+		}
 		var school = this.model.get("school") === undefined ? "None" : this.model.get("school").get("school_name");
-		$(this.el).html('<td>' + this.model.get("name") + '</td><td>'+ school +'</td><td class="remove">Remove</td>');
+		$(this.el).html('<td>' + this.model.get("name") + '</td><td>'+ school +'</td><td>' + div_string + '</td><td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el ( in appendJudge)
 	} ,
 	unrender: function(){
@@ -2375,7 +2381,6 @@ view.RoundTable = Backbone.View.extend({
 		
 		"keyup #rounds_search": "search",
 		"click #pair_round_button" : "pairRound",
-		"change #rounds_division_select" : "filterDivisions",
 		"change #rounds_division_select" : "renderRoundNumberSelect",
 		"change #rounds_round_number_select" : "filterDivisions"
 	} ,
@@ -2409,6 +2414,8 @@ view.RoundTable = Backbone.View.extend({
 				this.appendRoundNumberOption(div.get("schedule")[i].round_number);
 			}
 		}
+
+		this.filterDivisions();
 	} ,
 	appendRoundNumberOption: function(round_number){
 		//since the objects in the schedule array are not models, we don't have a bonafide option subview.
