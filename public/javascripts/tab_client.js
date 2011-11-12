@@ -1847,7 +1847,7 @@ view.TeamTable = Backbone.View.extend({
 			//case 1: 1 competitor. Use initials like
 			//Nick Carneiro => Round Rock NC
 			if(competitors.length === 1){
-				var whole_name = competitors.get(0).val();
+				var whole_name = $(competitors.get(0)).val();
 				var names = whole_name.split(" ");
 				if(names.length >= 2){
 					
