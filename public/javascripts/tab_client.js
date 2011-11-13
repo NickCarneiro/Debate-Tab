@@ -585,6 +585,7 @@ pairing.updateRecords = function(){
 }
 
 pairing.deleteAllRounds = function(){
+	
 	con.write("rounds length " + collection.rounds.length);
 	while(collection.rounds.at(0) != undefined){
 	
@@ -930,6 +931,9 @@ Creates round models for specified round_number and division.
 */
 
 pairing.pairRound = function(round_number, division){
+	pairing.updateRecords(division);
+	pairing.sortTeams(division);
+	pairing.printRecords(division);
 	var toDelete =[];
 	//delete all rounds in this round number and division
 	for(var i = 0; i < collection.rounds.length; i++){
@@ -3169,8 +3173,24 @@ $("#export_tournament").click(function(){
 });
 
 $("#pair_delete_all_rounds").click(function(){
-	con.write("deleting all rounds");
-	pairing.deleteAllRounds();
+	
+	$.confirm({
+			'title'		: 'Delete All Rounds',
+			'message'	: 'You are about to delete ALL ROUNDS <br />This will erase the entire tournament! Continue?',
+			'buttons'	: {
+				'Yes'	: {
+					
+					'class'	: 'blue',
+					'action': pairing.deleteAllRounds
+				},
+				'No'	: {
+					'class'	: 'gray',
+					'action': function(){}	
+				}
+			},
+			
+		});
+	
 });
 
 $("#pair_print_pairings").click(function(){
