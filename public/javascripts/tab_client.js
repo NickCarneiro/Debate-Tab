@@ -2058,7 +2058,7 @@ view.Team = Backbone.View.extend({
 		var losses = this.model.get("wins") || "0";
 		$(this.el).html('<td>' + this.model.get("team_code") + 
 			'</td> <td>'+this.model.get("division").get("division_name") +'</td><td>' + 
-			wins + "-"+ losses + '</td><td class="remove">Remove</td>');
+			wins + "-"+ losses + '</td><td class="remove"><button>Remove</button></td>');
 		return this; //required for chainable call, .render().el ( in appendTeam)
 	} ,
 	unrender: function(){
@@ -2120,7 +2120,7 @@ view.Judge = Backbone.View.extend({
 			div_string = div_string + div + " ";
 		}
 		var school = this.model.get("school") === undefined ? "None" : this.model.get("school").get("school_name");
-		$(this.el).html('<td>' + this.model.get("name") + '</td><td>'+ school +'</td><td>' + div_string + '</td><td class="remove">Remove</td>');
+		$(this.el).html('<td>' + this.model.get("name") + '</td><td>'+ school +'</td><td>' + div_string + '</td><td class="remove"><button>Remove</button></td>');
 		return this; //required for chainable call, .render().el ( in appendJudge)
 	} ,
 	unrender: function(){
@@ -2253,7 +2253,7 @@ view.Room = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' +this.model.get("division").get("division_name") + '</td><td class="remove">Remove</td>');
+		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' +this.model.get("division").get("division_name") + '</td><td class="remove"><button>Remove</button></td>');
 		return this; //required for chainable call, .render().el ( in appendRoom)			.get("division_name")
 	} ,
 	unrender: function(){
@@ -2426,7 +2426,7 @@ view.Round = Backbone.View.extend({
 		if(this.model.get("room") != undefined){
 			room = this.model.get("room").get("name");
 		}
-		$(this.el).html('<td>' + aff + '</td> <td>' + neg + '</td><td>'+judge+'</td><td>'+room+'</td><td class="remove">Remove</td>');
+		$(this.el).html('<td>' + aff + '</td> <td>' + neg + '</td><td>'+judge+'</td><td>'+room+'</td><td class="remove"><button>Remove</button></td>');
 		return this; //required for chainable call, .render().el
 	} ,
 	unrender: function(){
@@ -2572,7 +2572,7 @@ view.School = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("school_name") + '</td> <td class="remove">Remove</td>');
+		$(this.el).html('<td>' + this.model.get("school_name") + '</td> <td class="remove"><button>Remove</button></td>');
 		return this; //required for chainable call, .render().el
 	} ,
 	unrender: function(){
@@ -2654,7 +2654,7 @@ view.Division = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("division_name") + '</td><td class="remove">Remove</td>');
+		$(this.el).html('<td>' + this.model.get("division_name") + '</td><td class="remove"><button>Remove</button></td>');
 		return this; //required for chainable call, .render().el ( in appendTeam)
 	} ,
 	unrender: function(){
