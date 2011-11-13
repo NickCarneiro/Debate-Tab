@@ -6,7 +6,23 @@ Nick Carneiro
 ============================
 */
 
+var name2debate = {};
+// define HashMap of round names to num_debates_that_take_place
+name2debate["triple octafinals"] = 32;
+name2debate["double octafinals"] = 16;
+name2debate["octafinals"] = 8;
+name2debate["quarterfinals"] = 4;
+name2debate["semifinals"] = 2;
+name2debate["finals"] = 1;
 
+var debate2name = {};
+//define HashMap of num_debates_that_take_place to round names
+debate2name["32"] = "triple octafinals";
+debate2name["16"] = "double octafinals";
+debate2name["8"] = "octafinals";
+debate2name["4"] = "quarterfinals";
+debate2name["2"] = "semifinals";
+debate2name["1"] = "finals";
 
 //module pattern
 //see http://www.adequatelygood.com/2010/3/JavaScript-Module-Pattern-In-Depth
@@ -463,7 +479,7 @@ pairing.restoreReferences = function(){
 		}
 
 		//fix judge references
-		if(collection.rounds.at(i).get("judge")!= undefined){
+		if(collection.rounds.at(i).get("judge") != undefined){
 			var judge_id = collection.rounds.at(i).get("judge").id;
 			if(judge_id != undefined){
 				var judge = pairing.getJudgeFromId(judge_id);
@@ -1444,43 +1460,13 @@ BEGIN: Define PDF Function
 =========================================
 */	
 
-
-
 pdf.bracketsDataPDF = function() {
-	var date = '11/18/11';
-	var initial_teams = new Array();
-	var quarters = new Array();
-	var semis = new Array();
-	var finals = new Array();
-	var champion = new Array();
+	const date = '11/18/11';
+	const round_number = 'quarterfinals';
+	const title = 'Round Rock Tournament';
+	const division = 'div1';
 
-	con.write('started bracketsDataPDF');
-
-	//temp generate teams
-	for(var i = 1; i<= 16; i++ ) {
-		var temp_team = 'Team ' + (i); 
-		initial_teams[i-1] = temp_team;
-
-		if(i%2 == 0) {
-			quarters[i/2 -1] = temp_team;
-		}
-		
-		if(i%4 == 0) {
-			semis[i/4 -1] = temp_team;
-		}
-
-		if(i%8 == 0) {
-			finals[i/8 -1] = temp_team;
-		}
-
-		if(i%16 == 0) {
-			champion[i/16 -1] = temp_team;
-			con.write('champion: ' + champion[0]);
-		}
-	}
-
-	con.write('set data variables');
-	pdf.generatePDF_Brackets(date, initial_teams, quarters, semis, finals, champion);
+	pdf.generatePDF_Brackets(round_number, division, date, title);
 }
 
 pdf.generatePairingSheet = function(headers, titles, round_number, division){
@@ -1488,7 +1474,6 @@ pdf.generatePairingSheet = function(headers, titles, round_number, division){
 	var doc = new jsPDF();
 	var max_page_length = 280;
 	var page_start_y_value = 50;
-
 
 	doc.text(20, 20, headers.tournament_name);
 	doc.text(20, 30, headers.date);
@@ -1627,41 +1612,81 @@ pdf.generateCXBallot = function(){
 
 // generate Brackets PDF
 // TODO for now the params are treated as arrays -- but we should change it to Linked List
-pdf.generatePDF_Brackets = function(date, initial_teams, quarters, semis, finals, champion){
+pdf.generatePDF_Brackets = function(round_number, division, date, title) {
+	var teamsArray = new Array();
+
+	// name2debate returns the number of debates that takes place. so number of teams = number of debates x 2
+	const num_initial_teams = name2debate[round_number] * 2;
+
+	// number of separations. i.e. log2(num_initial_teams) + 1 (for the winner)
+	const num_cols = Math.log(num_initial_teams)/Math.log(2) + 1;
+	
+	// make an array to keep track of the counters of the indexes as we add to teamsArray
+	var teamsArrayIndexCounters = new Array(num_cols);
+	
+	// create new arrays in teamsArray based on num_initial_teams
+	//teamsArray[len - 1] = finals
+	for(var i=0; i<num_cols; i++) {		
+		// set length in a quadratic fashion based on which column it is in
+		teamsArray[i] = new Array( Math.pow(2, num_cols - i - 1) );
+		//set counter for teamsArray[i] to 0
+		teamsArrayIndexCounters[i] = 0;
+		//con.write('teamsArray[' + i + '].length: ' + teamsArray[i].length);
+	}
+
+	// iterate through rounds and fill up teamsArray
+	// this will be adding two teams per iteration, if at all -- round.get("team1") and round.get("team2")
+	for(var i = 0; i < collection.rounds.length; i++) {
+		//get i-th round
+		const round = collection.rounds.at(i);
+
+		if(round.get("division") === division) {
+			//get the number of the round
+			const number = name2debate(round.get("round_number")) * 2;		// multiply by 2 to get number of teams in round
+
+			// check if the round should be included
+			// if it is a round equal to or after the initial round, then include it
+			if(num_initial_teams >= number) {
+				// add to teamsArray
+				// the teamsArrays is organized in this way..
+				// 	index num_cols-1 is for finals
+				//	index num_cols-2 is for semifinals etc.
+
+				// formula explanation => maxColumns - 1 - log2(number_of_teams_in_this_round)
+				//this tells us what the index is for teamsArray i.e. what index does the array correspond to
+				const index_to_add_at = num_cols - 1 - Math.log(number)/Math.log(2);
+
+				// add first team to the brackets
+				teamsArray[index_to_add_at][teamsArrayIndexCounters[index_to_add_at]] = round.get("team1");
+				teamsArrayIndexCounters[index_to_add_at] += 1;
+
+				// add second team to brackets
+				teamsArray[index_to_add_at][teamsArrayIndexCounters[index_to_add_at]] = round.get("team2");
+				teamsArrayIndexCounters[index_to_add_at] += 1;
+			}
+		}
+	}
+
+	// now we have teamsArray set. Now we just need to convert it to PDF
+
 	var doc = new jsPDF();
 
-	// max page length in pixels after which we need a new page (trial and error) = 280 
-	var max_page_length = 285;
+	// max page length in pixels after which we need a new page (trial and error)
+	const max_page_length = 285;
 
-	// max pixels of PDF file (trial and error) = 400
-	var max_page_width = 210;
+	// max pixels of PDF file (trial and error)
+	const max_page_width = 210;
 
-	// number of separations. i.e. initial, quarters .... champion = 5
-	var num_cols = 5;
-
-	doc.text(20, 20, 'Round Rock Tournament');
+	doc.text(20, 20, title);
 	doc.text(20, 30, date);
 	
 	//start writing at this x and y value pixel
-	var page_start_x_value = 20;
-	var page_start_y_value = 40;
+	const page_start_x_value = 20;
+	const page_start_y_value = 40;
 
 	var y_value;
 	var x_value;
 
-	
-	con.write('set variables. Now setting Array');
-
-	var teamsArray = new Array();
-	teamsArray[0] = initial_teams;
-	teamsArray[1] = quarters;
-	teamsArray[2] = semis;
-	teamsArray[3] = finals;
-	teamsArray[4] = champion;
-	
-	con.write('Finals: ' + finals[0] + ', ' + finals[1]);
-	con.write('teamsArray[3](finals): ' + teamsArray[3][0] + ', ' + teamsArray[3][1]);
-	
 	const spacing_x = (max_page_width - page_start_x_value)/num_cols;
 	var spacing_y;
 
@@ -1669,28 +1694,36 @@ pdf.generatePDF_Brackets = function(date, initial_teams, quarters, semis, finals
 	x_value = page_start_x_value;
 
 	const vertical_line_pixels = 4;
+	
+	if(teamsArray != undefined) {
+		for(var i=0; i<teamsArray.length; i++) {
+			if(teamsArray[i] != undefined) {
+				spacing_y = (max_page_length - page_start_y_value)/teamsArray[i].length;
+				y_value = page_start_y_value;
 
-	for(var i=0; i< teamsArray.length; i++) {
-		spacing_y = (max_page_length - page_start_y_value)/teamsArray[i].length;
-		y_value = page_start_y_value;
+				for(var j = 0; j< teamsArray[i].length; j++) {
+					if(teamsArray[i][j] != undefined) {
+						y_value = y_value + spacing_y;
+						con.write('teamsArray['+i+']['+j+'] = ' + teamsArray[i][j]);	// debug print
 
-		for(var j = 0; j< teamsArray[i].length; j++) {
-		        y_value = y_value + spacing_y;
-			doc.text(x_value, y_value - spacing_y/2, teamsArray[i][j]);
-			doc.text(x_value - 2, y_value - spacing_y/2, '____________');
+						doc.text(x_value, y_value - spacing_y/2, teamsArray[i][j]);
+						doc.text(x_value - 2, y_value - spacing_y/2, '____________');
 
-			// do for all columns except the first
-			if(i!=0) {
-				// print the line for the bracket
-				for(var k = 0; k< spacing_y/4; k = k + vertical_line_pixels ) { 	//above
-					doc.text(x_value - 2.5, y_value - spacing_y/2 - k, '|');
+						// do for all columns except the first
+						if(i!=0) {
+							// print the line for the bracket
+							for(var k = 0; k< spacing_y/4; k = k + vertical_line_pixels ) { 	//above
+								doc.text(x_value - 2.5, y_value - spacing_y/2 - k, '|');
+							}
+							for(var k = 0; k< spacing_y/4; k = k + vertical_line_pixels ) { 	//below
+								doc.text(x_value - 2.5, y_value - spacing_y/2 + k + vertical_line_pixels, '|');
+							}
+						}
+					}
 				}
-				for(var k = 0; k< spacing_y/4; k = k + vertical_line_pixels ) { 	//below
-					doc.text(x_value - 2.5, y_value - spacing_y/2 + k + vertical_line_pixels, '|');
-				}
+				x_value = x_value + spacing_x;
 			}
 		}
-		x_value = x_value + spacing_x;
 	}
 
 	// Output as Data URI so that it can be downloaded / viewed
@@ -1830,7 +1863,8 @@ view.TeamTable = Backbone.View.extend({
 		"click #add_team_button": "addTeam",
 		"keyup #teams_search": "search",
 		"change #newteam_division": "showCompetitors",
-		"blur .newteam_competitor": "generateTeamName"
+		"blur .newteam_competitor": "generateTeamName",
+		"keyup #newteam_name":		"keyupTeamName"
 	} ,
 	initialize: function(){
 		_.bindAll(this, "render", "addTeam", "appendTeam", 
@@ -1853,6 +1887,11 @@ view.TeamTable = Backbone.View.extend({
 		
 	} ,
 
+	keyupTeamName: function(event){
+		if(event.which === 13){
+			this.addTeam();
+		}
+	} ,
 	//called when a competitor name box is modified.
 	//generate a team name if every competitor name has been entered.
 	generateTeamName: function(){
@@ -2037,7 +2076,7 @@ view.Team = Backbone.View.extend({
 		var losses = this.model.get("wins") || "0";
 		$(this.el).html('<td>' + this.model.get("team_code") + 
 			'</td> <td>'+this.model.get("division").get("division_name") +'</td><td>' + 
-			wins + "-"+ losses + '</td><td class="remove">Remove</td>');
+			wins + "-"+ losses + '</td><td class="remove"><button>Remove</button></td>');
 		return this; //required for chainable call, .render().el ( in appendTeam)
 	} ,
 	unrender: function(){
@@ -2099,7 +2138,7 @@ view.Judge = Backbone.View.extend({
 			div_string = div_string + div + " ";
 		}
 		var school = this.model.get("school") === undefined ? "None" : this.model.get("school").get("school_name");
-		$(this.el).html('<td>' + this.model.get("name") + '</td><td>'+ school +'</td><td>' + div_string + '</td><td class="remove">Remove</td>');
+		$(this.el).html('<td>' + this.model.get("name") + '</td><td>'+ school +'</td><td>' + div_string + '</td><td class="remove"><button>Remove</button></td>');
 		return this; //required for chainable call, .render().el ( in appendJudge)
 	} ,
 	unrender: function(){
@@ -2115,7 +2154,8 @@ view.JudgeTable = Backbone.View.extend({
 	el: $("#judges") , // attaches `this.el` to an existing element.
 	events: {
 		"click #add_judge_button": "addJudge" ,
-		"keyup #judges_search": "search"
+		"keyup #judges_search": "search" ,
+		"keyup #new_judge_name": "keyupJudgeName"
 	} ,
 	initialize: function(){
 		_.bindAll(this, "render", "addJudge", "appendJudge", "addSchoolSelect");
@@ -2137,7 +2177,11 @@ view.JudgeTable = Backbone.View.extend({
 		this.render();
 		
 	} ,
-	
+	keyupJudgeName: function(event){
+		if(event.which === 13){
+			this.addJudge();
+		}
+	} ,
 	render: function(){
 		_(collection.judges.models).each(function(judge){ // in case collection is not empty
         	this.appendJudge(judge);
@@ -2232,7 +2276,7 @@ view.Room = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' +this.model.get("division").get("division_name") + '</td><td class="remove">Remove</td>');
+		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' +this.model.get("division").get("division_name") + '</td><td class="remove"><button>Remove</button></td>');
 		return this; //required for chainable call, .render().el ( in appendRoom)			.get("division_name")
 	} ,
 	unrender: function(){
@@ -2244,7 +2288,15 @@ view.RoomTable = Backbone.View.extend({
 	el: $("#rooms") , // attaches `this.el` to an existing element.
 	events: {
 		"click #add_room_button": "addRoom" ,
+		"keyup #newroom_name": "keyupRoom" ,
 		"keyup #rooms_search": "search"
+	} ,
+
+	keyupRoom: function(event){
+		if(event.which === 13){
+			this.addRoom();
+		}
+		
 	} ,
 	initialize: function(){
 		_.bindAll(this, "render", "addRoom", "appendRoom");
@@ -2356,6 +2408,7 @@ view.Round = Backbone.View.extend({
 
 	} ,
 	remove: function(round){
+		console.log("removing round");
 		var round = this.model;
 		$.confirm({
 			'title'		: 'Delete Round',
@@ -2399,6 +2452,7 @@ view.Round = Backbone.View.extend({
 
 		var judge = "";
 		var room = "";
+
 		if(this.model.get("judge") != undefined){
 			judge = this.model.get("judge").get("name");
 		}
@@ -2408,7 +2462,7 @@ view.Round = Backbone.View.extend({
 		var div_name = this.model.get("division").get("division_name");
 		var num = this.model.get("round_number");
 		$(this.el).html('<td>' + aff + '</td> <td>' + neg + '</td><td>'+judge+
-			'</td><td>'+room+'</td><td>' + div_name + '</td><td>'+num+'</td><td class="remove">Remove</td>');
+			'</td><td>'+room+'</td><td>' + div_name + '</td><td>'+num+'</td><td class="remove"><button>Remove</button></td>');
 		return this; //required for chainable call, .render().el
 	} ,
 	unrender: function(){
@@ -2573,7 +2627,7 @@ view.School = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("school_name") + '</td> <td class="remove">Remove</td>');
+		$(this.el).html('<td>' + this.model.get("school_name") + '</td> <td class="remove"><button>Remove</button></td>');
 		return this; //required for chainable call, .render().el
 	} ,
 	unrender: function(){
@@ -2582,12 +2636,15 @@ view.School = Backbone.View.extend({
 });
 
 
+
 view.SchoolTable = Backbone.View.extend({
 	el: $("#schools") , // attaches `this.el` to an existing element.
 	events: {
 		"click #add_school_button": "addSchool" ,
-		"keyup #schools_search": "search"
+		"keyup #schools_search": "search",
+		"keyup #newschool_name": "keyupSchoolName"
 	} ,
+
 	initialize: function(){
 		_.bindAll(this, "render", "addSchool", "appendSchool");
 		
@@ -2596,7 +2653,11 @@ view.SchoolTable = Backbone.View.extend({
 		this.render();
 		
 	} ,
-	
+	keyupSchoolName: function(event){
+		if(event.which === 13){
+			this.addSchool();
+		}
+	},
 	render: function(){
 		_(collection.schools.models).each(function(school){ // in case collection is not empty
         	this.appendSchool(school);
@@ -2655,7 +2716,7 @@ view.Division = Backbone.View.extend({
 		this.model.destroy();
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("division_name") + '</td><td class="remove">Remove</td>');
+		$(this.el).html('<td>' + this.model.get("division_name") + '</td><td class="remove"><button>Remove</button></td>');
 		return this; //required for chainable call, .render().el ( in appendTeam)
 	} ,
 	unrender: function(){
