@@ -914,6 +914,18 @@ Creates round models for specified round_number and division.
 */
 
 pairing.pairRound = function(round_number, division){
+	var toDelete =[];
+	//delete all rounds in this round number and division
+	for(var i = 0; i < collection.rounds.length; i++){
+		if(collection.rounds.at(i).get("division") === division && collection.rounds.at(i).get("round_number") === round_number){
+			toDelete.push(collection.rounds.at(i));
+		}
+	}
+
+	for(var i = 0; i < toDelete.length; i++){
+		toDelete[i].destroy();
+	}
+
 	var total_teams = pairing.teamsInDivision(division);
 	var total_rounds = Math.ceil(total_teams / 2);
 
@@ -2344,16 +2356,16 @@ view.Round = Backbone.View.extend({
 
 	} ,
 	remove: function(round){
+		var round = this.model;
 		$.confirm({
 			'title'		: 'Delete Round',
 			'message'	: 'You are about to delete a round <br />It cannot be restored at a later time! Continue?',
 			'buttons'	: {
 				'Yes'	: {
-					'this_model': round,
+					'model': round,
 					'class'	: 'blue',
-					'action': function(){
-						console.log(this.this_model);
-						this.this_model.destroy();
+					'action': function(model){
+						model.destroy();
 					}
 				},
 				'No'	: {
@@ -2393,7 +2405,10 @@ view.Round = Backbone.View.extend({
 		if(this.model.get("room") != undefined){
 			room = this.model.get("room").get("name");
 		}
-		$(this.el).html('<td>' + aff + '</td> <td>' + neg + '</td><td>'+judge+'</td><td>'+room+'</td><td class="remove">Remove</td>');
+		var div_name = this.model.get("division").get("division_name");
+		var num = this.model.get("round_number");
+		$(this.el).html('<td>' + aff + '</td> <td>' + neg + '</td><td>'+judge+
+			'</td><td>'+room+'</td><td>' + div_name + '</td><td>'+num+'</td><td class="remove">Remove</td>');
 		return this; //required for chainable call, .render().el
 	} ,
 	unrender: function(){
@@ -2425,7 +2440,33 @@ view.RoundTable = Backbone.View.extend({
 		
 	} ,
 	pairRound: function(){
-		
+		var div_id = $("#rounds_division_select").val();
+		var div = pairing.getDivisionFromId(div_id);
+		var round_number = $("#rounds_round_number_select").val();
+		//check if round has already been paired.
+		var already_paired = pairing.alreadyPaired(round_number, div);
+		if(already_paired === true){
+			//pop up dialog for confirmation
+			$.confirm({
+				'title'		: 'Repair Confirmation',
+				'message'	: 'You are about to repair a round that has already been paired. <br />It cannot be restored at a later time! Continue?',
+				'buttons'	: {
+					'Yes'	: {
+						'class'	: 'blue',
+						'action': function(){
+
+							pairing.pairRound(round_number, div);
+						}
+					},
+					'No'	: {
+						'class'	: 'gray',
+						'action': function(){}	// Nothing to do in this case. You can as well omit the action property.
+					}
+				}
+			});
+		} else {
+			pairing.pairRound(round_number, div);
+		}
 	} ,
 
 	renderRoundNumberSelect: function(){
@@ -2480,14 +2521,7 @@ view.RoundTable = Backbone.View.extend({
 
 	addRound: function(){
 		//TODO: validate round name
-		var round_name = $("#newround_name").val();
-
-		var round = new model.Round();
-		round.set({round_name: round_name});
-
-		collection.rounds.add(round);
-		round.save();
-		$("#newround_name").val("");
+		
 	} ,
 
 	appendRound: function(round){
@@ -3046,37 +3080,11 @@ $("#toggle_team_form").click(function(){
 });
 
 //round controls
-$("#pair_round_button").click(function(){
-	var div_id = $("#rounds_division_select").val();
-	var div = pairing.getDivisionFromId(div_id);
-	var round_number = $("#rounds_round_number_select").val();
-	//check if round has already been paired.
-	var already_paired = pairing.alreadyPaired(round_number, div);
-	if(already_paired === true){
-		//pop up dialog for confirmation
-		$.confirm({
-			'title'		: 'Repair Confirmation',
-			'message'	: 'You are about to repair a round that has already been paired. <br />It cannot be restored at a later time! Continue?',
-			'buttons'	: {
-				'Yes'	: {
-					'class'	: 'blue',
-					'action': function(){
-						pairing.pairRound(round_number, div);
-					}
-				},
-				'No'	: {
-					'class'	: 'gray',
-					'action': function(){}	// Nothing to do in this case. You can as well omit the action property.
-				}
-			}
-		});
-	} else {
-		pairing.pairRound(round_number, div);
-	}
+
 
 
 	
-});
+
 /*
 =========================================
 Debug Controls

@@ -795,8 +795,12 @@ var Base64 = {
 
 				// Calling the action attribute when a
 				// click occurs, and hiding the confirm.
-
-				obj.action();
+				if(obj.model === undefined){
+					obj.action();
+				} else {
+					obj.action(obj.model);
+				}
+				
 				$.confirm.hide();
 				return false;
 			});
