@@ -66,6 +66,18 @@ Define Backbone Models
 =========================================
 */	
 
+model.Tournament = Backbone.Model.extend({
+	default: {
+		tournament_name: "Debate Tournament"
+	},
+	initialize: function() {
+		if(this.id === undefined){
+			this.set({
+				id: (new ObjectId()).toString()
+			});
+		}	
+	}
+});
 
 model.Competitor = Backbone.Model.extend({
 	initialize: function(){
@@ -2072,8 +2084,25 @@ view.Team = Backbone.View.extend({
 	} ,
 
 	remove: function(team){
-		console.log("destroying team" + team);
-		this.model.destroy();
+		var team = this.model;
+		$.confirm({
+			'title'		: 'Delete Team',
+			'message'	: 'You are about to delete a team <br />It cannot be restored at a later time! Continue?',
+			'buttons'	: {
+				'Yes'	: {
+					'model': team,
+					'class'	: 'blue',
+					'action': function(model){
+						model.destroy();
+					}
+				},
+				'No'	: {
+					'class'	: 'gray',
+					'action': function(){}	
+				}
+			},
+			
+		});
 	} ,
 	render: function(){
 		var wins = this.model.get("losses") || "0";
@@ -2128,10 +2157,26 @@ view.Judge = Backbone.View.extend({
 	} ,
 
 	remove: function(judge){
-	//	$(function () {
-		//	$('.simpledialog').simpleDialog();
-	//	});
-		this.model.destroy();
+		var judge = this.model;
+		$.confirm({
+			'title'		: 'Delete Judge',
+			'message'	: 'You are about to delete a Judge <br />It cannot be restored at a later time! Continue?',
+			'buttons'	: {
+				'Yes'	: {
+					'model': judge,
+					'class'	: 'blue',
+					'action': function(model){
+						model.destroy();
+					}
+				},
+				'No'	: {
+					'class'	: 'gray',
+					'action': function(){}	
+				}
+			},
+			
+		});
+		
 		
 	} ,
 	render: function(){
@@ -2277,7 +2322,25 @@ view.Room = Backbone.View.extend({
 	} ,
 
 	remove: function(room){
-		this.model.destroy();
+		var room = this.model;
+		$.confirm({
+			'title'		: 'Delete Round',
+			'message'	: 'You are about to delete a round <br />It cannot be restored at a later time! Continue?',
+			'buttons'	: {
+				'Yes'	: {
+					'model': room,
+					'class'	: 'blue',
+					'action': function(model){
+						model.destroy();
+					}
+				},
+				'No'	: {
+					'class'	: 'gray',
+					'action': function(){}	
+				}
+			},
+			
+		});
 	} ,
 	render: function(){
 		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' +this.model.get("division").get("division_name") + '</td><td class="remove"><button>Remove</button></td>');
@@ -2412,7 +2475,6 @@ view.Round = Backbone.View.extend({
 
 	} ,
 	remove: function(round){
-		console.log("removing round");
 		var round = this.model;
 		$.confirm({
 			'title'		: 'Delete Round',
@@ -2717,7 +2779,26 @@ view.Division = Backbone.View.extend({
 
 	} ,
 	remove: function(division){
-		this.model.destroy();
+		var division = this.model;
+		$.confirm({
+			'title'		: 'Delete Round',
+			'message'	: 'You are about to delete a Division <br />It cannot be restored at a later time! Continue?',
+			'buttons'	: {
+				'Yes'	: {
+					'model': division,
+					'class'	: 'blue',
+					'action': function(model){
+						model.destroy();
+						}
+					},
+					'No'	: {
+					'class'	: 'gray',
+					'action': function(){}	
+				}
+			},
+			
+		});
+		
 	} ,
 	render: function(){
 		$(this.el).html('<td>' + this.model.get("division_name") + '</td><td class="remove"><button>Remove</button></td>');
@@ -2839,8 +2920,9 @@ collection.divisions.fetch();
 collection.schools.fetch();
 collection.judges.fetch();
 collection.rooms.fetch();
-collection.rounds.fetch();
-
+collection.rounds.fetch()
+model.tournament = new model.Tournament();
+model.tournament.set({tournament_name: localStorage.getItem("tournament_name") || "Debate Tournament"});
 /*
 =========================================
 Initialize Backbone Views
@@ -2866,6 +2948,8 @@ if(localStorage.getItem("selected") != undefined){
 	ui.showMenu(localStorage.getItem("selected"));
 } 
 
+//initialize title
+$("#trn_name_title").text(model.tournament.get("tournament_name") || "Debate Tournament");
 
 //print stats on loaded data to console
 con.write("Teams: " + collection.teams.length);
@@ -3146,7 +3230,16 @@ $("#toggle_team_form").click(function(){
 
 //round controls
 
+//settings controls
+$("#trn_save").click(function(){
+	//save tournament name
+	var name = $("#trn_name").val();
+	model.tournament.set({tournament_name: name});
+	$("#trn_name_title").text(name);
+	
+	localStorage.setItem("tournament_name", name);
 
+});
 
 	
 
