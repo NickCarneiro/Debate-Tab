@@ -1461,6 +1461,56 @@ pairing.pairRooms = function(round_number, division){
 	}
 };
 
+pairing.dedicatedJudges = function(division){
+	var judges = 0;
+	
+	for(var i = 0; i < collection.judges.length; i++){
+		var divisions = collection.judges.at(i).get("divisions");
+		if(divisions.indexOf(division) != -1 && divisions.length === 1){
+			judges++;
+		}
+	}
+
+	return judges;
+};
+
+pairing.totalJudges = function(division){
+	var judges = 0;
+	
+	for(var i = 0; i < collection.judges.length; i++){
+		var divisions = collection.judges.at(i).get("divisions");
+		if(divisions.indexOf(division) != -1){
+			judges++;
+		}
+	}
+
+	return judges;
+};
+
+pairing.requiredJudges = function(division){
+	//TODO support paneled prelims
+	var teams = pairing.teamsInDivision(division);
+	return Math.floor(teams / 2);
+}
+
+pairing.totalRooms = function(division){
+	var rooms = 0;
+	
+	for(var i = 0; i < collection.rooms.length; i++){
+
+		if(collection.rooms.at(i).get("division") === division){
+			rooms++;
+		}
+	}
+
+	return rooms;
+};
+
+pairing.requiredRooms = function(division){
+	var teams = pairing.teamsInDivision(division);
+	return Math.floor(teams / 2);
+}
+
 
 
 /*
@@ -2334,8 +2384,8 @@ view.Room = Backbone.View.extend({
 	remove: function(room){
 		var room = this.model;
 		$.confirm({
-			'title'		: 'Delete Round',
-			'message'	: 'You are about to delete a round <br />It cannot be restored at a later time! Continue?',
+			'title'		: 'Delete Room',
+			'message'	: 'You are about to delete a room <br />It cannot be restored at a later time! Continue?',
 			'buttons'	: {
 				'Yes'	: {
 					'model': room,
@@ -2472,6 +2522,81 @@ view.RoomOption = Backbone.View.extend({
 	}
 });
 
+
+view.DivisionStats = Backbone.View.extend ({
+	tagName: "tr" ,
+	events: { 
+    },  
+
+	initialize: function(){
+		_.bindAll(this, "render", "unrender", "remove");
+	    this.model.bind('remove', this.unrender);
+		this.model.bind('change', this.render);
+
+	} ,
+	render: function(){
+		var teams = pairing.teamsInDivision(this.model)
+		teams = (teams != undefined) ?  teams : "-";
+
+		var ded_judges = pairing.dedicatedJudges(this.model);
+		ded_judges = (ded_judges != undefined) ?  ded_judges : "-";
+
+		var total_judges = pairing.totalJudges(this.model);
+		total_judges = (total_judges != undefined) ?  total_judges : "-";
+
+		var reqd_judges = pairing.requiredJudges(this.model);
+		reqd_judges = (reqd_judges != undefined) ?  pairing.requiredJudges(this.model) : "-";
+
+		var rooms = pairing.totalRooms(this.model)
+		rooms = (rooms != undefined) ?  rooms : "-";
+
+		var reqd_rooms = pairing.requiredRooms(this.model);
+		reqd_rooms = (reqd_rooms != undefined) ?  reqd_rooms : "-";
+
+		$(this.el).html('<td>'+ this.model.get("division_name") + '</td><td>' + teams + '</td>'+
+		'<td>' + ded_judges + '</td><td>' + total_judges + '</td><td>' + reqd_judges + '</td><td>' +rooms + '</td><td>' + 
+		reqd_rooms + '</td>');
+		return this; //required for chainable call, .render().el ( in appendRoom)			.get("division_name")
+	} ,
+	unrender: function(){
+		$(this.el).remove();
+	}
+});
+
+view.StatsArea = Backbone.View.extend({
+	el: $("#settings_stats") , // attaches `this.el` to an existing element.
+	events: {
+		
+	} ,
+
+
+
+	initialize: function(){
+		_.bindAll(this, "render");
+		
+		this.render();
+	
+	} ,
+	
+	render: function(){
+		$("#stats_schools").text("Total schools: " + collection.schools.length);
+		$("#settings_stats").empty();
+		$(this.el).append("<tr><td>Name</td><td>Teams</td><td>Dedicated Judges</td><td>Total Judges</td><td>Required Judges</td><td>Rooms</td><td>Required Rooms</td></tr>");
+    	collection.divisions.each(function(division){ // in case collection is not empty
+        	this.addDivStat(division);
+    	}, this);
+	} ,
+
+	//add new division to dropdown box
+	addDivStat: function(division){
+		var divStatView = new view.DivisionStats({
+			model: division
+		});
+		$(this.el).append(divStatView.render().el);
+	} ,
+
+	
+});
 view.Round = Backbone.View.extend({
 	tagName: "tr" ,
 	events: { 
@@ -2947,7 +3072,7 @@ view.divisionTable = new view.DivisionTable();
 view.judgeTable = new view.JudgeTable(); 
 view.roomTable = new view.RoomTable();  
 view.roundTable = new view.RoundTable();
-
+view.statsArea = new view.StatsArea();
 
 
 //initialize ui menu state
@@ -3005,7 +3130,9 @@ $(".menu_item").click(function(){
 	ui.showMenu(menu_item_name);
 });
 
-
+$("#menu_settings").click(function(){
+	view.statsArea.render();
+});
 
 //client-side function call Code for sending a single text
 $("#single_text").click(function(){
