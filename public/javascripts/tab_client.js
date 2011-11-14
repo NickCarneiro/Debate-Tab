@@ -2220,10 +2220,12 @@ view.JudgeTable = Backbone.View.extend({
 		collection.judges.bind("reset", this.render, this);
 		collection.schools.bind("reset", this.render, this);
 		collection.divisions.bind("reset", this.render, this);
+
 		collection.schools.each(function(school){ // pre-existing schools
         	this.addSchoolSelect(school);
     	}, this);
 
+    	$("#newjudge_school", this.el).append('<option value="no_affiliation">No Affiliation</option>');
     	collection.divisions.each(function(division){ // pre-existing schools
         	this.addDivisionCheckbox(division);
     	}, this);
@@ -2285,10 +2287,14 @@ view.JudgeTable = Backbone.View.extend({
 	} ,
 	//add new school to dropdown box
 	addSchoolSelect: function(school){
+		
+			
+		
 		var schoolOptionView = new view.SchoolOption({
 			model: school
 		});
 		$("#newjudge_school", this.el).append(schoolOptionView.render().el);
+		
 	} ,
 
 	addDivisionCheckbox: function(division){

@@ -894,6 +894,9 @@ border-bottom:1px solid;
 color:#9343B9;
 }
 
+.container{
+  padding: 10px;
+}
 #header {
 background: ;
 }
