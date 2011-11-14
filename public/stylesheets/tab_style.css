@@ -940,7 +940,7 @@ color: #B00000;
 font-size: 20px;
 }
 .menu {
-font-size: 30px;
+font-size: 28px;
 list-style-type: none;
 margin-top: 25px;
 }
@@ -958,7 +958,8 @@ margin: 0 0 6px -40px;
 margin: 0px, 3px, 0px, 0px;
 border: 2px solid #F0F0F0;
 border-radius: 8px;
-text-align: center;
+text-align: left;
+padding-left: 10px;
 background-color: #E8E8E8;
 opacity: .9;
 }
