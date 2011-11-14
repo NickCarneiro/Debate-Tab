@@ -2183,7 +2183,11 @@ view.Judge = Backbone.View.extend({
 		var divisions = this.model.get("divisions");
 		var div_string = "";
 		for(var i = 0; i < divisions.length; i++){
-			var div = divisions[i].get("division_name");
+			var div = "";
+			if(divisions[i] != undefined){
+				div = divisions[i].get("division_name");
+			}
+			
 			div_string = div_string + div + " ";
 		}
 		var school = this.model.get("school") === undefined ? "None" : this.model.get("school").get("school_name");
@@ -2618,6 +2622,7 @@ view.RoundTable = Backbone.View.extend({
 		collection.divisions.each(function(division){ // in case collection is not empty
         	this.appendDivisionOption(division);
     	}, this);
+    	this.renderRoundNumberSelect();
 	} ,
 
 	appendDivisionOption: function(division){
