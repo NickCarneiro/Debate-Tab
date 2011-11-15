@@ -2024,10 +2024,11 @@ view.TeamTable = Backbone.View.extend({
 		if(comp_per_team === null){
 				comp_per_team = 1;
 		}
-
+		
 		for(var i = 0; i < comp_per_team; i++){
 
-			$("#newteam_competitors").append('<input class="newteam_competitor" type="text" /> <br />');
+			$("#newteam_competitors").append('<input class="newteam_competitor" type="text" />');
+
 		}
 	} ,
 	//add new division to dropdown box
@@ -2090,10 +2091,13 @@ view.TeamTable = Backbone.View.extend({
 		var division = pairing.getDivisionFromId(division_id);
 		var competitors = [];
 		//populate competitors based on form entries
+		console.log($("#newteam_competitors").children());
 		$("#newteam_competitors").children().each(function(){
 			competitors.push($(this).val());
 			$(this).val("");
+			console.log(competitors);
 		});
+	
 		var school = pairing.getSchoolFromId(school_id);
 		
 		team.set({

@@ -979,6 +979,10 @@ opacity: .9;
   border-radius: 8px;
 }
 
+.newteam_competitor{
+	display: block;
+}
+
 .search_box {
 width: 230px;
 font-size: 24px;
