@@ -1629,11 +1629,26 @@ pdf.generateCXBallot = function(){
 		doc.text(149, 20, room);
 		doc.text(20, 30, 'Round:___________'); doc.text(130,30, 'Judge:___________');
 		//doc.text(38,30,'Fill Round');
-		var roundName = collection.rounds.at(i).get("round_number").toString();
+		var round = collection.rounds.at(i);
+		var roundName;
+		if (round === undefined) {
+			roundName = "";
+		}
+		else {
+			roundName = round.get("round_number").toString();
+		}
+		//var roundName = collection.rounds.at(i).get("round_number").toString();
 		doc.text(38,30, roundName);
 		console.log('Round: ' + roundName);
 
-		var judgeName = collection.rounds.at(i).get("judge").get("name");
+		var judgeName = collection.rounds.at(i).get("judge");
+		if (judgeName === undefined) {
+			judgeName = "";
+		}
+		else {
+			judgeName = judgeName.get("name");
+		}
+		console.log('Judge: ' + judgeName);
 		doc.text(146,30, judgeName);
 
 		//const round_text = 'Round: ' + headers.round_number;
