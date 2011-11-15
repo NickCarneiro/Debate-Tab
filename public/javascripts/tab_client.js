@@ -2027,8 +2027,8 @@ view.TeamTable = Backbone.View.extend({
 		
 		for(var i = 0; i < comp_per_team; i++){
 
-			$("#newteam_competitors").append('<input class="newteam_competitor" type="text" />');
-			$("#newteam_competitors").append('<input class="competitor_phone" type="text" />');
+			$("#newteam_competitors").append('<input class="newteam_competitor" type="text" /> ');
+			$("#newteam_competitors").append('Phone: <input class="competitor_phone" type="text" />');
 
 		}
 	} ,
