@@ -32,7 +32,7 @@ Base
 
 html { font-size: 100%; overflow-y: scroll; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
 
-body { margin: 0; font-size: 13px; line-height: 1.231; }
+body { margin: 0; font-size: 16px; line-height: 1.231; }
 
 body, input, select, textarea { 
 font-family: 'Droid Sans', "Helvetica Neue", Helvetica, Verdana, arial, sans-serif; 
@@ -880,12 +880,26 @@ Move to separate stylesheet if invalid CSS is a problem.
 /* ==|== primary styles =====================================================
 Author: Nick Carneiro
 ========================================================================== */
+label{
+  display: block;
+  margin: 5px 0px 0px 0px;
+}
 
-#trn_name_title{
+.checkbox {
+   
+}
 
+.save_button{
+  margin-top: 10px;  
+}
+
+input{
+  line-height: 25px;
+  font-size: 20px;
+  padding: 4px 4px 2px 4px;
 }
 .leftnav{
-  box-shadow: rgba(0, 0, 0, 0.2) 0 5px 6px 0;
+  box-shadow: #d5d5d5 0 5px 6px 0;
 }
 #container {
   border: 0px;
@@ -903,7 +917,7 @@ color:#9343B9;
 
 .container{
   padding: 10px;
-  box-shadow: rgba(0, 0, 0, 0.2) 0 5px 6px 0;
+  
 }
 #header {
 text-align: center;
@@ -911,14 +925,15 @@ text-align: center;
 #main_menu {
 text-align: left;
 
-  padding-left: -29px;
-  margin-left: -29px;
+  margin-left: -26px;
   padding-right: 10px;
 
 }
 #right_col{
 text-align: left;
 background: #fff;
+padding: 15px;
+box-shadow: #d5d5d5 0 5px 6px 0;
 }
 
 .left_col{
@@ -955,21 +970,13 @@ font-size: 28px;
 list-style-type: none;
 margin-top: 25px;
 }
-.sub_menu {
-font-size: 20px;
-list-style-type: none;
 
-}
 
-.sub_menu_item {
-margin: 0 0 6px -40px;
-}
 
 .menu_item {
 margin: 6px 3px 3px 0px;
 padding: 3px 0px 3px 0px;
 border: 2px solid #F0F0F0;
-border-radius: 8px;
 text-align: left;
 padding-left: 10px;
 background-color: #E8E8E8;
@@ -983,9 +990,13 @@ opacity: .9;
 }
 
 .menu_item_selected {
-  background: #F8F8F8;
-  border: 2px solid #E0E0E0;
-  border-radius: 8px;
+  margin: 6px 3px 3px 0px;
+  padding: 3px 0px 3px 0px;
+  border: 2px solid #F0F0F0;
+  text-align: left;
+  padding-left: 10px;
+  background-color: #d8d8d8;
+  opacity: .9;
 }
 
 .search_box {
@@ -1032,6 +1043,7 @@ font-size: 16px;
 
 #credit {
 /*margin: 0px auto;*/
+font-size: 13px;
 color: #676767;
 padding-top: 20px;
 text-align: center;
