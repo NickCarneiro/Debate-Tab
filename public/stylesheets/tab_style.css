@@ -983,7 +983,7 @@ background-color: #E8E8E8;
 opacity: .9;
 }
 .menu_item:hover{
-	
+
 	border: 2px solid #E0E0E0;
 	background: #F8F8F8;
 	cursor: pointer;
@@ -997,10 +997,6 @@ opacity: .9;
   padding-left: 10px;
   background-color: #d8d8d8;
   opacity: .9;
-}
-
-.newteam_competitor{
-	display: block;
 }
 
 .search_box {

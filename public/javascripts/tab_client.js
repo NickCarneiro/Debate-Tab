@@ -1839,11 +1839,8 @@ ui.showMenu = function(menu_item){
 	$(".container").slideUp(100);
 	$("#" + menu_item + "_container").slideDown(100);
 
-	$(".menu_item_selected").addClass("menu_item");
-
 	$(".menu_item").removeClass("menu_item_selected");
 	$("#menu_" + menu_item).addClass("menu_item_selected");
-	$("#menu_" + menu_item).removeClass("menu_item");
 
 	$(".sub_menu").hide();
 	$("#sub_menu_" + menu_item).show();	
@@ -1979,16 +1976,16 @@ view.TeamTable = Backbone.View.extend({
 
 			//case 1: 1 competitor. Use initials like
 			//Nick Carneiro => Round Rock NC
-			if(competitors.length === 1){
+			if(competitors.length === 2){
 				var whole_name = $(competitors.get(0)).val();
 				var names = whole_name.split(" ");
 				if(names.length >= 2){
 					
 					team_code += " " + names[0].substr(0,1) + names[1].substr(0,1);
 				}
-			} else if(competitors.length >=2){
-				var whole_name = $(competitors.get(1)).val();
-				var names = whole_name.split(" ");
+			} else if(competitors.length >=4){		
+				var whole_name = $(competitors.get(2)).val();	//TODO: fix indexing, should work for
+				var names = whole_name.split(" ");				//any number of competitors
 				var last_name = names[names.length-1];
 
 				var whole_name_2 = $(competitors.get(0)).val();
@@ -2031,6 +2028,7 @@ view.TeamTable = Backbone.View.extend({
 		for(var i = 0; i < comp_per_team; i++){
 
 			$("#newteam_competitors").append('<input class="newteam_competitor" type="text" />');
+			$("#newteam_competitors").append('<input class="competitor_phone" type="text" />');
 
 		}
 	} ,
@@ -2093,11 +2091,23 @@ view.TeamTable = Backbone.View.extend({
 		var division_id = $("#newteam_division").val();
 		var division = pairing.getDivisionFromId(division_id);
 		var competitors = [];
+		var competitor_phone = [];
 		//populate competitors based on form entries
 		console.log($("#newteam_competitors").children());
 		$("#newteam_competitors").children().each(function(){
-			competitors.push($(this).val());
-			$(this).val("");
+				if(($(this).hasClass("newteam_competitor")) == true)
+				{
+					competitor_phone[0] = ($(this).val());
+					$(this).val("");
+				}
+				else
+				{
+					competitor_phone[1] = ($(this).val());
+					$(this).val("");
+					competitors.push(competitor_phone);
+					competitor_phone = [];
+				}
+
 			console.log(competitors);
 		});
 	
@@ -2192,7 +2202,7 @@ view.DivisionCheckbox = Backbone.View.extend({
 		//This will be read by jQuery to figure out which division was selected
 		$(this.el).attr("value", this.model.get("id"));
 		$(this.el).data("division_id", this.model.get("id"));
-		$(this.el).html('<input class="checkbox" type="checkbox" /> ' + this.model.get("division_name"));
+		$(this.el).html('<input type="checkbox" /> ' + this.model.get("division_name"));
 		return this; //required for chainable call, .render().el ( in appendTeam)
 	} ,
 	unrender: function(){
@@ -2989,7 +2999,6 @@ view.DivisionTable = Backbone.View.extend({
 		var prelims = parseInt($("#newdiv_prelims").val());
 		var schedule = [];
 		var ballot_type = $("#newdiv_ballot_type").val();
-		var combine_speaks = new Boolean($("#newdiv_combine_speaks").val());
 
 		for(var i = 0; i < prelims; i++){
 			var num = i + 1;
@@ -3019,18 +3028,15 @@ view.DivisionTable = Backbone.View.extend({
 			max_speaks		: max_speaks,
 			prelims			: prelims,
 			schedule		: schedule,
-			ballot_type		: ballot_type,
-			combine_speaks	: combine_speaks
+			ballot_type		: ballot_type
 
 		});
-
 		collection.divisions.add(division);
 		division.save();
 		$("#newdiv_division_name").val("");
 		$("#newdiv_comp_per_team").val("");
 		$("#newdiv_division_name").val("");
 		$("#newdiv_division_name").val("");
-
 	} ,
 
 	appendDivision: function(division){
@@ -3134,7 +3140,7 @@ Valid values for menu_item:
 
 
 
-$(".menu_item").live("click", function(){
+$(".menu_item").click(function(){
 	//menu item ids are like: menu_judges
 	var menu_item_name = $(this).attr("id").substr(5);
 	//TODO: save menu state in a model so it opens to where you were if browser gets closed
