@@ -3020,11 +3020,11 @@ view.DivisionTable = Backbone.View.extend({
 
 		});
 
+		$(".edit_model_overlay").fadeOut();
 		collection.divisions.add(division);
 		division.save();
 		$("#newdiv_division_name").val("");
 		$("#newdiv_comp_per_team").val("");
-		$("#newdiv_division_name").val("");
 		$("#newdiv_division_name").val("");
 
 	} ,
@@ -3107,7 +3107,9 @@ $(".container").hide();
 $(".sub_menu").hide();
 $("#rounds_container").show();
 
-$(".input_form").hide();
+
+
+$(".edit_model_overlay").hide();
 
 /*
 =========================================
@@ -3347,6 +3349,11 @@ $("#mass_texts").mouseover(
 Collection Controls
 =========================================
 */
+
+$(".cancel_button").click(function(){
+	$(".edit_model_overlay").fadeOut();
+});
+
 //school controls
 $("#toggle_school_form").click(function(){
 	$("#school_form").slideToggle();
@@ -3365,7 +3372,7 @@ $("#toggle_room_form").click(function(){
 
 //division controls
 $("#toggle_division_form").click(function(){
-	$("#division_form").slideToggle();
+	$("#division_form_overlay").fadeToggle();
 });
 
 //team controls

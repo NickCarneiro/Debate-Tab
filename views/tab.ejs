@@ -43,6 +43,7 @@ JS includes
 				
 				<button id="add_round_button">Add Debate</button>
 				<button id="pair_round_button">Pair Round</button>
+				<button id="print_ballots_button">Print Ballots</button>
 				</div>
 		</div>
 
@@ -144,6 +145,7 @@ JS includes
 		<div id="schools_container" class="container">
 			
 			<div id="schools">
+
 				<button id="toggle_school_form">Add School ⇩</button>
 				<div id="school_form" class="input_form">
 				<label>
@@ -162,8 +164,18 @@ JS includes
 		</div>
 		<div id="divisions_container" class="container">
 			<div id="divisions">
-			<button id="toggle_division_form">Add Division</button> <br />
+				
+			<div id="divisions_buttons" class="top_buttons">
+				<button id="toggle_division_form">Add Division</button> 
+			</div>
+			
+			
+
 			<div id="division_form" class="input_form">
+			<div class="edit_model_overlay" id="division_form_overlay">
+			<div class="edit_model_box">
+			<h1>Edit Division</h1>
+			<input id="newdiv_id" type="hidden" value=""/>
 			<label>
 					Division Name: <br />
 					<input id="newdiv_division_name" type="text"/>
@@ -211,6 +223,12 @@ JS includes
 				
 
 				<button class="save_button" id="add_division_button">Save</button>
+				<button class="cancel_button">Cancel</button>
+
+			</div></div>
+
+
+			
 			</div>
 				<table id="divisions_table">
 				</table>
