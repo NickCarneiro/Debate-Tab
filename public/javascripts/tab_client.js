@@ -2929,6 +2929,8 @@ view.Division = Backbone.View.extend({
 		$("#newdiv_max_speaks").val(this.model.get("max_speaks"));
 		$("#newdiv_prelims").val(this.model.get("prelims"));
 		$("#newdiv_ballot_type").val(this.model.get("ballot_type"));
+
+		$(".edit_model_overlay").css("height", $(document).height());
 		$("#division_form_overlay").fadeIn();
 	} ,
 	remove: function(division){
@@ -2998,7 +3000,7 @@ view.DivisionTable = Backbone.View.extend({
 		//TODO: validate school name
 	
 
-		var id = $("#newdiv_id").val();
+		
 		
 		//TODO: verify all this input
 		var division_name = $("#newdiv_division_name").val();
@@ -3036,6 +3038,8 @@ view.DivisionTable = Backbone.View.extend({
 		$(".edit_model_overlay").fadeOut();
 
 		//check if we are modifying an existing division or created a new one
+		var id = $("#newdiv_id").val();
+		console.log(id);
 		if(id.length > 0){
 			//update existing model
 			var division = pairing.getDivisionFromId(id);
@@ -3228,6 +3232,16 @@ $("#mass_texts").click(function(){
 		con.write(res);
 	});
 });
+
+
+//when window is resized, change overlay to match it.
+//we want the gradient to always stretch over the entire screen
+//behind the edit window
+$(window).resize(function(){
+	$(".edit_model_overlay").css("height", $(document).height());
+});
+
+
 
 //Code for PDF Menu
 $("#menu_pdf").click(function(){
