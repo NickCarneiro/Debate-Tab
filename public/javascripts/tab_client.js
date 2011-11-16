@@ -3112,7 +3112,8 @@ view.SchoolTable = Backbone.View.extend({
 view.Division = Backbone.View.extend({
 	tagName: "tr" ,
 	events: { 
-      'click td.remove': 'remove'
+      'click td.remove': 'remove',
+      'click td.name': 'showEditForm'
     },  
 
 	initialize: function(){
@@ -3120,6 +3121,19 @@ view.Division = Backbone.View.extend({
 	    this.model.bind('remove', this.unrender);
 		this.model.bind('change', this.render);
 
+	} ,
+	showEditForm: function(){
+		//populate form with existing values
+		$("#newdiv_id").val(this.model.get("id"));
+		$("#newdiv_division_name").val(this.model.get("division_name"));
+		$("#newdiv_comp_per_team").val(this.model.get("comp_per_team"));
+		$("#newdiv_flighted_rounds").val(this.model.get("flighted_rounds"));
+		$("#newdiv_combine_speaks").val(this.model.get("combine_speaks"));
+		$("#newdiv_break_to").val(this.model.get("break_to"));
+		$("#newdiv_max_speaks").val(this.model.get("max_speaks"));
+		$("#newdiv_prelims").val(this.model.get("prelims"));
+		$("#newdiv_ballot_type").val(this.model.get("ballot_type"));
+		$("#division_form_overlay").fadeIn();
 	} ,
 	remove: function(division){
 		var division = this.model;
@@ -3144,7 +3158,7 @@ view.Division = Backbone.View.extend({
 		
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("division_name") + '</td><td class="remove"><button>Remove</button></td>');
+		$(this.el).html('<td class="name">' + this.model.get("division_name") + '</td><td class="remove"><button>Remove</button></td>');
 		return this; //required for chainable call, .render().el ( in appendTeam)
 	} ,
 	unrender: function(){
@@ -3172,13 +3186,24 @@ view.DivisionTable = Backbone.View.extend({
         	this.appendDivision(division);
     	}, this);
 	} ,
-
+	clearEditForm: function(){
+		console.log("clearing division form");
+		$("#newdiv_id").val("");
+		$("#newdiv_division_name").val("");
+		$("#newdiv_comp_per_team").val("");
+		$("#newdiv_flighted_rounds").val(false);
+		$("#newdiv_combine_speaks").val(false);
+		$("#newdiv_break_to").val("4");
+		$("#newdiv_max_speaks").val("30");
+		$("#newdiv_prelims").val("4");
+		$("#newdiv_ballot_type").val("TFA_CX");
+	} ,
 	addDivision: function(){
 		//TODO: validate school name
 	
 
-
-		var division = new model.Division();
+		var id = $("#newdiv_id").val();
+		
 		//TODO: verify all this input
 		var division_name = $("#newdiv_division_name").val();
 		var comp_per_team = parseInt($("#newdiv_comp_per_team").val(), 10);
@@ -3196,10 +3221,10 @@ view.DivisionTable = Backbone.View.extend({
 			schedule.push({round_number: num, type: "prelim", matching: "power"});
 		}
 		var elims = [
-			{name:	"triple octafinals", debates: 64}, 
-			{name: "double octafinals", debates: 32},
-			{name: "octafinals", debates: 16},
-			{name: "quarterfinals", debates: 8},
+			{name:	"triple octafinals", debates: 32}, 
+			{name: "double octafinals", debates: 16},
+			{name: "octafinals", debates: 8},
+			{name: "quarterfinals", debates: 4},
 			{name:  "semifinals", debates: 2},
 			{name: "finals", debates: 1}
 		];
@@ -3210,7 +3235,15 @@ view.DivisionTable = Backbone.View.extend({
 				schedule.push({round_number:elims[i].name, type: "elim"});
 			}
 		}
-		division.set({
+
+
+		$(".edit_model_overlay").fadeOut();
+
+		//check if we are modifying an existing division or created a new one
+		if(id.length > 0){
+			//update existing model
+			var division = pairing.getDivisionFromId(id);
+			division.set({
 			id				: (new ObjectId).toString(),
 			division_name	: division_name,
 			comp_per_team	: comp_per_team,
@@ -3223,13 +3256,26 @@ view.DivisionTable = Backbone.View.extend({
 			combine_speaks	: combine_speaks
 
 		});
+		} else {
+			var division = new model.Division();
+			division.set({
+			id				: (new ObjectId).toString(),
+			division_name	: division_name,
+			comp_per_team	: comp_per_team,
+			flighted_rounds	: flighted_rounds,
+			break_to		: break_to,
+			max_speaks		: max_speaks,
+			prelims			: prelims,
+			schedule		: schedule,
+			ballot_type		: ballot_type,
+			combine_speaks	: combine_speaks
 
-		collection.divisions.add(division);
+		});
+			collection.divisions.add(division);
+		}
+		
 		division.save();
-		$("#newdiv_division_name").val("");
-		$("#newdiv_comp_per_team").val("");
-		$("#newdiv_division_name").val("");
-		$("#newdiv_division_name").val("");
+		this.clearEditForm();
 
 	} ,
 
@@ -3311,7 +3357,9 @@ $(".container").hide();
 $(".sub_menu").hide();
 $("#rounds_container").show();
 
-$(".input_form").hide();
+
+
+$(".edit_model_overlay").hide();
 
 /*
 =========================================
@@ -3554,6 +3602,13 @@ $("#mass_texts").mouseover(
 Collection Controls
 =========================================
 */
+
+$(".cancel_button").click(function(){
+	$(".edit_model_overlay").fadeOut();
+});
+$("#cancel_division_button").click(function(){
+	view.divisionTable.clearEditForm();
+});
 //school controls
 $("#toggle_school_form").click(function(){
 	$("#school_form").slideToggle();
@@ -3572,7 +3627,7 @@ $("#toggle_room_form").click(function(){
 
 //division controls
 $("#toggle_division_form").click(function(){
-	$("#division_form").slideToggle();
+	$("#division_form_overlay").fadeToggle();
 });
 
 //team controls
