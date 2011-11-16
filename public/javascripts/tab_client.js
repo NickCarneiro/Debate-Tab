@@ -129,7 +129,8 @@ model.Room = Backbone.Model.extend({
 	default: {
 		id: null,
 		school_name: "DEFAULT_ROOM_NAME",
-		division: null
+		division: null,
+		name: null
 
 	} ,
 	initialize: function() {
@@ -165,7 +166,8 @@ model.Round = Backbone.Model.extend({
 		team1		: null, //reference to team1 in teams collection
 		team2		: null, //
 		aff			: null, //team1 or team2
-		result		: null
+		result		: null,
+		room        : null
 		/*
 		result can be: 0 - 7:
 		0 AFF_WIN_NEG_LOSS
@@ -1604,36 +1606,56 @@ pdf.generateLDBallot = function(){
 	// generate a blank document
 	var doc = new jsPDF();
 
-
-	doc.setFontSize(18);
-	doc.text(20, 20, 'Lincoln Douglas Debate Ballot');
-	doc.setFontSize(13);
-	doc.text(20, 30, 'Round:___________'); doc.text(130,30, 'Judge:___________');
-	doc.text(39,30,'Fill form');
-	//const round_text = 'Round: ' + headers.round_number;
-	doc.text(20, 40, 'Affirmative Code:___________'); doc.text(130,40, 'Negative Code:___________');
-	//doc.text(20, 50, headers.start_time_text); 
-	//doc.text(20, 60, headers.message);
-	doc.setFontSize(9);
-	doc.text(97,52, 'Points');
-	doc.text(186,52, 'Points');
-	doc.setFontSize(11);
-	doc.text(20, 60, 'AFFIRMATIVE ______________________  _____       NEGATIVE ______________________  _____  ');
-	//doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
-	doc.setFontSize(9);
-	doc.text(20,75, 'Speakers should be rated on a scale from 20-30 points.  Half points (.5) are allowed.You may have a tie in points,'); 
-	doc.text(20,79, 'but you must indicate the person doing the better job of debating');
-	doc.setFontSize(13);
-	doc.text(20,94, 'COMMENTS AND REASON(S) FOR DECISION');
-	doc.text(20,94, '_______________________________________');
-	doc.setFontSize(11);
-	doc.text(20,240, 'In my opinion, the better debating was done by  AFFIRMATIVE  NEGATIVE  representing  __________');
-	doc.text(115,245, '(Circle One)');
-	doc.text(176,245, '(Team Code)');
-	doc.text(20, 265, '___________________________________                             _______________________________');
-	doc.text(20, 270, 'Judge Signature');
-	doc.text(128,270, 'Affiliation (School)');
-
+	for(var i = 0; i < collection.rounds.length ; i++) {
+		doc.setFontSize(18);
+		doc.text(20, 20, 'Lincoln Douglas Debate Ballot');
+		doc.setFontSize(13);
+		doc.text(130, 20, 'Room #:__________');
+		doc.text(20, 30, 'Round:___________'); doc.text(130,30, 'Judge:___________');
+		var affCode = collection.rounds.at(i).get("aff") || "";
+		var affTeam;
+		var negTeam;
+		if (affCode == 0){
+			affTeam = collection.rounds.at(i).get("team1").get("team_code");
+			negTeam = collection.rounds.at(i).get("team2").get("team_code");
+		}
+		else if (affCode == 1){
+			affTeam = collection.rounds.at(i).get("team2").get("team_code");
+			negTeam = collection.rounds.at(i).get("team1").get("team_code");
+		}
+		var roundName = collection.rounds.at(i).get("round_number").toString();
+		doc.text(39,30,roundName);
+		//const round_text = 'Round: ' + headers.round_number;
+		doc.text(20, 40, 'Affirmative Code:___________'); doc.text(130,40, 'Negative Code:___________');
+		//doc.text(20, 50, headers.start_time_text); 
+		//doc.text(20, 60, headers.message);
+		doc.text(59, 40 ,affTeam);
+		doc.text(164, 40, negTeam);
+		var judgeName = collection.rounds.at(i).get("judge").get("name");
+		doc.text(146,30, judgeName);
+		var room = collection.rounds.at(i).get("room").get("name");
+		doc.text(149, 20, room);
+		doc.setFontSize(9);
+		doc.text(97,52, 'Points');
+		doc.text(186,52, 'Points');
+		doc.setFontSize(11);
+		doc.text(20, 60, 'AFFIRMATIVE ______________________  _____       NEGATIVE ______________________  _____  ');
+		//doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
+		doc.setFontSize(9);
+		doc.text(20,75, 'Speakers should be rated on a scale from 20-30 points.  Half points (.5) are allowed.You may have a tie in points,'); 
+		doc.text(20,79, 'but you must indicate the person doing the better job of debating');
+		doc.setFontSize(13);
+		doc.text(20,94, 'COMMENTS AND REASON(S) FOR DECISION');
+		doc.text(20,94, '_______________________________________');
+		doc.setFontSize(11);
+		doc.text(20,240, 'In my opinion, the better debating was done by  AFFIRMATIVE  NEGATIVE  representing  __________');
+		doc.text(115,245, '(Circle One)');
+		doc.text(176,245, '(Team Code)');
+		doc.text(20, 265, '___________________________________                             _______________________________');
+		doc.text(20, 270, 'Judge Signature');
+		doc.text(128,270, 'Affiliation (School)');
+		doc.addPage();
+	}
 	// Output as Data URI so that it can be downloaded / viewed
 	doc.output('datauri');
 }
@@ -1641,36 +1663,218 @@ pdf.generateLDBallot = function(){
 pdf.generateCXBallot = function(){
 	// generate a blank document
 	var doc = new jsPDF();
+	//collection.rounds.at(0).get("team1".get("team_code"));
+	console.log('Size: ' + collection.rounds.length);
+	//console.log('adfasfads');
+	for(var i = 0; i < collection.rounds.length ; i++){
+		console.log('i:' + i);
+		var round = collection.rounds.at(i);
+		var affCode = "";
+		if (round != undefined) {
+			affCode = round.get("aff");
+		}
+		//var affCode = collection.rounds.at(i).get("aff") || "";
+		var affTeam = "";
+		var negTeam = "";
+		if (affCode == 0){
+			affTeam = round.get("team1");
+			if (affTeam != undefined) {
+				affTeam = affTeam.get("team_code");
+			}
+			negTeam = round.get("team2");
+			if (negTeam != undefined) {
+				negTeam = negTeam.get("team_code");
+			}
+		}
+		else if (affCode == 1){
+			affTeam = round.get("team2");
+			if (affTeam != undefined) {
+				affTeam = affTeam.get("team_code");
+			}
+			negTeam = round.get("team1");
+			if (negTeam != undefined) {
+				negTeam = negTeam.get("team_code");
+			}
+		}
+		//console.log(affTeam);
+		//console.log(negTeam);
+		doc.setFontSize(18);
+		doc.text(20, 20, 'Cross Examination Debate Ballot');
 
+		doc.setFontSize(13);
+		doc.text(130, 20, 'Room #:________');
+		var room =  "";
+		
+		if (round != undefined) {
+			room = round.get("room");
+			console.log( "ROhan " + room);
+			if (room != undefined) {	//do nothing
+				console.log("here1");
+				room = room.get("name");
+				console.log("here");
+			}
+			else {
+				room = "";
+			}
+		}
+		
+
+		//console.log(room);
+		//doc.text(149, 20, 'Fill Room');
+		doc.text(149, 20, room);
+		doc.text(20, 30, 'Round:___________'); 
+		doc.text(130,30, 'Judge:___________');
+		//doc.text(38,30,'Fill Round');
+		console.log("here");
+		var roundName = "";
+		console.log("here");
+		if (round != undefined) {
+			console.log("here");
+			roundNo = round.get("round_number");
+			if (roundNo != undefined) {
+				roundName = roundNo.toString();
+			}
+			else {
+				roundName = "";
+			}
+		}
+		console.log("here");
+		//var roundName = collection.rounds.at(i).get("round_number").toString();
+		doc.text(38,30, roundName);
+		console.log('Round: ' + roundName);
+
+		var judgeName = round.get("judge");
+		if (judgeName === undefined) {
+			judgeName = "";
+		}
+		else {
+			judgeName = judgeName.get("name");
+		}
+		console.log('Judge: ' + judgeName);
+		doc.text(146,30, judgeName);
+
+		//const round_text = 'Round: ' + headers.round_number;
+		doc.text(20, 40, 'Affirmative Code:___________'); doc.text(130,40, 'Negative Code:___________');
+		//doc.text(59, 40 ,'Fill aff code');
+		//doc.text(164, 40, 'Fill neg code');
+		doc.text(59, 40, affTeam);
+		doc.text(164, 40, negTeam);
+		//doc.text(20, 50, headers.start_time_text); 
+		//doc.text(20, 60, headers.message);
+		doc.setFontSize(9);
+		doc.text(77,52, 'Points    Ranks');
+		doc.text(164,52, 'Points    Ranks');
+		doc.setFontSize(11);
+		doc.text(20, 60, '1st AFF. __________________  _____  _____     1st NEG. __________________  _____  _____');
+		doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
+		doc.setFontSize(9);
+		doc.text(20,80, 'Speakers should be rated on a scale from 20-30 points.  Half points (.5) are allowed.You may have a tie in points,'); 
+		doc.text(20,84, 'but you must indicate the person doing the better job of debating');
+		doc.setFontSize(13);
+		doc.text(20,94, 'COMMENTS AND REASON(S) FOR DECISION');
+		doc.text(20,94, '_______________________________________');
+		doc.setFontSize(11);
+		doc.text(20,240, 'In my opinion, the better debating was done by  AFFIRMATIVE  NEGATIVE  representing  __________');
+		doc.text(115,245, '(Circle One)');
+		doc.text(176,245, '(Team Code)');
+		doc.text(20, 265, '___________________________________                             _______________________________');
+		doc.text(20, 270, 'Judge Signature');
+		doc.text(128,270, 'Affiliation (School)');
+		doc.addPage();
+	// Output as Data URI so that it can be downloaded / viewed
+}
+	doc.output('datauri');
+}
+
+pdf.generateOFBallot = function(){
+	// generate a blank document
+	var doc = new jsPDF();
 
 	doc.setFontSize(18);
-	doc.text(20, 20, 'Cross Examination Debate Ballot');
+	doc.text(20, 20, 'Public Forum Debate Ballot');
 	doc.setFontSize(13);
+
 	doc.text(20, 30, 'Round:___________'); doc.text(130,30, 'Judge:___________');
-	doc.text(39,30,'Fill form');
+	doc.text(39,30,'Fill Round');
+	doc.text(40, 37 ,'Fill Room');
+	doc.text(142, 37, 'Fill Date');
+	doc.text(146,30, 'Fill Judge');
 	//const round_text = 'Round: ' + headers.round_number;
-	doc.text(20, 40, 'Affirmative Code:___________'); doc.text(130,40, 'Negative Code:___________');
-	//doc.text(20, 50, headers.start_time_text); 
+	doc.text(20, 37, 'Room #:___________'); doc.text(130,37, 'Date:___________');
+	//doc.text(20, 50, headers.start_time_text);
+	doc.setFontSize(10);
+	doc.text(35, 45, '________________________________________________________________________');
+	doc.text(35,45.4, '________________________________________________________________________');
 	//doc.text(20, 60, headers.message);
 	doc.setFontSize(9);
-	doc.text(77,52, 'Points    Ranks');
-	doc.text(164,52, 'Points    Ranks');
-	doc.setFontSize(11);
-	doc.text(20, 60, '1st AFF. __________________  _____  _____     1st NEG. __________________  _____  _____');
-	doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
+	doc.text(25,55, 'Code _________________ Side _________________');
+	doc.text(25,60, 'Speaker 1 ___________________________________');
+	doc.text(25,65, 'Speaker 3 ___________________________________');
+
+	doc.text(115,55, 'Code _________________ Side _________________');
+	doc.text(115,60, 'Speaker 2 ___________________________________');
+	doc.text(115,65, 'Speaker 4 ___________________________________');
+	//doc.setFontSize(11);
+	//doc.text(20, 60, 'AFFIRMATIVE ______________________  _____       NEGATIVE ______________________  _____  ');
+	//doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
 	doc.setFontSize(9);
-	doc.text(20,80, 'Speakers should be rated on a scale from 20-30 points.  Half points (.5) are allowed.You may have a tie in points,'); 
-	doc.text(20,84, 'but you must indicate the person doing the better job of debating');
-	doc.setFontSize(13);
-	doc.text(20,94, 'COMMENTS AND REASON(S) FOR DECISION');
-	doc.text(20,94, '_______________________________________');
+	doc.text(25,73, 'Team Points _______'); 
+	var startY = 79;
 	doc.setFontSize(11);
-	doc.text(20,240, 'In my opinion, the better debating was done by  AFFIRMATIVE  NEGATIVE  representing  __________');
-	doc.text(115,245, '(Circle One)');
-	doc.text(176,245, '(Team Code)');
-	doc.text(20, 265, '___________________________________                             _______________________________');
-	doc.text(20, 270, 'Judge Signature');
-	doc.text(128,270, 'Affiliation (School)');
+	doc.text(88, 75, 'Points Scale');
+	doc.setFontSize(10);
+	doc.text(85,startY, '29-30 Outstanding');
+	doc.text(85,startY+4, '27-28 Above Average');
+	doc.text(85,startY+8, '24-26 Average');
+	doc.text(85,startY+12, '20-23 Below Average');
+	doc.text(135,73, 'Team Points _______'); 
+	//doc.text(20,79, 'but you must indicate the person doing the better job of debating');
+
+	doc.setFontSize(10);
+	doc.text(20, 105, 'The team that won this debate is _______________ representing the PRO/CON (please circle the winning side)');
+	doc.text(83, 110, '(Code)');
+	doc.setFontSize(9);
+	doc.text(25, 120, 'Comments to debaters');
+	doc.text(130, 120, 'Comments to debaters');
+	doc.setFontSize(12);
+	startY = 123;		//draw a vertical line
+	doc.text(100, startY, '|');
+	startY += 3.7;
+	doc.text(100, startY, '|');
+	startY += 3.7;
+	doc.text(100, startY, '|');
+	startY += 3.7;
+	doc.text(100, startY, '|');
+	startY += 3.7;
+	doc.text(100, startY, '|');
+	startY += 3.7;
+	doc.text(100, startY, '|');
+	startY += 3.7;
+	doc.text(100, startY, '|');
+	startY += 3.7;
+	doc.text(100, startY, '|');
+	startY += 3.7;
+	doc.text(100, startY, '|');
+	startY += 3.7;
+	doc.text(100, startY, '|');
+	startY += 4;
+	doc.text(100, startY, '|');
+	startY += 4;
+	doc.text(100, startY, '|');
+	startY += 4;
+	doc.text(100, startY, '|');
+	startY += 4;
+	doc.text(100, startY, '|');
+	startY += 4;
+	doc.text(100, startY, '|');
+	startY += 4;
+	doc.text(100, startY, '|');
+	startY += 4;
+
+	doc.setFontSize(10);
+	doc.text(20, 200, 'These are the reasons for my decision:');
+	doc.text(20, 280, 'Judge Signature: _____________________________ Affiliation/Occupation _____________________________');
+
 
 	// Output as Data URI so that it can be downloaded / viewed
 	doc.output('datauri');
@@ -3282,6 +3486,9 @@ $("#ballot_gen").click(function(){
 
 $("#ballotLD_gen").click(function(){
 	pdf.generateLDBallot();	
+});
+$("#ballotOF_gen").click(function(){
+	pdf.generateOFBallot();	
 });
 
 //Code for PDF Brackets Generation
