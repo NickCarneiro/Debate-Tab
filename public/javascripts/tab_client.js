@@ -3245,10 +3245,10 @@ view.DivisionTable = Backbone.View.extend({
 		var id = $("#newdiv_id").val();
 		console.log(id);
 		if(id.length > 0){
+			console.log("updating existing model");
 			//update existing model
 			var division = pairing.getDivisionFromId(id);
 			division.set({
-			id				: (new ObjectId).toString(),
 			division_name	: division_name,
 			comp_per_team	: comp_per_team,
 			flighted_rounds	: flighted_rounds,
@@ -3261,6 +3261,7 @@ view.DivisionTable = Backbone.View.extend({
 
 		});
 		} else {
+			console.log("creating new model");
 			var division = new model.Division();
 			division.set({
 			id				: (new ObjectId).toString(),
