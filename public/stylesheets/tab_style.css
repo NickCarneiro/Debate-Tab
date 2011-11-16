@@ -920,8 +920,24 @@ color:#9343B9;
   
 }
 
+
 .top_buttons{
-  margin-bottom: 10px;  
+  margin-bottom: 10px; 
+  padding-bottom: 10px;
+  border-bottom: solid 1px #eee;
+  width: 100%; 
+}
+.bottom_buttons{
+  margin-top: 20px;
+
+}
+.top_buttons > button{
+  height: 40px;
+  margin: 0px 5px 0px 0px;
+}
+.bottom_buttons > button{
+  height: 40px;
+  margin: 0px 5px 0px 0px;
 }
 
 #header {

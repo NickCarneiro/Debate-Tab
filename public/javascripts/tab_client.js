@@ -2807,8 +2807,10 @@ view.StatsArea = Backbone.View.extend({
 view.Round = Backbone.View.extend({
 	tagName: "tr" ,
 	events: { 
-      'click td.remove': 'remove'
+      'click td.remove': 'remove',
+      'click td.roundrow': 'showEditForm'
     },  
+
 
 	initialize: function(){
 		_.bindAll(this, "render", "unrender", "remove");
@@ -2869,13 +2871,21 @@ view.Round = Backbone.View.extend({
 		}
 		var div_name = this.model.get("division").get("division_name");
 		var num = this.model.get("round_number");
-		$(this.el).html('<td>' + aff + '</td> <td>' + neg + '</td><td>'+judge+
-			'</td><td>'+room+'</td><td>' + div_name + '</td><td>'+num+'</td><td class="remove"><button>Remove</button></td>');
+		$(this.el).html('<td class="roundrow">' + aff + '</td> <td class="roundrow">' + neg + '</td><td class="roundrow">'+judge+
+			'</td><td class="roundrow">'+room+'</td><td class="roundrow">' + div_name + '</td><td>'+num+'</td><td class="remove"><button>Remove</button></td>');
 		return this; //required for chainable call, .render().el
 	} ,
 	unrender: function(){
 		$(this.el).remove();
-	}
+	},
+
+	showEditForm: function(){
+		//populate form with existing values
+		
+
+		$(".edit_model_overlay").css("height", $(document).height());
+		$("#round_form_overlay").fadeIn();
+	} ,
 });
 
 

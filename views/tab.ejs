@@ -31,20 +31,29 @@ JS includes
 			
 		<div id="rounds_container" class="container">
 			<div id="rounds">
-			<span>Division: </span><select id="rounds_division_select">
-			</select>
-			<span>Round Number: </span><select id="rounds_round_number_select">
-			</select>
-				<br />
-				<br />
+			
+				<div class="edit_model_overlay" id="division_form_overlay">
+					<div class="edit_model_box">
+						<h1>Edit Division</h1>
+						<input id="editround_id" type="hidden" value=""/>
+						
+					</div>
+				</div>
+				<div class="top_buttons">
+					<span>Division: </span><select id="rounds_division_select" >
+					</select>
+					<span>Round Number: </span><select id="rounds_round_number_select">
+					</select>
+				</div>
 				<table id="rounds_table">
 				</table>
-				<br />
-				
-				<button id="add_round_button">Add Debate</button>
-				<button id="pair_round_button">Pair Round</button>
-				<button id="print_ballots_button">Print Ballots</button>
+				<div class="bottom_buttons">
+					<button id="add_round_button">Add Debate</button>
+					<button id="pair_round_button">Pair Round</button>
+					<button id="print_ballots_button">Print Ballots</button>
 				</div>
+					
+			</div>
 		</div>
 
 		<div id="teams_container" class="container">
