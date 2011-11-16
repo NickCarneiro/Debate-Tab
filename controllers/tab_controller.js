@@ -1,27 +1,16 @@
-//code to set up phone for sending and receiving SMS through twilio
-var Client = require('twilio').Client,
-Twiml = require('twilio').Twiml,
-sys = require('sys'),
-tClient = new Client('AC89170a4e43fc4a38daed8f055879a20f', 'b6fd343fee0be8aaad34ed8df07ffb3f', 'debatetab.com', {port:3015});
 
-
-var phone = tClient.getPhoneNumber('+15128430409');
-
-// set event receiver handlers
-/* for receiving sms
-phone.setup(function() {
-      phone.on('incomingSms', function(smsParams, res) {
-		console.log('SMS Received From:  ' + smsParams.From);
-		console.log('Body: ' + smsParams.Body);
-		console.log();
-		phone.sendSms(smsParams.From, 'Thanks! We are mapping your text right now. Have fun!', null, function () {
-			  console.log("SMS standard reply sent");
-		});
-    });
-});
-*/
 
 module.exports.setRoutes = function(app) {
+	//code to set up phone for sending and receiving SMS through twilio
+	var Client = require('twilio').Client,
+	Twiml = require('twilio').Twiml,
+	sys = require('sys'),
+	tClient = new Client('AC89170a4e43fc4a38daed8f055879a20f', 'b6fd343fee0be8aaad34ed8df07ffb3f', 'debatetab.com', {port:app.env.twilio_port});
+
+
+	var phone = tClient.getPhoneNumber('+15128430409');
+
+
 	app.get('/tab', function(req, res){
 		res.render('tab', {
 			title: "Debate Tab Demo",
