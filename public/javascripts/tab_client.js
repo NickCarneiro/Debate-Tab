@@ -2213,7 +2213,8 @@ view.DivisionCheckbox = Backbone.View.extend({
 view.Judge = Backbone.View.extend({
 	tagName: "tr" ,
 	events: { 
-      'click td.remove': 'remove'
+      'click td.remove': 'remove',
+	  'click td.name': 'showEditForm'
     },  
 
 	initialize: function(){
@@ -2221,6 +2222,14 @@ view.Judge = Backbone.View.extend({
 	    this.model.bind('remove', this.unrender);
 		this.model.bind('change', this.render);
 
+	} ,
+	showEditForm: function(){
+		//populate form with existing values
+		$("#newjudge_id").val(this.model.get("id"));
+		$("#new_judge_name").val(this.model.get("name"));
+		$("#newjudge_school").val(this.model.get("school") === undefined ? "None" : this.model.get("school").get("school_name"));
+		$("#newjudge_divisions").val(this.model.get("divisions"));
+		$("#judge_form_overlay").fadeIn();
 	} ,
 
 	remove: function(judge){
@@ -2258,7 +2267,7 @@ view.Judge = Backbone.View.extend({
 			div_string = div_string + div + " ";
 		}
 		var school = this.model.get("school") === undefined ? "None" : this.model.get("school").get("school_name");
-		$(this.el).html('<td>' + this.model.get("name") + '</td><td>'+ school +'</td><td>' + div_string + '</td><td class="remove"><button>Remove</button></td>');
+		$(this.el).html('<td class="name">' + this.model.get("name") + '</td><td>'+ school +'</td><td>' + div_string + '</td><td class="remove"><button>Remove</button></td>');
 		return this; //required for chainable call, .render().el ( in appendJudge)
 	} ,
 	unrender: function(){
@@ -2267,7 +2276,7 @@ view.Judge = Backbone.View.extend({
 });
 
 		
-		$('.simpledialog').simpleDialog();
+		//$('.simpledialog').simpleDialog();
 
 
 view.JudgeTable = Backbone.View.extend({
@@ -2309,9 +2318,16 @@ view.JudgeTable = Backbone.View.extend({
         	this.appendJudge(judge);
     	}, this);
 	} ,
-
+	clearEditForm: function(){
+		console.log("clearing judge form");
+		$("#newjudge_id").val("");
+		$("#new_judge_name").val("");
+		$("#newjudge_school").val("");
+		$("#newjudge_divisions").val("");
+	} ,
 	addJudge: function(){
 		//TODO: validate judge name
+		var id = $("#newjudge_id").val();
 		var judge_name = $("#new_judge_name").val();
 
 		var judge = new model.Judge();
@@ -2330,16 +2346,35 @@ view.JudgeTable = Backbone.View.extend({
 					divisions.push(div);
 				}
 			}
+		});
+		
+		$(".edit_model_overlay").fadeOut();
+		if(id.length > 0){
+			var judge = pairing.getJudgeFromId(id);
+			judge.set({
 			
-			
+			id: (new ObjectId).toString(),
+			name: judge_name,
+			school: school,
+			divisions: divisions
 			
 		});
-		judge.set({divisions: divisions});
-		judge.set({name: judge_name, school:school});
-
+		}else{
+		
+		var judge = new model.Judge();
+		judge.set({
+			
+			id: (new ObjectId).toString(),
+			name: judge_name,
+			school: school,
+			divisions: divisions
+			
+		});
 		collection.judges.add(judge);
+		}
+		
 		judge.save();
-		$("#new_judge_name").val("");
+		this.clearEditForm();
 	} ,
 
 	appendJudge: function(judge){
@@ -2388,7 +2423,8 @@ view.JudgeTable = Backbone.View.extend({
 view.Room = Backbone.View.extend({
 	tagName: "tr" ,
 	events: { 
-      'click td.remove': 'remove'
+      'click td.remove': 'remove',
+	  'click td.name': 'showEditForm'
     },  
 
 	initialize: function(){
@@ -2396,6 +2432,13 @@ view.Room = Backbone.View.extend({
 	    this.model.bind('remove', this.unrender);
 		this.model.bind('change', this.render);
 
+	} ,
+	showEditForm: function(){
+		//populate form with existing values
+		$("#newroom_id").val(this.model.get("id"));
+		$("#newroom_name").val(this.model.get("name"));
+		$("#newroom_division").val(this.model.get("division").get("division_name"));
+		$("#room_form_overlay").fadeIn();
 	} ,
 
 	remove: function(room){
@@ -2420,7 +2463,7 @@ view.Room = Backbone.View.extend({
 		});
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' +this.model.get("division").get("division_name") + '</td><td class="remove"><button>Remove</button></td>');
+		$(this.el).html('<td class="name">' + this.model.get("name") + '</td> <td>' +this.model.get("division").get("division_name") + '</td><td class="remove"><button>Remove</button></td>');
 		return this; //required for chainable call, .render().el ( in appendRoom)			.get("division_name")
 	} ,
 	unrender: function(){
@@ -2464,6 +2507,12 @@ view.RoomTable = Backbone.View.extend({
         	this.addDivSelect(division);
     	}, this);
 	} ,
+	clearEditForm: function(){
+		console.log("clearing rooms form");
+		$("#newroom_id").val("");
+		$("#newroom_name").val("");
+		$("#newroom_division").val("");
+	} ,
 
 	//add new division to dropdown box
 	addDivSelect: function(division){
@@ -2475,16 +2524,36 @@ view.RoomTable = Backbone.View.extend({
 	addRoom: function(){
 		//TODO: validate room name
 			//	
-		
-
+		var id = $("#newroom_id").val();
 		var room_name = $("#newroom_name").val();
 		var div_name_id = $("#newroom_division").val();
 		var division = pairing.getDivisionFromId(div_name_id);
+		
+		$(".edit_model_overlay").fadeOut();
+		
+		if(id.length > 0){
+			
+			var room = pairing.getRoomFromId(id);
+			room.set({
+				id: (new ObjectId).toString(),
+				name: room_name, 
+				division: division
+		});
+		}else{
+		
 		var room = new model.Room();
-		room.set({name: room_name, division: division});
+		room.set({
+			id: (new ObjectId).toString(),
+			name: room_name, 
+			division: division
+			
+		});
 		collection.rooms.add(room);
+		
+		
+		}
 		room.save();
-		$("#newroom_name").val("");
+		this.clearEditForm();
 		
 	} ,
 
@@ -2833,7 +2902,8 @@ view.RoundTable = Backbone.View.extend({
 view.School = Backbone.View.extend({
 	tagName: "tr" ,
 	events: { 
-      'click td.remove': 'remove'
+      'click td.remove': 'remove',
+	  'click td.name': 'showEditForm'
     },  
 
 	initialize: function(){
@@ -2842,11 +2912,38 @@ view.School = Backbone.View.extend({
 		this.model.bind('change', this.render);
 
 	} ,
+	
+	showEditForm: function(){
+		//populate form with existing values
+		$("#newschool_id").val(this.model.get("id"));
+		$("#newschool_name").val(this.model.get("school_name"));
+		$("#school_form_overlay").fadeIn();
+	} ,
+	
 	remove: function(school){
-		this.model.destroy();
+		var school = this.model;
+		$.confirm({
+			'title'		: 'Delete School',
+			'message'	: 'You are about to delete a School <br />It cannot be restored at a later time! Continue?',
+			'buttons'	: {
+				'Yes'	: {
+					'model': school,
+					'class'	: 'blue',
+					'action': function(model){
+						model.destroy();
+						}
+					},
+					'No'	: {
+					'class'	: 'gray',
+					'action': function(){}	
+				}
+			},
+
+		});
+			
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("school_name") + '</td> <td class="remove"><button>Remove</button></td>');
+		$(this.el).html('<td class="name">' + this.model.get("school_name") + '</td> <td class="remove"><button>Remove</button></td>');
 		return this; //required for chainable call, .render().el
 	} ,
 	unrender: function(){
@@ -2872,6 +2969,7 @@ view.SchoolTable = Backbone.View.extend({
 		this.render();
 		
 	} ,
+	
 	keyupSchoolName: function(event){
 		if(event.which === 13){
 			this.addSchool();
@@ -2882,17 +2980,42 @@ view.SchoolTable = Backbone.View.extend({
         	this.appendSchool(school);
     	}, this);
 	} ,
-
+	clearEditForm: function(){
+		console.log("clearing school form");
+		$("#newschool_id").val("");
+		$("#newschool_name").val("");
+	} ,
 	addSchool: function(){
 		//TODO: validate school name
+		var id = $("#newschool_id").val();
 		var school_name = $("#newschool_name").val();
-
-		var school = new model.School();
-		school.set({school_name: school_name});
-
-		collection.schools.add(school);
+		$(".edit_model_overlay").fadeOut();
+		
+		if(id.length > 0)
+		{
+			var school = pairing.getSchoolFromId(id);
+			school.set({
+			
+			id		   : (new ObjectId).toString(),
+			school_name: school_name
+			
+			});
+		}
+		else
+		{
+			var school = new model.School();
+			school.set({
+			
+				id		   : (new ObjectId).toString(),
+				school_name: school_name
+			
+			});
+			collection.schools.add(school);
+		}
+		
 		school.save();
-		$("#newschool_name").val("");
+		this.clearEditForm();
+		
 	} ,
 
 	appendSchool: function(school){
@@ -2922,7 +3045,8 @@ view.SchoolTable = Backbone.View.extend({
 view.Division = Backbone.View.extend({
 	tagName: "tr" ,
 	events: { 
-      'click td.remove': 'remove'
+      'click td.remove': 'remove',
+      'click td.name': 'showEditForm'
     },  
 
 	initialize: function(){
@@ -2930,6 +3054,19 @@ view.Division = Backbone.View.extend({
 	    this.model.bind('remove', this.unrender);
 		this.model.bind('change', this.render);
 
+	} ,
+	showEditForm: function(){
+		//populate form with existing values
+		$("#newdiv_id").val(this.model.get("id"));
+		$("#newdiv_division_name").val(this.model.get("division_name"));
+		$("#newdiv_comp_per_team").val(this.model.get("comp_per_team"));
+		$("#newdiv_flighted_rounds").val(this.model.get("flighted_rounds"));
+		$("#newdiv_combine_speaks").val(this.model.get("combine_speaks"));
+		$("#newdiv_break_to").val(this.model.get("break_to"));
+		$("#newdiv_max_speaks").val(this.model.get("max_speaks"));
+		$("#newdiv_prelims").val(this.model.get("prelims"));
+		$("#newdiv_ballot_type").val(this.model.get("ballot_type"));
+		$("#division_form_overlay").fadeIn();
 	} ,
 	remove: function(division){
 		var division = this.model;
@@ -2954,7 +3091,7 @@ view.Division = Backbone.View.extend({
 		
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("division_name") + '</td><td class="remove"><button>Remove</button></td>');
+		$(this.el).html('<td class="name">' + this.model.get("division_name") + '</td><td class="remove"><button>Remove</button></td>');
 		return this; //required for chainable call, .render().el ( in appendTeam)
 	} ,
 	unrender: function(){
@@ -2982,13 +3119,24 @@ view.DivisionTable = Backbone.View.extend({
         	this.appendDivision(division);
     	}, this);
 	} ,
-
+	clearEditForm: function(){
+		console.log("clearing division form");
+		$("#newdiv_id").val("");
+		$("#newdiv_division_name").val("");
+		$("#newdiv_comp_per_team").val("");
+		$("#newdiv_flighted_rounds").val(false);
+		$("#newdiv_combine_speaks").val(false);
+		$("#newdiv_break_to").val("4");
+		$("#newdiv_max_speaks").val("30");
+		$("#newdiv_prelims").val("4");
+		$("#newdiv_ballot_type").val("TFA_CX");
+	} ,
 	addDivision: function(){
 		//TODO: validate school name
 	
 
-
-		var division = new model.Division();
+		var id = $("#newdiv_id").val();
+		
 		//TODO: verify all this input
 		var division_name = $("#newdiv_division_name").val();
 		var comp_per_team = parseInt($("#newdiv_comp_per_team").val(), 10);
@@ -2999,16 +3147,17 @@ view.DivisionTable = Backbone.View.extend({
 		var prelims = parseInt($("#newdiv_prelims").val());
 		var schedule = [];
 		var ballot_type = $("#newdiv_ballot_type").val();
+		var combine_speaks = new Boolean($("#newdiv_combine_speaks").val());
 
 		for(var i = 0; i < prelims; i++){
 			var num = i + 1;
 			schedule.push({round_number: num, type: "prelim", matching: "power"});
 		}
 		var elims = [
-			{name:	"triple octafinals", debates: 64}, 
-			{name: "double octafinals", debates: 32},
-			{name: "octafinals", debates: 16},
-			{name: "quarterfinals", debates: 8},
+			{name:	"triple octafinals", debates: 32}, 
+			{name: "double octafinals", debates: 16},
+			{name: "octafinals", debates: 8},
+			{name: "quarterfinals", debates: 4},
 			{name:  "semifinals", debates: 2},
 			{name: "finals", debates: 1}
 		];
@@ -3019,7 +3168,15 @@ view.DivisionTable = Backbone.View.extend({
 				schedule.push({round_number:elims[i].name, type: "elim"});
 			}
 		}
-		division.set({
+
+
+		$(".edit_model_overlay").fadeOut();
+
+		//check if we are modifying an existing division or created a new one
+		if(id.length > 0){
+			//update existing model
+			var division = pairing.getDivisionFromId(id);
+			division.set({
 			id				: (new ObjectId).toString(),
 			division_name	: division_name,
 			comp_per_team	: comp_per_team,
@@ -3031,12 +3188,28 @@ view.DivisionTable = Backbone.View.extend({
 			ballot_type		: ballot_type
 
 		});
-		collection.divisions.add(division);
+		} else {
+			var division = new model.Division();
+			division.set({
+			id				: (new ObjectId).toString(),
+			division_name	: division_name,
+			comp_per_team	: comp_per_team,
+			flighted_rounds	: flighted_rounds,
+			break_to		: break_to,
+			max_speaks		: max_speaks,
+			prelims			: prelims,
+			schedule		: schedule,
+			ballot_type		: ballot_type,
+			combine_speaks	: combine_speaks
+
+		});
+			collection.divisions.add(division);
+		}
+		
 		division.save();
-		$("#newdiv_division_name").val("");
-		$("#newdiv_comp_per_team").val("");
-		$("#newdiv_division_name").val("");
-		$("#newdiv_division_name").val("");
+		this.clearEditForm();
+
+
 	} ,
 
 	appendDivision: function(division){
@@ -3117,7 +3290,9 @@ $(".container").hide();
 $(".sub_menu").hide();
 $("#rounds_container").show();
 
-$(".input_form").hide();
+
+
+$(".edit_model_overlay").hide();
 
 /*
 =========================================
@@ -3357,25 +3532,32 @@ $("#mass_texts").mouseover(
 Collection Controls
 =========================================
 */
+
+$(".cancel_button").click(function(){
+	$(".edit_model_overlay").fadeOut();
+});
+$("#cancel_division_button").click(function(){
+	view.divisionTable.clearEditForm();
+});
 //school controls
 $("#toggle_school_form").click(function(){
-	$("#school_form").slideToggle();
+	$("#school_form_overlay").fadeToggle();
 });
 
 //judge controls
 
 $("#toggle_judge_form").click(function(){
-	$("#judge_form").slideToggle();
+	$("#judge_form_overlay").fadeToggle();
 });
 
 //room controls
 $("#toggle_room_form").click(function(){
-	$("#room_form").slideToggle();
+	$("#room_form_overlay").fadeToggle();
 });
 
 //division controls
 $("#toggle_division_form").click(function(){
-	$("#division_form").slideToggle();
+	$("#division_form_overlay").fadeToggle();
 });
 
 //team controls
