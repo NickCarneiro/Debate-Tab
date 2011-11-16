@@ -66,6 +66,18 @@ Define Backbone Models
 =========================================
 */	
 
+model.Tournament = Backbone.Model.extend({
+	default: {
+		tournament_name: "Debate Tournament"
+	},
+	initialize: function() {
+		if(this.id === undefined){
+			this.set({
+				id: (new ObjectId()).toString()
+			});
+		}	
+	}
+});
 
 model.Competitor = Backbone.Model.extend({
 	initialize: function(){
@@ -479,7 +491,7 @@ pairing.restoreReferences = function(){
 		}
 
 		//fix judge references
-		if(collection.rounds.at(i).get("judge")!= undefined){
+		if(collection.rounds.at(i).get("judge") != undefined){
 			var judge_id = collection.rounds.at(i).get("judge").id;
 			if(judge_id != undefined){
 				var judge = pairing.getJudgeFromId(judge_id);
@@ -585,6 +597,7 @@ pairing.updateRecords = function(){
 }
 
 pairing.deleteAllRounds = function(){
+	
 	con.write("rounds length " + collection.rounds.length);
 	while(collection.rounds.at(0) != undefined){
 	
@@ -930,6 +943,21 @@ Creates round models for specified round_number and division.
 */
 
 pairing.pairRound = function(round_number, division){
+	pairing.updateRecords(division);
+	pairing.sortTeams(division);
+	pairing.printRecords(division);
+	var toDelete =[];
+	//delete all rounds in this round number and division
+	for(var i = 0; i < collection.rounds.length; i++){
+		if(collection.rounds.at(i).get("division") === division && collection.rounds.at(i).get("round_number") === round_number){
+			toDelete.push(collection.rounds.at(i));
+		}
+	}
+
+	for(var i = 0; i < toDelete.length; i++){
+		toDelete[i].destroy();
+	}
+
 	var total_teams = pairing.teamsInDivision(division);
 	var total_rounds = Math.ceil(total_teams / 2);
 
@@ -1433,6 +1461,56 @@ pairing.pairRooms = function(round_number, division){
 	}
 };
 
+pairing.dedicatedJudges = function(division){
+	var judges = 0;
+	
+	for(var i = 0; i < collection.judges.length; i++){
+		var divisions = collection.judges.at(i).get("divisions");
+		if(divisions.indexOf(division) != -1 && divisions.length === 1){
+			judges++;
+		}
+	}
+
+	return judges;
+};
+
+pairing.totalJudges = function(division){
+	var judges = 0;
+	
+	for(var i = 0; i < collection.judges.length; i++){
+		var divisions = collection.judges.at(i).get("divisions");
+		if(divisions.indexOf(division) != -1){
+			judges++;
+		}
+	}
+
+	return judges;
+};
+
+pairing.requiredJudges = function(division){
+	//TODO support paneled prelims
+	var teams = pairing.teamsInDivision(division);
+	return Math.floor(teams / 2);
+}
+
+pairing.totalRooms = function(division){
+	var rooms = 0;
+	
+	for(var i = 0; i < collection.rooms.length; i++){
+
+		if(collection.rooms.at(i).get("division") === division){
+			rooms++;
+		}
+	}
+
+	return rooms;
+};
+
+pairing.requiredRooms = function(division){
+	var teams = pairing.teamsInDivision(division);
+	return Math.floor(teams / 2);
+}
+
 
 
 /*
@@ -1761,8 +1839,11 @@ ui.showMenu = function(menu_item){
 	$(".container").slideUp(100);
 	$("#" + menu_item + "_container").slideDown(100);
 
+	$(".menu_item_selected").addClass("menu_item");
+
 	$(".menu_item").removeClass("menu_item_selected");
 	$("#menu_" + menu_item).addClass("menu_item_selected");
+	$("#menu_" + menu_item).removeClass("menu_item");
 
 	$(".sub_menu").hide();
 	$("#sub_menu_" + menu_item).show();	
@@ -1851,7 +1932,8 @@ view.TeamTable = Backbone.View.extend({
 		"click #add_team_button": "addTeam",
 		"keyup #teams_search": "search",
 		"change #newteam_division": "showCompetitors",
-		"blur .newteam_competitor": "generateTeamName"
+		"blur .newteam_competitor": "generateTeamName",
+		"keyup #newteam_name":		"keyupTeamName"
 	} ,
 	initialize: function(){
 		_.bindAll(this, "render", "addTeam", "appendTeam", 
@@ -1874,6 +1956,11 @@ view.TeamTable = Backbone.View.extend({
 		
 	} ,
 
+	keyupTeamName: function(event){
+		if(event.which === 13){
+			this.addTeam();
+		}
+	} ,
 	//called when a competitor name box is modified.
 	//generate a team name if every competitor name has been entered.
 	generateTeamName: function(){
@@ -2050,8 +2137,25 @@ view.Team = Backbone.View.extend({
 	} ,
 
 	remove: function(team){
-		console.log("destroying team" + team);
-		this.model.destroy();
+		var team = this.model;
+		$.confirm({
+			'title'		: 'Delete Team',
+			'message'	: 'You are about to delete a team <br />It cannot be restored at a later time! Continue?',
+			'buttons'	: {
+				'Yes'	: {
+					'model': team,
+					'class'	: 'blue',
+					'action': function(model){
+						model.destroy();
+					}
+				},
+				'No'	: {
+					'class'	: 'gray',
+					'action': function(){}	
+				}
+			},
+			
+		});
 	} ,
 	render: function(){
 		var wins = this.model.get("losses") || "0";
@@ -2084,7 +2188,7 @@ view.DivisionCheckbox = Backbone.View.extend({
 		//This will be read by jQuery to figure out which division was selected
 		$(this.el).attr("value", this.model.get("id"));
 		$(this.el).data("division_id", this.model.get("id"));
-		$(this.el).html('<input type="checkbox" /> ' + this.model.get("division_name"));
+		$(this.el).html('<input class="checkbox" type="checkbox" /> ' + this.model.get("division_name"));
 		return this; //required for chainable call, .render().el ( in appendTeam)
 	} ,
 	unrender: function(){
@@ -2106,17 +2210,37 @@ view.Judge = Backbone.View.extend({
 	} ,
 
 	remove: function(judge){
-	//	$(function () {
-		//	$('.simpledialog').simpleDialog();
-	//	});
-		this.model.destroy();
+		var judge = this.model;
+		$.confirm({
+			'title'		: 'Delete Judge',
+			'message'	: 'You are about to delete a Judge <br />It cannot be restored at a later time! Continue?',
+			'buttons'	: {
+				'Yes'	: {
+					'model': judge,
+					'class'	: 'blue',
+					'action': function(model){
+						model.destroy();
+					}
+				},
+				'No'	: {
+					'class'	: 'gray',
+					'action': function(){}	
+				}
+			},
+			
+		});
+		
 		
 	} ,
 	render: function(){
 		var divisions = this.model.get("divisions");
 		var div_string = "";
 		for(var i = 0; i < divisions.length; i++){
-			var div = divisions[i].get("division_name");
+			var div = "";
+			if(divisions[i] != undefined){
+				div = divisions[i].get("division_name");
+			}
+			
 			div_string = div_string + div + " ";
 		}
 		var school = this.model.get("school") === undefined ? "None" : this.model.get("school").get("school_name");
@@ -2136,7 +2260,8 @@ view.JudgeTable = Backbone.View.extend({
 	el: $("#judges") , // attaches `this.el` to an existing element.
 	events: {
 		"click #add_judge_button": "addJudge" ,
-		"keyup #judges_search": "search"
+		"keyup #judges_search": "search" ,
+		"keyup #new_judge_name": "keyupJudgeName"
 	} ,
 	initialize: function(){
 		_.bindAll(this, "render", "addJudge", "appendJudge", "addSchoolSelect");
@@ -2148,17 +2273,23 @@ view.JudgeTable = Backbone.View.extend({
 		collection.judges.bind("reset", this.render, this);
 		collection.schools.bind("reset", this.render, this);
 		collection.divisions.bind("reset", this.render, this);
+
 		collection.schools.each(function(school){ // pre-existing schools
         	this.addSchoolSelect(school);
     	}, this);
 
+    	$("#newjudge_school", this.el).append('<option value="no_affiliation">No Affiliation</option>');
     	collection.divisions.each(function(division){ // pre-existing schools
         	this.addDivisionCheckbox(division);
     	}, this);
 		this.render();
 		
 	} ,
-	
+	keyupJudgeName: function(event){
+		if(event.which === 13){
+			this.addJudge();
+		}
+	} ,
 	render: function(){
 		_(collection.judges.models).each(function(judge){ // in case collection is not empty
         	this.appendJudge(judge);
@@ -2209,10 +2340,14 @@ view.JudgeTable = Backbone.View.extend({
 	} ,
 	//add new school to dropdown box
 	addSchoolSelect: function(school){
+		
+			
+		
 		var schoolOptionView = new view.SchoolOption({
 			model: school
 		});
 		$("#newjudge_school", this.el).append(schoolOptionView.render().el);
+		
 	} ,
 
 	addDivisionCheckbox: function(division){
@@ -2250,7 +2385,25 @@ view.Room = Backbone.View.extend({
 	} ,
 
 	remove: function(room){
-		this.model.destroy();
+		var room = this.model;
+		$.confirm({
+			'title'		: 'Delete Room',
+			'message'	: 'You are about to delete a room <br />It cannot be restored at a later time! Continue?',
+			'buttons'	: {
+				'Yes'	: {
+					'model': room,
+					'class'	: 'blue',
+					'action': function(model){
+						model.destroy();
+					}
+				},
+				'No'	: {
+					'class'	: 'gray',
+					'action': function(){}	
+				}
+			},
+			
+		});
 	} ,
 	render: function(){
 		$(this.el).html('<td>' + this.model.get("name") + '</td> <td>' +this.model.get("division").get("division_name") + '</td><td class="remove"><button>Remove</button></td>');
@@ -2265,7 +2418,15 @@ view.RoomTable = Backbone.View.extend({
 	el: $("#rooms") , // attaches `this.el` to an existing element.
 	events: {
 		"click #add_room_button": "addRoom" ,
+		"keyup #newroom_name": "keyupRoom" ,
 		"keyup #rooms_search": "search"
+	} ,
+
+	keyupRoom: function(event){
+		if(event.which === 13){
+			this.addRoom();
+		}
+		
 	} ,
 	initialize: function(){
 		_.bindAll(this, "render", "addRoom", "appendRoom");
@@ -2364,6 +2525,81 @@ view.RoomOption = Backbone.View.extend({
 	}
 });
 
+
+view.DivisionStats = Backbone.View.extend ({
+	tagName: "tr" ,
+	events: { 
+    },  
+
+	initialize: function(){
+		_.bindAll(this, "render", "unrender", "remove");
+	    this.model.bind('remove', this.unrender);
+		this.model.bind('change', this.render);
+
+	} ,
+	render: function(){
+		var teams = pairing.teamsInDivision(this.model)
+		teams = (teams != undefined) ?  teams : "-";
+
+		var ded_judges = pairing.dedicatedJudges(this.model);
+		ded_judges = (ded_judges != undefined) ?  ded_judges : "-";
+
+		var total_judges = pairing.totalJudges(this.model);
+		total_judges = (total_judges != undefined) ?  total_judges : "-";
+
+		var reqd_judges = pairing.requiredJudges(this.model);
+		reqd_judges = (reqd_judges != undefined) ?  pairing.requiredJudges(this.model) : "-";
+
+		var rooms = pairing.totalRooms(this.model)
+		rooms = (rooms != undefined) ?  rooms : "-";
+
+		var reqd_rooms = pairing.requiredRooms(this.model);
+		reqd_rooms = (reqd_rooms != undefined) ?  reqd_rooms : "-";
+
+		$(this.el).html('<td>'+ this.model.get("division_name") + '</td><td>' + teams + '</td>'+
+		'<td>' + ded_judges + '</td><td>' + total_judges + '</td><td>' + reqd_judges + '</td><td>' +rooms + '</td><td>' + 
+		reqd_rooms + '</td>');
+		return this; //required for chainable call, .render().el ( in appendRoom)			.get("division_name")
+	} ,
+	unrender: function(){
+		$(this.el).remove();
+	}
+});
+
+view.StatsArea = Backbone.View.extend({
+	el: $("#settings_stats") , // attaches `this.el` to an existing element.
+	events: {
+		
+	} ,
+
+
+
+	initialize: function(){
+		_.bindAll(this, "render");
+		
+		this.render();
+	
+	} ,
+	
+	render: function(){
+		$("#stats_schools").text("Total schools: " + collection.schools.length);
+		$("#settings_stats").empty();
+		$(this.el).append("<tr><td>Name</td><td>Teams</td><td>Dedicated Judges</td><td>Total Judges</td><td>Required Judges</td><td>Rooms</td><td>Required Rooms</td></tr>");
+    	collection.divisions.each(function(division){ // in case collection is not empty
+        	this.addDivStat(division);
+    	}, this);
+	} ,
+
+	//add new division to dropdown box
+	addDivStat: function(division){
+		var divStatView = new view.DivisionStats({
+			model: division
+		});
+		$(this.el).append(divStatView.render().el);
+	} ,
+
+	
+});
 view.Round = Backbone.View.extend({
 	tagName: "tr" ,
 	events: { 
@@ -2377,16 +2613,16 @@ view.Round = Backbone.View.extend({
 
 	} ,
 	remove: function(round){
+		var round = this.model;
 		$.confirm({
 			'title'		: 'Delete Round',
 			'message'	: 'You are about to delete a round <br />It cannot be restored at a later time! Continue?',
 			'buttons'	: {
 				'Yes'	: {
-					'this_model': round,
+					'model': round,
 					'class'	: 'blue',
-					'action': function(){
-						console.log(this.this_model);
-						this.this_model.destroy();
+					'action': function(model){
+						model.destroy();
 					}
 				},
 				'No'	: {
@@ -2420,13 +2656,17 @@ view.Round = Backbone.View.extend({
 
 		var judge = "";
 		var room = "";
+
 		if(this.model.get("judge") != undefined){
 			judge = this.model.get("judge").get("name");
 		}
 		if(this.model.get("room") != undefined){
 			room = this.model.get("room").get("name");
 		}
-		$(this.el).html('<td>' + aff + '</td> <td>' + neg + '</td><td>'+judge+'</td><td>'+room+'</td><td class="remove"><button>Remove</button></td>');
+		var div_name = this.model.get("division").get("division_name");
+		var num = this.model.get("round_number");
+		$(this.el).html('<td>' + aff + '</td> <td>' + neg + '</td><td>'+judge+
+			'</td><td>'+room+'</td><td>' + div_name + '</td><td>'+num+'</td><td class="remove"><button>Remove</button></td>');
 		return this; //required for chainable call, .render().el
 	} ,
 	unrender: function(){
@@ -2458,7 +2698,33 @@ view.RoundTable = Backbone.View.extend({
 		
 	} ,
 	pairRound: function(){
-		
+		var div_id = $("#rounds_division_select").val();
+		var div = pairing.getDivisionFromId(div_id);
+		var round_number = $("#rounds_round_number_select").val();
+		//check if round has already been paired.
+		var already_paired = pairing.alreadyPaired(round_number, div);
+		if(already_paired === true){
+			//pop up dialog for confirmation
+			$.confirm({
+				'title'		: 'Repair Confirmation',
+				'message'	: 'You are about to repair a round that has already been paired. <br />It cannot be restored at a later time! Continue?',
+				'buttons'	: {
+					'Yes'	: {
+						'class'	: 'blue',
+						'action': function(){
+
+							pairing.pairRound(round_number, div);
+						}
+					},
+					'No'	: {
+						'class'	: 'gray',
+						'action': function(){}	// Nothing to do in this case. You can as well omit the action property.
+					}
+				}
+			});
+		} else {
+			pairing.pairRound(round_number, div);
+		}
 	} ,
 
 	renderRoundNumberSelect: function(){
@@ -2490,6 +2756,7 @@ view.RoundTable = Backbone.View.extend({
 		collection.divisions.each(function(division){ // in case collection is not empty
         	this.appendDivisionOption(division);
     	}, this);
+    	this.renderRoundNumberSelect();
 	} ,
 
 	appendDivisionOption: function(division){
@@ -2513,14 +2780,7 @@ view.RoundTable = Backbone.View.extend({
 
 	addRound: function(){
 		//TODO: validate round name
-		var round_name = $("#newround_name").val();
-
-		var round = new model.Round();
-		round.set({round_name: round_name});
-
-		collection.rounds.add(round);
-		round.save();
-		$("#newround_name").val("");
+		
 	} ,
 
 	appendRound: function(round){
@@ -2581,12 +2841,15 @@ view.School = Backbone.View.extend({
 });
 
 
+
 view.SchoolTable = Backbone.View.extend({
 	el: $("#schools") , // attaches `this.el` to an existing element.
 	events: {
 		"click #add_school_button": "addSchool" ,
-		"keyup #schools_search": "search"
+		"keyup #schools_search": "search",
+		"keyup #newschool_name": "keyupSchoolName"
 	} ,
+
 	initialize: function(){
 		_.bindAll(this, "render", "addSchool", "appendSchool");
 		
@@ -2595,7 +2858,11 @@ view.SchoolTable = Backbone.View.extend({
 		this.render();
 		
 	} ,
-	
+	keyupSchoolName: function(event){
+		if(event.which === 13){
+			this.addSchool();
+		}
+	},
 	render: function(){
 		_(collection.schools.models).each(function(school){ // in case collection is not empty
         	this.appendSchool(school);
@@ -2641,7 +2908,8 @@ view.SchoolTable = Backbone.View.extend({
 view.Division = Backbone.View.extend({
 	tagName: "tr" ,
 	events: { 
-      'click td.remove': 'remove'
+      'click td.remove': 'remove',
+      'click td.name': 'showEditForm'
     },  
 
 	initialize: function(){
@@ -2650,11 +2918,43 @@ view.Division = Backbone.View.extend({
 		this.model.bind('change', this.render);
 
 	} ,
+	showEditForm: function(){
+		//populate form with existing values
+		$("#newdiv_id").val(this.model.get("id"));
+		$("#newdiv_division_name").val(this.model.get("division_name"));
+		$("#newdiv_comp_per_team").val(this.model.get("comp_per_team"));
+		$("#newdiv_flighted_rounds").val(this.model.get("flighted_rounds"));
+		$("#newdiv_combine_speaks").val(this.model.get("combine_speaks"));
+		$("#newdiv_break_to").val(this.model.get("break_to"));
+		$("#newdiv_max_speaks").val(this.model.get("max_speaks"));
+		$("#newdiv_prelims").val(this.model.get("prelims"));
+		$("#newdiv_ballot_type").val(this.model.get("ballot_type"));
+		$("#division_form_overlay").fadeIn();
+	} ,
 	remove: function(division){
-		this.model.destroy();
+		var division = this.model;
+		$.confirm({
+			'title'		: 'Delete Round',
+			'message'	: 'You are about to delete a Division <br />It cannot be restored at a later time! Continue?',
+			'buttons'	: {
+				'Yes'	: {
+					'model': division,
+					'class'	: 'blue',
+					'action': function(model){
+						model.destroy();
+						}
+					},
+					'No'	: {
+					'class'	: 'gray',
+					'action': function(){}	
+				}
+			},
+			
+		});
+		
 	} ,
 	render: function(){
-		$(this.el).html('<td>' + this.model.get("division_name") + '</td><td class="remove"><button>Remove</button></td>');
+		$(this.el).html('<td class="name">' + this.model.get("division_name") + '</td><td class="remove"><button>Remove</button></td>');
 		return this; //required for chainable call, .render().el ( in appendTeam)
 	} ,
 	unrender: function(){
@@ -2682,13 +2982,24 @@ view.DivisionTable = Backbone.View.extend({
         	this.appendDivision(division);
     	}, this);
 	} ,
-
+	clearEditForm: function(){
+		console.log("clearing division form");
+		$("#newdiv_id").val("");
+		$("#newdiv_division_name").val("");
+		$("#newdiv_comp_per_team").val("");
+		$("#newdiv_flighted_rounds").val(false);
+		$("#newdiv_combine_speaks").val(false);
+		$("#newdiv_break_to").val("4");
+		$("#newdiv_max_speaks").val("30");
+		$("#newdiv_prelims").val("4");
+		$("#newdiv_ballot_type").val("TFA_CX");
+	} ,
 	addDivision: function(){
 		//TODO: validate school name
 	
 
-
-		var division = new model.Division();
+		var id = $("#newdiv_id").val();
+		
 		//TODO: verify all this input
 		var division_name = $("#newdiv_division_name").val();
 		var comp_per_team = parseInt($("#newdiv_comp_per_team").val(), 10);
@@ -2699,16 +3010,17 @@ view.DivisionTable = Backbone.View.extend({
 		var prelims = parseInt($("#newdiv_prelims").val());
 		var schedule = [];
 		var ballot_type = $("#newdiv_ballot_type").val();
+		var combine_speaks = new Boolean($("#newdiv_combine_speaks").val());
 
 		for(var i = 0; i < prelims; i++){
 			var num = i + 1;
 			schedule.push({round_number: num, type: "prelim", matching: "power"});
 		}
 		var elims = [
-			{name:	"triple octafinals", debates: 64}, 
-			{name: "double octafinals", debates: 32},
-			{name: "octafinals", debates: 16},
-			{name: "quarterfinals", debates: 8},
+			{name:	"triple octafinals", debates: 32}, 
+			{name: "double octafinals", debates: 16},
+			{name: "octafinals", debates: 8},
+			{name: "quarterfinals", debates: 4},
 			{name:  "semifinals", debates: 2},
 			{name: "finals", debates: 1}
 		];
@@ -2719,7 +3031,15 @@ view.DivisionTable = Backbone.View.extend({
 				schedule.push({round_number:elims[i].name, type: "elim"});
 			}
 		}
-		division.set({
+
+
+		$(".edit_model_overlay").fadeOut();
+
+		//check if we are modifying an existing division or created a new one
+		if(id.length > 0){
+			//update existing model
+			var division = pairing.getDivisionFromId(id);
+			division.set({
 			id				: (new ObjectId).toString(),
 			division_name	: division_name,
 			comp_per_team	: comp_per_team,
@@ -2728,15 +3048,31 @@ view.DivisionTable = Backbone.View.extend({
 			max_speaks		: max_speaks,
 			prelims			: prelims,
 			schedule		: schedule,
-			ballot_type		: ballot_type
+			ballot_type		: ballot_type,
+			combine_speaks	: combine_speaks
 
 		});
-		collection.divisions.add(division);
+		} else {
+			var division = new model.Division();
+			division.set({
+			id				: (new ObjectId).toString(),
+			division_name	: division_name,
+			comp_per_team	: comp_per_team,
+			flighted_rounds	: flighted_rounds,
+			break_to		: break_to,
+			max_speaks		: max_speaks,
+			prelims			: prelims,
+			schedule		: schedule,
+			ballot_type		: ballot_type,
+			combine_speaks	: combine_speaks
+
+		});
+			collection.divisions.add(division);
+		}
+		
 		division.save();
-		$("#newdiv_division_name").val("");
-		$("#newdiv_comp_per_team").val("");
-		$("#newdiv_division_name").val("");
-		$("#newdiv_division_name").val("");
+		this.clearEditForm();
+
 	} ,
 
 	appendDivision: function(division){
@@ -2773,8 +3109,9 @@ collection.divisions.fetch();
 collection.schools.fetch();
 collection.judges.fetch();
 collection.rooms.fetch();
-collection.rounds.fetch();
-
+collection.rounds.fetch()
+model.tournament = new model.Tournament();
+model.tournament.set({tournament_name: localStorage.getItem("tournament_name") || "Debate Tournament"});
 /*
 =========================================
 Initialize Backbone Views
@@ -2788,7 +3125,7 @@ view.divisionTable = new view.DivisionTable();
 view.judgeTable = new view.JudgeTable(); 
 view.roomTable = new view.RoomTable();  
 view.roundTable = new view.RoundTable();
-
+view.statsArea = new view.StatsArea();
 
 
 //initialize ui menu state
@@ -2800,6 +3137,8 @@ if(localStorage.getItem("selected") != undefined){
 	ui.showMenu(localStorage.getItem("selected"));
 } 
 
+//initialize title
+$("#trn_name_title").text(model.tournament.get("tournament_name") || "Debate Tournament");
 
 //print stats on loaded data to console
 con.write("Teams: " + collection.teams.length);
@@ -2814,7 +3153,9 @@ $(".container").hide();
 $(".sub_menu").hide();
 $("#rounds_container").show();
 
-$(".input_form").hide();
+
+
+$(".edit_model_overlay").hide();
 
 /*
 =========================================
@@ -2837,14 +3178,16 @@ Valid values for menu_item:
 
 
 
-$(".menu_item").click(function(){
+$(".menu_item").live("click", function(){
 	//menu item ids are like: menu_judges
 	var menu_item_name = $(this).attr("id").substr(5);
 	//TODO: save menu state in a model so it opens to where you were if browser gets closed
 	ui.showMenu(menu_item_name);
 });
 
-
+$("#menu_settings").click(function(){
+	view.statsArea.render();
+});
 
 //client-side function call Code for sending a single text
 $("#single_text").click(function(){
@@ -3052,6 +3395,13 @@ $("#mass_texts").mouseover(
 Collection Controls
 =========================================
 */
+
+$(".cancel_button").click(function(){
+	$(".edit_model_overlay").fadeOut();
+});
+$("#cancel_division_button").click(function(){
+	view.divisionTable.clearEditForm();
+});
 //school controls
 $("#toggle_school_form").click(function(){
 	$("#school_form").slideToggle();
@@ -3070,7 +3420,7 @@ $("#toggle_room_form").click(function(){
 
 //division controls
 $("#toggle_division_form").click(function(){
-	$("#division_form").slideToggle();
+	$("#division_form_overlay").fadeToggle();
 });
 
 //team controls
@@ -3079,37 +3429,20 @@ $("#toggle_team_form").click(function(){
 });
 
 //round controls
-$("#pair_round_button").click(function(){
-	var div_id = $("#rounds_division_select").val();
-	var div = pairing.getDivisionFromId(div_id);
-	var round_number = $("#rounds_round_number_select").val();
-	//check if round has already been paired.
-	var already_paired = pairing.alreadyPaired(round_number, div);
-	if(already_paired === true){
-		//pop up dialog for confirmation
-		$.confirm({
-			'title'		: 'Repair Confirmation',
-			'message'	: 'You are about to repair a round that has already been paired. <br />It cannot be restored at a later time! Continue?',
-			'buttons'	: {
-				'Yes'	: {
-					'class'	: 'blue',
-					'action': function(){
-						pairing.pairRound(round_number, div);
-					}
-				},
-				'No'	: {
-					'class'	: 'gray',
-					'action': function(){}	// Nothing to do in this case. You can as well omit the action property.
-				}
-			}
-		});
-	} else {
-		pairing.pairRound(round_number, div);
-	}
 
+//settings controls
+$("#trn_save").click(function(){
+	//save tournament name
+	var name = $("#trn_name").val();
+	model.tournament.set({tournament_name: name});
+	$("#trn_name_title").text(name);
+	
+	localStorage.setItem("tournament_name", name);
+
+});
 
 	
-});
+
 /*
 =========================================
 Debug Controls
@@ -3133,8 +3466,24 @@ $("#export_tournament").click(function(){
 });
 
 $("#pair_delete_all_rounds").click(function(){
-	con.write("deleting all rounds");
-	pairing.deleteAllRounds();
+	
+	$.confirm({
+			'title'		: 'Delete All Rounds',
+			'message'	: 'You are about to delete ALL ROUNDS <br />This will erase the entire tournament! Continue?',
+			'buttons'	: {
+				'Yes'	: {
+					
+					'class'	: 'blue',
+					'action': pairing.deleteAllRounds
+				},
+				'No'	: {
+					'class'	: 'gray',
+					'action': function(){}	
+				}
+			},
+			
+		});
+	
 });
 
 $("#pair_print_pairings").click(function(){
