@@ -1,5 +1,3 @@
-
-
 module.exports.setRoutes = function(app) {
 	//code to set up phone for sending and receiving SMS through twilio
 	var Client = require('twilio').Client,
@@ -15,7 +13,8 @@ module.exports.setRoutes = function(app) {
 		res.render('tab', {
 			title: "Debate Tab Demo",
 			scripts: ["javascripts/libs/tab_plugins.js",
-				"javascripts/tab_client.js"
+				"javascripts/tab_client.js",
+				"javascripts/jot_parsing.js"
 			],
 			stylesheets: ["stylesheets/tab_style.css"]
 		});
