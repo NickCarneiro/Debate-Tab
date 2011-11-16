@@ -2360,7 +2360,7 @@ view.JudgeTable = Backbone.View.extend({
 			var judge = pairing.getJudgeFromId(id);
 			judge.set({
 			
-			id: (new ObjectId).toString(),
+			
 			name: judge_name,
 			school: school,
 			divisions: divisions
@@ -2542,7 +2542,7 @@ view.RoomTable = Backbone.View.extend({
 			
 			var room = pairing.getRoomFromId(id);
 			room.set({
-				id: (new ObjectId).toString(),
+				
 				name: room_name, 
 				division: division
 		});
@@ -3003,7 +3003,6 @@ view.SchoolTable = Backbone.View.extend({
 			var school = pairing.getSchoolFromId(id);
 			school.set({
 			
-			id		   : (new ObjectId).toString(),
 			school_name: school_name
 			
 			});
@@ -3184,7 +3183,7 @@ view.DivisionTable = Backbone.View.extend({
 			//update existing model
 			var division = pairing.getDivisionFromId(id);
 			division.set({
-			id				: (new ObjectId).toString(),
+			
 			division_name	: division_name,
 			comp_per_team	: comp_per_team,
 			flighted_rounds	: flighted_rounds,
@@ -3545,6 +3544,15 @@ $(".cancel_button").click(function(){
 });
 $("#cancel_division_button").click(function(){
 	view.divisionTable.clearEditForm();
+});
+$("#cancel_room_button").click(function(){
+	view.roomTable.clearEditForm();
+});
+$("#cancel_judge_button").click(function(){
+	view.judgeTable.clearEditForm();
+});
+$("#cancel_school_button").click(function(){
+	view.schoolTable.clearEditForm();
 });
 //school controls
 $("#toggle_school_form").click(function(){
