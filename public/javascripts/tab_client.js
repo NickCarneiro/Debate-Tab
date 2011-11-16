@@ -2227,8 +2227,15 @@ view.Judge = Backbone.View.extend({
 		//populate form with existing values
 		$("#newjudge_id").val(this.model.get("id"));
 		$("#new_judge_name").val(this.model.get("name"));
-		$("#newjudge_school").val(this.model.get("school") === undefined ? "None" : this.model.get("school").get("school_name"));
-		$("#newjudge_divisions").val(this.model.get("divisions"));
+		$("#newjudge_school").val(this.model.get("school") === undefined ? "no_affiliation" : this.model.get("school").get("id")); 	
+		
+		for(i = 0; i < this.model.get("divisions").length; i++)
+		{	
+		//	$("#newjudge_divisions").val(true);						//iterate through all?
+		//	console.log(this.model.get("divisions")[i].id);
+		}
+		
+		
 		$("#judge_form_overlay").fadeIn();
 	} ,
 
@@ -2437,7 +2444,7 @@ view.Room = Backbone.View.extend({
 		//populate form with existing values
 		$("#newroom_id").val(this.model.get("id"));
 		$("#newroom_name").val(this.model.get("name"));
-		$("#newroom_division").val(this.model.get("division").get("division_name"));
+		$("#newroom_division").val((this.model.get("division").get("id")));
 		$("#room_form_overlay").fadeIn();
 	} ,
 
