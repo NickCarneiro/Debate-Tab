@@ -6,12 +6,12 @@ JS includes
 <div class="container_12">
 
 <div id="header" class="grid_12"><!-- begin header -->
-	<h1>DebateTab.com</h1>
+	<h1 id="trn_name_title">DebateTab.com</h1>
 </div><!-- end header -->
 
 
 				
-			<div class="grid_2 left_col"><!-- begin leftcol -->
+			<div class="grid_2 left_col leftnav"><!-- begin leftcol -->
 				<ul id="main_menu" class="menu">
 					<li class="menu_item" id="menu_rounds">Rounds</li>
 					
@@ -48,32 +48,32 @@ JS includes
 
 		<div id="teams_container" class="container">
 			<div id="teams">
-			<span id="toggle_team_form">Add Team</span>
+			<button id="toggle_team_form">Add Team</button>
 			<div id="team_form" class="input_form">
-						<span class="generic_error" id="add_team_error"></span><br />
-			<label>
-			Division: <br />
-				<select id="newteam_division">
-				</select>
-			</label> <br />
+				<span class="generic_error" id="add_team_error"></span><br />
+				<label>
+				Division: <br />
+					<select id="newteam_division">
+					</select>
+				</label> 
 
-			School: <br />
-				<select id="newteam_school">
-				</select>
-			</label> <br />
-			Competitor Names: <br />
-			<div id="newteam_competitors">
-				<input type="text" />
-			
-			</div>
+				School: <br />
+					<select id="newteam_school">
+					</select>
+				</label>
+				Competitor Names: <br />
+				<div id="newteam_competitors">
+					<input type="text" />
+				
+				</div>
 
-			<label>
-			Team name: <br />
-				<input id="newteam_name" />
-			</label> <br />
-			<label>
+				<label>
+				Team name: <br />
+					<input id="newteam_name" />
+				</label>
+				<label>
 
-			<button id="add_team_button">Add team</button>
+				<button class="save_button" id="add_team_button">Save</button>
 			</div>
 			<div class="search_container">
 				<input type="text" class="search_box" id="teams_search" /> 
@@ -92,12 +92,12 @@ JS includes
 
 		<div id="judges_container" class="container">
 			<div id="judges">
-				<span id="toggle_judge_form">Add Judge</span>
+				<button id="toggle_judge_form">Add Judge</button>
 				<div id="judge_form" class="input_form">
 					<label>
 					Judge Name: <br />
 						<input id="new_judge_name" type="text"/>
-					</label> <br />
+					</label>
 					<label>
 					School Affiliation <br />
 					<select id="newjudge_school">
@@ -105,7 +105,7 @@ JS includes
 					<ul id="newjudge_divisions">
 				</ul>
 				<br />
-				<button id="add_judge_button">Add Judge</button>
+				<button class="save_button" id="add_judge_button">Save</button>
 					</label>
 				</div>
 				
@@ -113,29 +113,24 @@ JS includes
 				<br />
 				<table id="judges_table">
 				</table>
-				
-
-			
-				
-				
 
 			</div>
 		</div>
 
 		<div id="rooms_container" class="container">
 			<div id="rooms">
-			<span id="toggle_room_form">Add Room</span>
+			<button id="toggle_room_form">Add Room</button>
 			<div id="room_form" class="input_form">
 				<label>
 				Room Name: <br />
 					<input id="newroom_name" type="text"/>
-				</label> <br />
+				</label> 
 				<label>
 				Division: <br />
 					<select id="newroom_division" type="text">
 					</select>
-				</label> <br />
-				<button id="add_room_button">Add Room</button>
+				</label> 
+				<button class="save_button" id="add_room_button">Save</button>
 			</div>
 				<table id="rooms_table">
 				</table>
@@ -149,13 +144,13 @@ JS includes
 		<div id="schools_container" class="container">
 			
 			<div id="schools">
-				<span id="toggle_school_form">Add School ⇩</span>
+				<button id="toggle_school_form">Add School ⇩</button>
 				<div id="school_form" class="input_form">
 				<label>
 				School Name: <br />
 					<input id="newschool_name" />
-				</label> <br />
-				<button id="add_school_button">Add School</button>
+				</label> 
+				<button class="save_button" id="add_school_button">Save</button>
 				</div>
 				<br />
 				<br />
@@ -167,20 +162,24 @@ JS includes
 		</div>
 		<div id="divisions_container" class="container">
 			<div id="divisions">
-			<span id="toggle_division_form">Add Division</span> <br />
+			<button id="toggle_division_form">Add Division</button> <br />
 			<div id="division_form" class="input_form">
 			<label>
 					Division Name: <br />
 					<input id="newdiv_division_name" type="text"/>
-				</label> <br />
+				</label> 
 				<label>
 					Competitors per team: <br />
 					<input id="newdiv_comp_per_team" type="text"/>
-				</label> <br />
+				</label> 
 				<label>
 					Flighted rounds: <br />
-					<input id="newdiv_flighted_rounds" type="checkbox" name="flighted" />
-				</label> <br />
+					<input id="newdiv_flighted_rounds" class="checkbox" type="checkbox" name="flighted" />
+				</label> 
+				<label>
+					Combine speaker points (Public Forum): <br />
+					<input id="newdiv_combine_speaks" class="checkbox" type="checkbox" />
+				</label> 
 				<label>
 					Break to: <br />
 					<select id="newdiv_break_to">
@@ -191,16 +190,16 @@ JS includes
 						<option value="4">Semifinals</option>
 						<option value="2">Finals</option>
 					</select> 
-				</label> <br />
+				</label> 
 
 				<label>
 					Maximum speaker points: <br />
 					<input id="newdiv_max_speaks" type="text" value="30"/>
-				</label> <br />
+				</label> 
 				<label>
 					Number of prelims: <br />
 					<input id="newdiv_prelims" type="text" value="4"/>
-				</label> <br />
+				</label> 
 				<label>
 					Ballot Type: <br />
 					<select id="newdiv_ballot_type">
@@ -208,10 +207,10 @@ JS includes
 					<option value="TFA_LD">Lincoln Douglas</option>
 					<option value="TFA_PF">Public Forum</option>
 					</select>
-				</label> <br />
-				<br />
+				</label> 
+				
 
-				<button id="add_division_button">Add Division</button>
+				<button class="save_button" id="add_division_button">Save</button>
 			</div>
 				<table id="divisions_table">
 				</table>
@@ -222,7 +221,17 @@ JS includes
 		</div>
 		
 		<div id="settings_container" class="container">
-	
+			<label>Tournament name:
+			<br /><input type="text" id="trn_name"></input>
+			</label> 
+			<button class="save_button" id="trn_save">Save</button>
+			<div id="stats_schools"></div>
+			<h2>Division Stats</h2>
+
+			<div id="settings_stats">
+			
+
+			</div>
 		</div>
 		<div id="debug_container" class="container">
 			<div id="debug">
@@ -234,7 +243,7 @@ JS includes
 				<button id="pair_print_pairings">Print all pairings</button>
 
 				<h1>LocalStorage </h1>
-				<button id="save_state">Save state</button> <br />
+				<button class="save_button" id="save_state">Save state</button> <br />
 				<button id="clear_storage">Clear Storage</button>  <br />
 				<button id="fetch_teams">Fetch Teams</button> <br />
 				<button id="export_tournament">Export Tournament</button> <br /> <br />
