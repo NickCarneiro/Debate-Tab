@@ -213,7 +213,7 @@ function processJudge(line) {
 	var daysArray = daysString.split(" ");		// the days in array form, like "Fri", "Sat" etc.
 
 	// temporary to test
-	alert("name: " + name + ", school: " + schoolsParsed[school_pointer] + ", comments: " + comments + ", daysString: " + daysString);
+	//alert("name: " + name + ", school: " + schoolsParsed[school_pointer] + ", comments: " + comments + ", daysString: " + daysString);
 
 	//TODO now push this to storage
 
