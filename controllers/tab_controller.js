@@ -5,10 +5,7 @@ module.exports.setRoutes = function(app) {
 	sys = require('sys'),
 	tClient = new Client('AC89170a4e43fc4a38daed8f055879a20f', 'b6fd343fee0be8aaad34ed8df07ffb3f', 'debatetab.com', {port:app.env.twilio_port});
 
-
-
 	var phone = tClient.getPhoneNumber('+15128430409');
-
 
 	app.get('/tab', function(req, res){
 		res.render('tab', {

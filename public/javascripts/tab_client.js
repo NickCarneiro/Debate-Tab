@@ -5,23 +5,7 @@ DebateTab.com Tab Client
 Nick Carneiro
 ============================
 */
-var name2debate = {};
-// define HashMap of round names to num_debates_that_take_place
-name2debate["triple octafinals"] = 32;
-name2debate["double octafinals"] = 16;
-name2debate["octafinals"] = 8;
-name2debate["quarterfinals"] = 4;
-name2debate["semifinals"] = 2;
-name2debate["finals"] = 1;
 
-var debate2name = {};
-//define HashMap of num_debates_that_take_place to round names
-debate2name["32"] = "triple octafinals";
-debate2name["16"] = "double octafinals";
-debate2name["8"] = "octafinals";
-debate2name["4"] = "quarterfinals";
-debate2name["2"] = "semifinals";
-debate2name["1"] = "finals";
 
 
 //module pattern
@@ -37,6 +21,24 @@ var tab = (function (){
 
 	//contains helpful functions for pairing rounds
 	var pairing = {};
+	pairing.name2debate = {};
+	// define HashMap of round names to num_debates_that_take_place
+	pairing.name2debate["triple octafinals"] = 32;
+	pairing.name2debate["double octafinals"] = 16;
+	pairing.name2debate["octafinals"] = 8;
+	pairing.name2debate["quarterfinals"] = 4;
+	pairing.name2debate["semifinals"] = 2;
+	pairing.name2debate["finals"] = 1;
+
+	pairing.debate2name = {};
+	//define HashMap of num_debates_that_take_place to round names
+	pairing.debate2name["32"] = "triple octafinals";
+	pairing.debate2name["16"] = "double octafinals";
+	pairing.debate2name["8"] = "octafinals";
+	pairing.debate2name["4"] = "quarterfinals";
+	pairing.debate2name["2"] = "semifinals";
+	pairing.debate2name["1"] = "finals";
+
 	//debug console
 	var con = {};
 	//functions to maniulate the interface and ui state
@@ -81,7 +83,10 @@ model.Tournament = Backbone.Model.extend({
 
 model.Competitor = Backbone.Model.extend({
 	default: {
-		name: ""
+		name: "",
+		total_speaks: 0,
+		adjusted_speaks: 0,
+		total_ranks: 0
 	}
 });
 
@@ -1607,11 +1612,14 @@ pdf.generatePairingSheet = function(headers, titles, round_number, division){
 	doc.output('datauri');
 }
 
-pdf.generateLDBallot = function(){
+pdf.generateLDBallot = function(round_number, division){
 	// generate a blank document
 	var doc = new jsPDF();
 
 	for(var i = 0; i < collection.rounds.length ; i++) {
+		if(collection.rounds.at(i).get("round_number") != round_number || collection.rounds.at(i).get("division") != division){
+			continue;
+		}
 		doc.setFontSize(18);
 		var round = collection.rounds.at(i);
 		doc.text(20, 20, 'Lincoln Douglas Debate Ballot');
@@ -1717,7 +1725,7 @@ pdf.generateLDBallot = function(){
 	doc.output('datauri');
 }
 
-pdf.generateColumnsPDF = function(var matrix) {		//takes in two dimensional array of strings
+pdf.generateColumnsPDF = function(matrix) {		//takes in two dimensional array of strings
 	var testMatrix = [
 		['asdfas','asdfas','asdfas','asdfas','asdfas'],
 		['qwrqq','asdf','zxvc','12312','908908'],
@@ -1746,14 +1754,18 @@ pdf.generateColumnsPDF = function(var matrix) {		//takes in two dimensional arra
 	doc.output('datauri');
 }
 
-pdf.generateCXBallot = function(){
+pdf.generateCXBallot = function(round_number, division){
+
 	// generate a blank document
 	var doc = new jsPDF();
 	//collection.rounds.at(0).get("team1".get("team_code"));
 	console.log('Size: ' + collection.rounds.length);
 	//console.log('adfasfads');
 	for(var i = 0; i < collection.rounds.length ; i++){
-		console.log('i:' + i);
+		//skip irrelevant rounds
+		if(collection.rounds.at(i).get("round_number") != round_number || collection.rounds.at(i).get("division") != division){
+			continue;
+		}
 		var round = collection.rounds.at(i);
 		var affCode = "";
 		if (round != undefined) {
@@ -1867,7 +1879,7 @@ pdf.generateCXBallot = function(){
 	doc.output('datauri');
 }
 
-pdf.generateOFBallot = function(){
+pdf.generatePFBallot = function(){
 	// generate a blank document
 	var doc = new jsPDF();
 	var currentTime = new Date();
@@ -2004,8 +2016,8 @@ pdf.generateOFBallot = function(){
 pdf.generatePDF_Brackets = function(round_number, division, date, title) {
 	var teamsArray = new Array();
 
-	// name2debate returns the number of debates that takes place. so number of teams = number of debates x 2
-	const num_initial_teams = name2debate[round_number] * 2;
+	// pairing.name2debate returns the number of debates that takes place. so number of teams = number of debates x 2
+	const num_initial_teams = pairing.name2debate[round_number] * 2;
 
 	// number of separations. i.e. log2(num_initial_teams) + 1 (for the winner)
 	const num_cols = Math.log(num_initial_teams)/Math.log(2) + 1;
@@ -2031,7 +2043,7 @@ pdf.generatePDF_Brackets = function(round_number, division, date, title) {
 
 		if(round.get("division") === division) {
 			//get the number of the round
-			const number = name2debate(round.get("round_number")) * 2;		// multiply by 2 to get number of teams in round
+			const number = pairing.name2debate(round.get("round_number")) * 2;		// multiply by 2 to get number of teams in round
 
 			// check if the round should be included
 			// if it is a round equal to or after the initial round, then include it
@@ -2148,7 +2160,9 @@ Valid values for menu_item:
 	rooms
 	schools
 	divisions
+	enter_ballot
 	settings
+	debug
 */
 
 /*
@@ -2284,8 +2298,7 @@ view.TeamTable = Backbone.View.extend({
 	//called when a competitor name box is modified.
 	//generate a team name if every competitor name has been entered.
 	generateTeamName: function(){
-		console.log("generating team name");
-		var competitors =  $("#newteam_competitors").find("input");
+		var competitors =  $("#newteam_competitors > .newteam_competitor");
 
 		//count number of filled in competitor names to see if they are all complete
 		var i = 0;
@@ -2300,15 +2313,15 @@ view.TeamTable = Backbone.View.extend({
 
 			//case 1: 1 competitor. Use initials like
 			//Nick Carneiro => Round Rock NC
-			if(competitors.length === 2){
+			if(competitors.length === 1){
 				var whole_name = $(competitors.get(0)).val();
 				var names = whole_name.split(" ");
 				if(names.length >= 2){
 					
 					team_code += " " + names[0].substr(0,1) + names[1].substr(0,1);
 				}
-			} else if(competitors.length >=4){		
-				var whole_name = $(competitors.get(2)).val();	//TODO: fix indexing, should work for
+			} else if(competitors.length >=2){		
+				var whole_name = $(competitors.get(1)).val();	//TODO: fix indexing, should work for
 				var names = whole_name.split(" ");				//any number of competitors
 				var last_name = names[names.length-1];
 
@@ -2320,12 +2333,14 @@ view.TeamTable = Backbone.View.extend({
 					+ last_name_2.substr(0,1).toUpperCase();
 				
 			} else {
+			
 				//can't generate team code
 			}
 
 			$("#newteam_name").val(team_code);
 			
 		} else {
+		console.log("failed");
 			return;
 		}
 
@@ -2415,26 +2430,25 @@ view.TeamTable = Backbone.View.extend({
 		var division_id = $("#newteam_division").val();
 		var division = pairing.getDivisionFromId(division_id);
 		var competitors = [];
-		var competitor_phone = [];
+
 		//populate competitors based on form entries
-		console.log($("#newteam_competitors").children());
+		var i = 0;
 		$("#newteam_competitors").children().each(function(){
 				if(($(this).hasClass("newteam_competitor")) == true)
 				{
-					competitor_phone[0] = ($(this).val());
+					competitors.push({name: $(this).val(), phone_number: ""});
+					i++;
 					$(this).val("");
 				}
-				else
-				{
-					competitor_phone[1] = ($(this).val());
+				else if($(this).hasClass("competitor_phone")) {
+					//it's a phone number box
+					competitors[i-1].phone_number = $(this).val();
 					$(this).val("");
-					competitors.push(competitor_phone);
-					competitor_phone = [];
-				}
 
-			console.log(competitors);
+				}
+				
+			
 		});
-	
 		var school = pairing.getSchoolFromId(school_id);
 		
 		team.set({
@@ -2552,12 +2566,21 @@ view.Judge = Backbone.View.extend({
 		$("#newjudge_id").val(this.model.get("id"));
 		$("#new_judge_name").val(this.model.get("name"));
 		$("#newjudge_school").val(this.model.get("school") === undefined ? "no_affiliation" : this.model.get("school").get("id")); 	
+		var div = this.model.get("divisions");
 		
-		for(i = 0; i < this.model.get("divisions").length; i++)
-		{	
-		//	$("#newjudge_divisions").val(true);						//iterate through all?
-		//	console.log(this.model.get("divisions")[i].id);
-		}
+		$("#newjudge_divisions").children().each(function(i, li){
+			if($(li).attr != undefined){
+				//console.log($(li).find("input").attr("checked"));
+				
+				for(var i = 0; i < div.length; i++)
+				
+				if($(li).data("division_id") === div[i].id){
+				
+					$(li).find("input").attr("checked", true);
+				}
+				
+			}
+		});
 		
 		
 		$("#judge_form_overlay").fadeIn();
@@ -2654,7 +2677,7 @@ view.JudgeTable = Backbone.View.extend({
 		$("#newjudge_id").val("");
 		$("#new_judge_name").val("");
 		$("#newjudge_school").val("");
-		$("#newjudge_divisions").val("");
+		$("#newjudge_divisions").find("input").attr("checked", false);
 	} ,
 	addJudge: function(){
 		//TODO: validate judge name
@@ -3121,6 +3144,7 @@ view.RoundTable = Backbone.View.extend({
 		
 		"keyup #rounds_search": "search",
 		"click #pair_round_button" : "pairRound",
+		"click #print_ballots_button" : "printBallots",
 		"change #rounds_division_select" : "renderRoundNumberSelect",
 		"change #rounds_round_number_select" : "filterDivisions"
 	} ,
@@ -3137,6 +3161,22 @@ view.RoundTable = Backbone.View.extend({
 		this.render();
 		
 	} ,
+	printBallots: function(){
+		var div_id = $("#rounds_division_select").val();
+		var div = pairing.getDivisionFromId(div_id);
+		var round_number = $("#rounds_round_number_select").val();
+		var ballot_type = div.get("ballot_type");
+		if(ballot_type === "TFA_CX"){
+			pdf.generateCXBallot(round_number, div);
+		} else if(ballot_type === "TFA_LD"){
+			pdf.generateLDBallot(round_number, div);
+		} else if(ballot_type === "TFA_PF") {
+			pdf.generatePFBallot(round_number, div);
+		} else {
+			con.write("FATAL ERROR: unrecognized ballot type.")
+		}
+		
+	},
 	pairRound: function(){
 		var div_id = $("#rounds_division_select").val();
 		var div = pairing.getDivisionFromId(div_id);
@@ -3845,12 +3885,20 @@ $("#add_team_menu").mouseover(
 			$("#help_text").text("Select menu context");
 		});
 
+$("#menu_enter_ballot").mouseover(
+	function() {
+			$("#help_text").text("Bring up  menu to enter ballot");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+	});
+
+
 $("#menu_settings").mouseover(
 	function() {
 			$("#help_text").text("Bring up settings menu");
 		}).mouseleave(function() {
 			$("#help_text").text("Select menu context");
-		});
+	});
 
 $("#menu_pdf").mouseover(
 	function() {
@@ -3981,6 +4029,17 @@ $("#toggle_team_form").click(function(){
 });
 
 //round controls
+
+//cx form controls
+$("#pop_cx_form").click(function(){
+	$("#ld_form_overlay").fadeOut();
+	$("#cx_form_overlay").fadeIn();
+});
+
+$("#pop_ld_form").click(function(){
+	$("#cx_form_overlay").fadeOut();
+	$("#ld_form_overlay").fadeIn();
+});
 
 //settings controls
 $("#trn_save").click(function(){
