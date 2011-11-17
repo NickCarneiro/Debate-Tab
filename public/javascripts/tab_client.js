@@ -2091,7 +2091,7 @@ view.TeamTable = Backbone.View.extend({
 		var division_id = $("#newteam_division").val();
 		var division = pairing.getDivisionFromId(division_id);
 		var competitors = [];
-		var competitor_phone = [];
+		var competitor_phone = new Object();
 		//populate competitors based on form entries
 		console.log($("#newteam_competitors").children());
 		$("#newteam_competitors").children().each(function(){
@@ -2105,7 +2105,7 @@ view.TeamTable = Backbone.View.extend({
 					competitor_phone[1] = ($(this).val());
 					$(this).val("");
 					competitors.push(competitor_phone);
-					competitor_phone = [];
+					competitor_phone = new Object();
 				}
 
 			console.log(competitors);
@@ -2228,12 +2228,21 @@ view.Judge = Backbone.View.extend({
 		$("#newjudge_id").val(this.model.get("id"));
 		$("#new_judge_name").val(this.model.get("name"));
 		$("#newjudge_school").val(this.model.get("school") === undefined ? "no_affiliation" : this.model.get("school").get("id")); 	
+		var div = this.model.get("divisions");
 		
-		for(i = 0; i < this.model.get("divisions").length; i++)
-		{	
-		//	$("#newjudge_divisions").val(true);						//iterate through all?
-		//	console.log(this.model.get("divisions")[i].id);
-		}
+		$("#newjudge_divisions").children().each(function(i, li){
+			if($(li).attr != undefined){
+				//console.log($(li).find("input").attr("checked"));
+				
+				for(var i = 0; i < div.length; i++)
+				
+				if($(li).data("division_id") === div[i].id){
+				
+					$(li).find("input").attr("checked", true);
+				}
+				
+			}
+		});
 		
 		
 		$("#judge_form_overlay").fadeIn();
@@ -2330,7 +2339,7 @@ view.JudgeTable = Backbone.View.extend({
 		$("#newjudge_id").val("");
 		$("#new_judge_name").val("");
 		$("#newjudge_school").val("");
-		$("#newjudge_divisions").val("");
+		$("#newjudge_divisions").find("input").attr("checked", false);
 	} ,
 	addJudge: function(){
 		//TODO: validate judge name
