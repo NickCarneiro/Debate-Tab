@@ -1611,11 +1611,14 @@ pdf.generatePairingSheet = function(headers, titles, round_number, division){
 	doc.output('datauri');
 }
 
-pdf.generateLDBallot = function(){
+pdf.generateLDBallot = function(round_number, division){
 	// generate a blank document
 	var doc = new jsPDF();
 
 	for(var i = 0; i < collection.rounds.length ; i++) {
+		if(collection.rounds.at(i).get("round_number") != round_number || collection.rounds.at(i).get("division") != division){
+			continue;
+		}
 		doc.setFontSize(18);
 		doc.text(20, 20, 'Lincoln Douglas Debate Ballot');
 		doc.setFontSize(13);
