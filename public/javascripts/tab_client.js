@@ -1669,14 +1669,17 @@ pdf.generateLDBallot = function(){
 	doc.output('datauri');
 }
 
-pdf.generateCXBallot = function(){
+pdf.generateCXBallot = function(round_number, division){
 	// generate a blank document
 	var doc = new jsPDF();
 	//collection.rounds.at(0).get("team1".get("team_code"));
 	console.log('Size: ' + collection.rounds.length);
 	//console.log('adfasfads');
 	for(var i = 0; i < collection.rounds.length ; i++){
-		console.log('i:' + i);
+		//skip irrelevant rounds
+		if(collection.rounds.at(i).get("round_number") != round_number || collection.rounds.at(i).get("division") != division){
+			continue;
+		}
 		var round = collection.rounds.at(i);
 		var affCode = "";
 		if (round != undefined) {
@@ -1795,7 +1798,7 @@ pdf.generateCXBallot = function(){
 	doc.output('datauri');
 }
 
-pdf.generateOFBallot = function(){
+pdf.generatePFBallot = function(){
 	// generate a blank document
 	var doc = new jsPDF();
 
@@ -2174,7 +2177,6 @@ view.TeamTable = Backbone.View.extend({
 	//called when a competitor name box is modified.
 	//generate a team name if every competitor name has been entered.
 	generateTeamName: function(){
-		console.log("generating team name");
 		var competitors =  $("#newteam_competitors > .newteam_competitor");
 
 		//count number of filled in competitor names to see if they are all complete
@@ -3021,6 +3023,7 @@ view.RoundTable = Backbone.View.extend({
 		
 		"keyup #rounds_search": "search",
 		"click #pair_round_button" : "pairRound",
+		"click #print_ballots_button" : "printBallots",
 		"change #rounds_division_select" : "renderRoundNumberSelect",
 		"change #rounds_round_number_select" : "filterDivisions"
 	} ,
@@ -3037,6 +3040,22 @@ view.RoundTable = Backbone.View.extend({
 		this.render();
 		
 	} ,
+	printBallots: function(){
+		var div_id = $("#rounds_division_select").val();
+		var div = pairing.getDivisionFromId(div_id);
+		var round_number = $("#rounds_round_number_select").val();
+		var ballot_type = div.get("ballot_type");
+		if(ballot_type === "TFA_CX"){
+			pdf.generateCXBallot(round_number, div);
+		} else if(ballot_type === "TFA_LD"){
+			pdf.generateLDBallot(round_number, div);
+		} else if(ballot_type === "TFA_PF") {
+			pdf.generatePFBallot(round_number, div);
+		} else {
+			con.write("FATAL ERROR: unrecognized ballot type.")
+		}
+		
+	},
 	pairRound: function(){
 		var div_id = $("#rounds_division_select").val();
 		var div = pairing.getDivisionFromId(div_id);
