@@ -2171,7 +2171,7 @@ view.TeamTable = Backbone.View.extend({
 	//generate a team name if every competitor name has been entered.
 	generateTeamName: function(){
 		console.log("generating team name");
-		var competitors =  $("#newteam_competitors").find("input");
+		var competitors =  $("#newteam_competitors > .newteam_competitor");
 
 		//count number of filled in competitor names to see if they are all complete
 		var i = 0;
@@ -2186,15 +2186,15 @@ view.TeamTable = Backbone.View.extend({
 
 			//case 1: 1 competitor. Use initials like
 			//Nick Carneiro => Round Rock NC
-			if(competitors.length === 2){
+			if(competitors.length === 1){
 				var whole_name = $(competitors.get(0)).val();
 				var names = whole_name.split(" ");
 				if(names.length >= 2){
 					
 					team_code += " " + names[0].substr(0,1) + names[1].substr(0,1);
 				}
-			} else if(competitors.length >=4){		
-				var whole_name = $(competitors.get(2)).val();	//TODO: fix indexing, should work for
+			} else if(competitors.length >=2){		
+				var whole_name = $(competitors.get(1)).val();	//TODO: fix indexing, should work for
 				var names = whole_name.split(" ");				//any number of competitors
 				var last_name = names[names.length-1];
 
@@ -2206,12 +2206,14 @@ view.TeamTable = Backbone.View.extend({
 					+ last_name_2.substr(0,1).toUpperCase();
 				
 			} else {
+			
 				//can't generate team code
 			}
 
 			$("#newteam_name").val(team_code);
 			
 		} else {
+		console.log("failed");
 			return;
 		}
 
