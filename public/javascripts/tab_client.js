@@ -2167,6 +2167,15 @@ view.TeamTable = Backbone.View.extend({
 			this.addTeam();
 		}
 	} ,
+	
+	clearEditForm: function(){
+		console.log("clearing teams form");
+		$("#newteam_id").val("");
+		$("#newteam_division").val("");
+		$("#newteam_school").val("");
+		$("#newteam_competitors").val("");
+		$("#newteam_name").val("");
+	} ,
 	//called when a competitor name box is modified.
 	//generate a team name if every competitor name has been entered.
 	generateTeamName: function(){
@@ -2297,11 +2306,13 @@ view.TeamTable = Backbone.View.extend({
 	
 	addTeam: function(){
 		//validate team code
+		var id = $("#newteam_id").val();
 		var team_code = $("#newteam_name").val();
 		var school_id = $("#newteam_school").val();
 		var team = new model.Team();
 		var division_id = $("#newteam_division").val();
 		var division = pairing.getDivisionFromId(division_id);
+		var school = pairing.getSchoolFromId(school_id);
 		var competitors = [];
 		var competitor_phone = new Object();
 		//populate competitors based on form entries
@@ -2322,18 +2333,35 @@ view.TeamTable = Backbone.View.extend({
 
 			console.log(competitors);
 		});
-	
-		var school = pairing.getSchoolFromId(school_id);
 		
-		team.set({
-			team_code: team_code,
-			school: school,
-			competitors: competitors,
-			division: division
+		$(".edit_model_overlay").fadeOut();
+		
+	if(id.length > 0){
+		
+		var team = pairing.getTeamFromId(id);
+			team.set({
+				team_code: team_code,
+				school: school,
+				competitors: competitors,
+				division: division
+			});
+		
+		}
+		else{
+		
+		var team = new model.Team();
+			team.set({
+				id: (new ObjectId).toString(),
+				team_code: team_code,
+				school: school,
+				competitors: competitors,
+				division: division
 		});
 		collection.teams.add(team);
+		}
+		
 		team.save();
-		$("#newteam_name").val("");
+		this.clearEditForm();
 	} ,
 
 	appendTeam: function(team){
@@ -2352,7 +2380,8 @@ view.TeamTable = Backbone.View.extend({
 view.Team = Backbone.View.extend({
 	tagName: "tr" ,
 	events: { 
-      'click td.remove': 'remove'
+      'click td.remove': 'remove',
+	  'click td.name': 'showEditForm'
     },  
 
 	initialize: function(){
@@ -2360,6 +2389,28 @@ view.Team = Backbone.View.extend({
 	    this.model.bind('remove', this.unrender);
 		this.model.bind('change', this.render);
 
+	} ,
+	showEditForm: function(){
+		//populate form with existing values
+		$("#newteam_id").val(this.model.get("id"));
+		$("#newteam_division").val(this.model.get("division").get("id"));
+		$("#newteam_school").val(this.model.get("school").get("id")); 	
+		$("#newteam_name").val(this.model.get("team_code"));
+		
+		var comp = this.model.get("competitors");
+		
+		$("#newteam_competitors > .newteam_competitor").each(function(index){
+			
+				$(this).val((comp[index])[0]);
+			
+		});
+		$("#newteam_competitors > .competitor_phone").each(function(index){
+			
+				$(this).val((comp[index])[1]);
+			
+		});
+		
+		$("#team_form_overlay").fadeIn();
 	} ,
 
 	remove: function(team){
@@ -2386,7 +2437,7 @@ view.Team = Backbone.View.extend({
 	render: function(){
 		var wins = this.model.get("losses") || "0";
 		var losses = this.model.get("wins") || "0";
-		$(this.el).html('<td>' + this.model.get("team_code") + 
+		$(this.el).html('<td class="name">' + this.model.get("team_code") + 
 			'</td> <td>'+this.model.get("division").get("division_name") +'</td><td>' + 
 			wins + "-"+ losses + '</td><td class="remove"><button>Remove</button></td>');
 		return this; //required for chainable call, .render().el ( in appendTeam)
@@ -3848,6 +3899,9 @@ $("#cancel_judge_button").click(function(){
 $("#cancel_school_button").click(function(){
 	view.schoolTable.clearEditForm();
 });
+$("#cancel_team_button").click(function(){
+	view.teamTable.clearEditForm();
+});
 //school controls
 $("#toggle_school_form").click(function(){
 	$("#school_form_overlay").fadeToggle();
@@ -3871,7 +3925,7 @@ $("#toggle_division_form").click(function(){
 
 //team controls
 $("#toggle_team_form").click(function(){
-	$("#team_form").slideToggle();
+	$("#team_form_overlay").fadeToggle();
 });
 
 //round controls

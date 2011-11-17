@@ -81,42 +81,42 @@ JS includes
 
 		<div id="teams_container" class="container">
 			<div id="teams">
-			<button id="toggle_team_form">Add Team</button>
-			<div id="team_form" class="input_form">
-				<span class="generic_error" id="add_team_error"></span><br />
-				<label>
-				Division: <br />
-					<select id="newteam_division">
-					</select>
-				</label> 
-
-				School: <br />
-					<select id="newteam_school">
-					</select>
-				</label>
-				<br />
-				Competitor Names: <br />
-				<div id="newteam_competitors">
-					<input type="text" />
-				
-				</div>
-				
-				<label>
-				Team code: <br />
-					<input id="newteam_name" />
-				</label>
-				<label>
-
-				<button class="save_button" id="add_team_button">Save</button>
-			</div>
-			
-			<table id="teams_table">
-
-			</table>
-			
-			</div>
-			
-			
+			<!--	<div class="top_buttons">	-->
+				<button id="toggle_team_form">Add Team</button>
+			<!--	</div>	-->
+					<div id="team_form" class="input_form">
+						<div class="edit_model_overlay" id="team_form_overlay">
+							<div class="edit_model_box">
+							<h1>Edit Team</h1>
+							<input id="newteam_id" type="hidden" value=""/>
+					<!--		<span class="generic_error" id="add_team_error"></span><br />	-->
+							<label>
+							Division: <br />
+							<select id="newteam_division">
+							</select>
+							</label> 
+							School: <br />
+							<select id="newteam_school">
+							</select>
+							</label>
+							<br />
+							Competitor Names: <br />
+							<div id="newteam_competitors">
+							<input type="text" />				
+							</div>				
+							<label>
+							Team code: <br />
+							<input id="newteam_name" />
+							</label>
+							
+							<button class="save_button" id="add_team_button">Save</button>
+							<button class="cancel_button" id="cancel_team_button">Cancel</button>
+							</div>
+						</div>
+					</div>			
+					<table id="teams_table">
+					</table>			
+			</div>		
 		</div>
 
 		<div id="judges_container" class="container">
