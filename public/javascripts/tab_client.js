@@ -5,7 +5,6 @@ DebateTab.com Tab Client
 Nick Carneiro
 ============================
 */
-
 var name2debate = {};
 // define HashMap of round names to num_debates_that_take_place
 name2debate["triple octafinals"] = 32;
@@ -23,6 +22,7 @@ debate2name["8"] = "octafinals";
 debate2name["4"] = "quarterfinals";
 debate2name["2"] = "semifinals";
 debate2name["1"] = "finals";
+
 
 //module pattern
 //see http://www.adequatelygood.com/2010/3/JavaScript-Module-Pattern-In-Depth
@@ -1714,6 +1714,35 @@ pdf.generateLDBallot = function(){
 		doc.addPage();
 	}
 	// Output as Data URI so that it can be downloaded / viewed
+	doc.output('datauri');
+}
+
+pdf.generateColumnsPDF = function(var matrix) {		//takes in two dimensional array of strings
+	var testMatrix = [
+		['asdfas','asdfas','asdfas','asdfas','asdfas'],
+		['qwrqq','asdf','zxvc','12312','908908'],
+		['asdfas','asdfas','asdfas','asdfas','asdfas']
+	];
+	var doc = new jsPDF();
+	var team = 20;
+	var wins = team + 50;
+	var adjusted = wins + 30;
+	var total = adjusted + 35;
+	var ranks = total + 35;
+	doc.text(team, 30, 'Team Code'); 
+	doc.text(wins,30,'Wins');
+	doc.text(adjusted,30,'Adjusted');
+	doc.text(total,30,'Total');
+	doc.text(ranks,30,'Ranks');
+	doc.setFontSize(10);
+	var y = 40;
+	for (var i = 0; i < testMatrix.length; i++, y+=10) {
+			doc.text(team, y, testMatrix[i][0]); 
+			doc.text(wins,y,testMatrix[i][1]);
+			doc.text(adjusted,y,testMatrix[i][2]);
+			doc.text(total,y,testMatrix[i][3]);
+			doc.text(ranks,y,testMatrix[i][4]);
+	}
 	doc.output('datauri');
 }
 
@@ -3786,6 +3815,9 @@ $("#pdf_brackets_gen").click(function(){
 	pdf.bracketsDataPDF();
 });
 
+$("#columnsPDF_gen").click(function(){
+	pdf.generateColumnsPDF();	
+});
 
 
 //Code for the help menu on the right
