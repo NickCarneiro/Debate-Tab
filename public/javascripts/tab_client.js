@@ -80,9 +80,9 @@ model.Tournament = Backbone.Model.extend({
 });
 
 model.Competitor = Backbone.Model.extend({
-	initialize: function(){
-	            console.log("initialized new competitor");
-	        }
+	default: {
+		name: ""
+	}
 });
 
 model.Team = Backbone.Model.extend({
@@ -345,6 +345,11 @@ collection.Rounds = Backbone.Collection.extend({
 BEGIN: Define Pairing Functions
 =========================================
 */	
+
+//deletes everything.
+pairing.clearStorage = function(){
+	localStorage.clear();
+}
 // all functions for tab below this point
 pairing.getSchoolFromId = function(school_id){
 	for(var i = 0; i < collection.schools.length; i++){
@@ -2133,7 +2138,7 @@ view.TeamTable = Backbone.View.extend({
 		"click #add_team_button": "addTeam",
 		"keyup #teams_search": "search",
 		"change #newteam_division": "showCompetitors",
-		"blur .newteam_competitor": "generateTeamName",
+		"focus #newteam_name": "generateTeamName",
 		"keyup #newteam_name":		"keyupTeamName"
 	} ,
 	initialize: function(){
@@ -2165,11 +2170,12 @@ view.TeamTable = Backbone.View.extend({
 	//called when a competitor name box is modified.
 	//generate a team name if every competitor name has been entered.
 	generateTeamName: function(){
+		console.log("generating team name");
 		var competitors =  $("#newteam_competitors").find("input");
 
 		//count number of filled in competitor names to see if they are all complete
 		var i = 0;
-		$("#newteam_competitors").find("input").each(function(index, comp_name){
+		$("#newteam_competitors > .newteam_competitor").each(function(index, comp_name){
 			if($(comp_name).val().length > 0){
 				i++;
 			}
@@ -2971,7 +2977,23 @@ view.Round = Backbone.View.extend({
 
 	showEditForm: function(){
 		//populate form with existing values
+		//populate team 1 competitors
+		console.log(this.model);
+		var competitors = this.model.get("team1").get("competitors");
+		if(competitors != undefined){
 		
+			for(var i = 0; i < competitors.length; i++){
+				var comp_model = new model.Competitor();
+				comp_model.set({name: competitors[i].name});
+				$("#editround_team1 > .competitors").append((new view.CompetitorInput({model: comp_model})).render().el);
+			}
+		} else {
+			//no competitors? team1 must have been a bye
+			$("#editround_team1 > .competitors").append("BYE");
+		}
+		
+
+		//populate team2 competitors
 
 		$(".edit_model_overlay").css("height", $(document).height());
 		$("#round_form_overlay").fadeIn();
@@ -3118,6 +3140,33 @@ view.RoundTable = Backbone.View.extend({
 		return this;
 	} 
 	
+});
+
+
+//part of the edit round form
+view.CompetitorInput = Backbone.View.extend({
+	tagName: "div" ,
+	events: { 
+      
+    },  
+
+	initialize: function(){
+		_.bindAll(this, "render", "unrender", "remove");
+	    this.model.bind('remove', this.unrender);
+		this.model.bind('change', this.render);
+
+	} ,
+	render: function(){
+		console.log("rendering competitor input");
+		//these will be rendered in order that they appear in the competitors array in a team model
+		var html = '<span class="competitor_name">' + this.model.get("name") + '</span> Speaker points: <input type="text" class="speaker_points" />' +
+			'Rank: <input type="text" class="rank" />'
+		$(this.el).html(html);
+		return this; //required for chainable call, .render().el
+	} ,
+	unrender: function(){
+		$(this.el).remove();
+	}
 });
 
 view.School = Backbone.View.extend({
@@ -3276,6 +3325,7 @@ view.Division = Backbone.View.extend({
 
 	} ,
 	showEditForm: function(){
+		console.log("showing division edit form");
 		//populate form with existing values
 		$("#newdiv_id").val(this.model.get("id"));
 		$("#newdiv_division_name").val(this.model.get("division_name"));
@@ -3601,6 +3651,7 @@ $(window).resize(function(){
 
 
 
+
 //Code for PDF Menu
 $("#menu_pdf").click(function(){
 	$(".container").hide();
@@ -3836,7 +3887,24 @@ $("#save_state").click(function(){
 });
 
 $("#clear_storage").click(function(){
-	localStorage.clear();
+
+	$.confirm({
+			'title'		: 'Clear localStorage',
+			'message'	: 'You are about to delete ALL LOCAL DATA <br />This will erase the entire tournament! Continue?',
+			'buttons'	: {
+				'Yes'	: {
+					
+					'class'	: 'blue',
+					'action': pairing.clearStorage
+				},
+				'No'	: {
+					'class'	: 'gray',
+					'action': function(){}	
+				}
+			},
+			
+		});
+	
 });
 
 $("#fetch_teams").click(function(){

@@ -32,11 +32,34 @@ JS includes
 		<div id="rounds_container" class="container">
 			<div id="rounds">
 			
-				<div class="edit_model_overlay" id="division_form_overlay">
+				<div class="edit_model_overlay" id="round_form_overlay">
 					<div class="edit_model_box">
-						<h1>Edit Division</h1>
+						<h1>Edit Round</h1>
 						<input id="editround_id" type="hidden" value=""/>
+
+						<div id="editround_team1">
+							<input type="hidden" id="editround_team1_id" value="" />
+							<span id="editround_team1_code"></span>
+							<div class="competitors">
+							</div>
+
+						</div>
+						<div id="editround_team2">
+							<input type="hidden" id="editround_team2_id" value="" />
+							<span id="editround_team2_code"></span>
+							<div class="competitors">
+							</div>
+						</div>
+
+						<div id="editround_result">
+						<select id="editround_result">
+
+						</select>
+						<span id="editround_winner"></span>
+						</div>
 						
+						<button class="save_button" id="add_round_button">Save</button>
+						<button class="cancel_button" id="cancel_round_button">Cancel</button>
 					</div>
 				</div>
 				<div class="top_buttons">
@@ -79,19 +102,14 @@ JS includes
 				</div>
 				
 				<label>
-				Team name: <br />
+				Team code: <br />
 					<input id="newteam_name" />
 				</label>
 				<label>
 
 				<button class="save_button" id="add_team_button">Save</button>
 			</div>
-			<div class="search_container">
-				<input type="text" class="search_box" id="teams_search" /> 
-				<button id="teams_search_button" class="search_button">Find</button>
-				<br />
-				<br />
-			</div>
+			
 			<table id="teams_table">
 
 			</table>
@@ -103,7 +121,9 @@ JS includes
 
 		<div id="judges_container" class="container">
 			<div id="judges">
+				<div class="top_buttons">
 				<button id="toggle_judge_form">Add Judge</button>
+				</div>
 				<div id="judge_form" class="input_form">
 					<div class="edit_model_overlay" id="judge_form_overlay">
 						<div class="edit_model_box">
@@ -138,7 +158,9 @@ JS includes
 
 		<div id="rooms_container" class="container">
 			<div id="rooms">
-				<button id="toggle_room_form">Add Room</button>
+				<div class="top_buttons">
+					<button id="toggle_room_form">Add Room</button>
+				</div>
 				<div id="room_form" class="input_form">
 					<div class="edit_model_overlay" id="room_form_overlay">
 						<div class="edit_model_box">
@@ -168,8 +190,9 @@ JS includes
 		<div id="schools_container" class="container">
 			
 			<div id="schools">
-
-				<button id="toggle_school_form">Add School ⇩</button>
+				<div class="top_buttons">
+				<button id="toggle_school_form">Add School</button>
+				</div>
 				<div id="school_form" class="input_form">
 					<div class="edit_model_overlay" id="school_form_overlay">
 						<div class="edit_model_box">
@@ -185,8 +208,7 @@ JS includes
 						</div>
 					</div>
 				</div>
-				<br />
-				<br />
+				
 				<table id="schools_table">
 				</table>
 				
