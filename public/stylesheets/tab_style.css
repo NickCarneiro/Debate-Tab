@@ -877,6 +877,33 @@ Move to separate stylesheet if invalid CSS is a problem.
 .container_16 {
   zoom: 1;
 }
+
+/* ========================================================================
+Styles for entering ballot overlay form 
+Author: Nikhil
+==========================================================================*/
+.overly_form_float_left {
+	float: left;
+}
+
+.overlay_form_float_right {
+	float: right;
+}
+
+
+/* ========================================================================
+Styles for Logo
+Author: Nikhil
+===========================================================================
+*/
+
+.img_logo {
+	width: 300px;
+	height: 100px;
+	margin-bottom: 27px;
+}
+
+
 /* ==|== primary styles =====================================================
 Author: Nick Carneiro
 ========================================================================== */

@@ -5,7 +5,7 @@ var express = require('express');
 var fs = require('fs');
 var app = module.exports = express.createServer();
 //change this to automatically set up your ports.
-app.env_name = "nick";
+app.env_name = "nikhil";
 
 //io.set('log level', 1);
 var Models = require('./models'); //include models
