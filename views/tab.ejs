@@ -6,7 +6,11 @@ JS includes
 <div class="container_12">
 
 <div id="header" class="grid_12"><!-- begin header -->
+<!--
 	<h1 id="trn_name_title">DebateTab.com</h1>
+-->
+
+	<img src="./images/logo2.gif" class="img_logo" alt="DebateTab"/>
 </div><!-- end header -->
 
 
@@ -20,6 +24,7 @@ JS includes
 					<li class="menu_item" id="menu_rooms">Rooms</li>
 					<li class="menu_item" id="menu_schools">Schools</li>
 					<li class="menu_item" id="menu_divisions">Divisions</li>
+					<li class="menu_item" id="menu_enter_ballot">Enter Ballot</li>
 					<li class="menu_item" id="menu_settings">Settings</li>
 					<li class="menu_item" id="menu_debug">Debug</li>
 					</ul>
@@ -237,13 +242,139 @@ JS includes
 				
 			</div>
 		</div>
+
+		<div id="enter_ballot_container" class="container">
+			<div id="enter_ballot">
+				<div id="enter_ballot_buttons" class="top_buttons">
+					<button id="pop_cx_form">Add CX Ballot</button><br/><br/>
+					<button id="pop_ld_form">Add LD Ballot</button>
+				</div>
+				
+				<div id="cx_form" class="input_form">
+					<div id="cx_form_overlay" class="edit_model_overlay" style = "display: none;">
+						<div class = "edit_model_box">
+							<h1>Cross Examination Debate Ballot</h1>
+							<input id="newdiv_id" type="hidden" value=""/>
+
+	 
+								<label>School Name: <br /> <input id="newschool_name" /></label> 
+
+							<button class="save_button" id="enter_ballot_cx_button">Save</button>
+							<button class="cancel_button" id="cancel_enter_cx_button">Cancel</button>
+						</div>
+					</div>
+				</div>
+				<br />
+				
+				<div id="ld_form" class="input_form">
+					<div id="ld_form_overlay" class="edit_model_overlay" style = "display: none;">
+						<div class = "edit_model_box">
+							<h1>Lincoln Douglas Debate Ballot</h1>
+							<input id="newdiv_id" type="hidden" value=""/>
+								<br/>
+								<label>Round: 
+									<select id="enter_ballot_cx_round_select" />
+										<option value = "1">1</option>
+										<option value = "2">2</option>
+									</select>
+								</label><br/>
+								<label><span class="overlay_form_float_left">Judge:
+									<select id="enter_ballot_cx_judge_select" />
+										<option value = "judge1">Judge 1</option>
+										<option value = "judge2">Judge 2</option>
+									</select>
+									</span>
+									<span class="overlay_form_float_right">Affiliation:
+										<span id="enter_ballot_ld_affiliation_hook"> 0xE3DFC0 </span>
+									</span>
+								</label>
+									___________________________________________________
+								<br/>
+								<br/>
+								<label>
+									<span class="overlay_form_float_left">
+									Affirmative Name: <select id="enter_ballot_cx_affirmative_name">
+												<option value="Name1">Name 1</option>
+												<option value="Name2">Name 2</option>
+											</select>
+									</span>
+									<span class="overlay_form_float_right">
+									Negative Name: <select id="enter_ballot_cx_negative_name">
+												<option value="Name1">Name 1</option>
+												<option value="Name2">Name 2</option>
+											</select>
+									</span>
+								</label>
+								<br/>
+								<label>
+									<span class="overlay_form_float_left">
+									Affirmative Code: <span id="enter_ballot_cx_affirmative_name">
+											</span>
+									</span>
+									<span class="overlay_form_float_right">
+									Negative Code: <span id="enter_ballot_cx_negative_code">________</span>
+									</span>
+								</label>
+								<br/>
+								<label>
+									<span class="overlay_form_float_left">
+									Affirmative Points: <input id="enter_ballot_cx_affirmative_ponts" type="text" size="2"/>
+									</span>
+									<span class="overlay_form_float_right">
+									Negative Points: <input id="enter_ballot_cx_negative_ponts" type="text" size="2"/>
+									</span>
+								</label>
+								</label>
+									___________________________________________________
+								<br/>
+								<br/>
+								<label>
+									Comments and Reasons for Decision:
+								</label>
+								<label>
+									<textarea id="enter_ballot_cx_comments_textarea"></textarea>
+								</label>
+								<br/>
+								<label>Upload Image:
+								<br/>
+									<input type="text" id="enter_ballot_cx_browse_location"/>
+									<button id="enter_ballot_cx_browse">Browse</button><br/>
+									<button id="enter_ballot_cx_upload">Upload</button>	
+								</label>
+								<label>
+									___________________________________________________
+								</label>
+								<br/>
+								<br/>
+								<label>
+								In my opinion, the better debating was done by:  <br/>
+								<br/>
+								<span class="overlay_form_float_left">
+									<input type="radio" name="enter_ballot_cx_radio_affirmative" value="Affirmative"/> Affirmative
+								</span>
+								<span class="overlay_form_float_right">
+									<input type="radio" name="enter_ballot_cx_radio_negative" value="Negative"/> Negative
+								</span>	
+								<br/>
+								<label>
+									___________________________________________________
+								</label>
+								<br/>
+							<button class="save_button" id="enter_ballot_ld_button">Save</button>
+							<button class="cancel_button" id="cancel_enter_ld_button">Cancel</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 		
 		<div id="settings_container" class="container">
 			<label>Tournament name:
 			<br /><input type="text" id="trn_name"></input>
 			</label> 
 			<button class="save_button" id="trn_save">Save</button>
-			<div id="stats_schools"></div>
+			<div id="stats_schools">
+			</div>
 			<h2>Division Stats</h2>
 
 			<div id="settings_stats">
@@ -289,7 +420,7 @@ JS includes
 
 
 		<!-- content -->
-	<div id="dialog_content" style="display:none;">
+		<div id="dialog_content" style="display:none;">
 		<h3>DEMO</h3>
 		<p>This is a demonstration of jQuery SimpleDialog.</p>
 		</div>  

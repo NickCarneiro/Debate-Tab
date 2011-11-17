@@ -1825,7 +1825,9 @@ Valid values for menu_item:
 	rooms
 	schools
 	divisions
+	enter_ballot
 	settings
+	debug
 */
 
 /*
@@ -3302,12 +3304,20 @@ $("#add_team_menu").mouseover(
 			$("#help_text").text("Select menu context");
 		});
 
+$("#menu_enter_ballot").mouseover(
+	function() {
+			$("#help_text").text("Bring up  menu to enter ballot");
+		}).mouseleave(function() {
+			$("#help_text").text("Select menu context");
+	});
+
+
 $("#menu_settings").mouseover(
 	function() {
 			$("#help_text").text("Bring up settings menu");
 		}).mouseleave(function() {
 			$("#help_text").text("Select menu context");
-		});
+	});
 
 $("#menu_pdf").mouseover(
 	function() {
@@ -3429,6 +3439,17 @@ $("#toggle_team_form").click(function(){
 });
 
 //round controls
+
+//cx form controls
+$("#pop_cx_form").click(function(){
+	$("#ld_form_overlay").fadeOut();
+	$("#cx_form_overlay").fadeIn();
+});
+
+$("#pop_ld_form").click(function(){
+	$("#cx_form_overlay").fadeOut();
+	$("#ld_form_overlay").fadeIn();
+});
 
 //settings controls
 $("#trn_save").click(function(){
