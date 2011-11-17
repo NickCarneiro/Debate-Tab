@@ -906,6 +906,13 @@ Author: Nikhil
 /* ==|== primary styles =====================================================
 Author: Nick Carneiro
 ========================================================================== */
+
+.speaker_points{
+  width: 25px;
+}
+.rank{
+  width: 25px;
+}
 label{
   display: block;
   margin: 5px 0px 0px 0px;

@@ -3091,6 +3091,8 @@ view.Round = Backbone.View.extend({
 			for(var i = 0; i < competitors.length; i++){
 				var comp_model = new model.Competitor();
 				comp_model.set({name: competitors[i].name});
+				//clear out existing form data
+				$("#editround_team1 > .competitors").html('');
 				$("#editround_team1 > .competitors").append((new view.CompetitorInput({model: comp_model})).render().el);
 			}
 		} else {
