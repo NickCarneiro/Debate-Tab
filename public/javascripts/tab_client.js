@@ -2307,11 +2307,7 @@ view.TeamTable = Backbone.View.extend({
 		var division_id = $("#newteam_division").val();
 		var division = pairing.getDivisionFromId(division_id);
 		var competitors = [];
-<<<<<<< HEAD
-		
-=======
-		var competitor_phone = new Object();
->>>>>>> 40dce192436ee7e17a286aad8121dd0447d7be04
+
 		//populate competitors based on form entries
 		var i = 0;
 		$("#newteam_competitors").children().each(function(){
@@ -2325,11 +2321,7 @@ view.TeamTable = Backbone.View.extend({
 					//it's a phone number box
 					competitors[i-1].phone_number = $(this).val();
 					$(this).val("");
-<<<<<<< HEAD
-=======
-					competitors.push(competitor_phone);
-					competitor_phone = new Object();
->>>>>>> 40dce192436ee7e17a286aad8121dd0447d7be04
+
 				}
 				
 			
