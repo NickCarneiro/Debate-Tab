@@ -3140,24 +3140,43 @@ view.Round = Backbone.View.extend({
 	showEditForm: function(){
 		//populate form with existing values
 		//populate team 1 competitors
-		console.log(this.model);
 		var competitors = this.model.get("team1").get("competitors");
 		if(competitors != undefined){
-		
+			//clear out existing form data
+			$("#editround_team1 > .competitors").html('');
 			for(var i = 0; i < competitors.length; i++){
-				var comp_model = new model.Competitor();
-				comp_model.set({name: competitors[i].name});
-				//clear out existing form data
-				$("#editround_team1 > .competitors").html('');
-				$("#editround_team1 > .competitors").append((new view.CompetitorInput({model: comp_model})).render().el);
+				
+				
+				var competitor_input =this.model.get("team2").get("team_code") + '<br />' +  competitors[i].name + 
+					'<br /> Points: <input class="editround_speaks" /> Rank: <input class="editround_ranks" /> <br />';
+
+				$("#editround_team1 > .competitors").append(competitor_input);
 			}
+
 		} else {
 			//no competitors? team1 must have been a bye
 			$("#editround_team1 > .competitors").append("BYE");
 		}
-		
 
-		//populate team2 competitors
+		//draw right side of form
+		competitors = this.model.get("team2").get("competitors");
+		if(competitors != undefined){
+			//clear out existing form data
+			$("#editround_team2 > .competitors").html('');
+			for(var i = 0; i < competitors.length; i++){
+				
+				
+				var competitor_input = this.model.get("team2").get("team_code") + '<br />' + competitors[i].name + 
+					'<br /> Points: <input class="editround_speaks" /> Rank: <input class="editround_ranks" /> <br />';
+				$("#editround_team2 > .competitors").append(competitor_input);
+			}
+
+		} else {
+			//no competitors? team1 must have been a bye
+			$("#editround_team2 > .competitors").append("BYE");
+		}
+
+		//
 
 		$(".edit_model_overlay").css("height", $(document).height());
 		$("#round_form_overlay").fadeIn();

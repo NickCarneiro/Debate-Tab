@@ -907,11 +907,27 @@ Author: Nikhil
 Author: Nick Carneiro
 ========================================================================== */
 
-.speaker_points{
+.editround_speaks{
   width: 25px;
 }
-.rank{
+.editround_ranks{
   width: 25px;
+}
+
+#editround_team1{
+  float: left;
+  margin-right: 200px;
+}
+
+#editround_team2{
+  float: left;
+}
+#editround_result{
+  margin-top: 150px;
+}
+
+#editround_result_select{
+  bottom: 10px;
 }
 label{
   display: block;
