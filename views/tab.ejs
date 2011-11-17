@@ -31,20 +31,52 @@ JS includes
 			
 		<div id="rounds_container" class="container">
 			<div id="rounds">
-			<span>Division: </span><select id="rounds_division_select">
-			</select>
-			<span>Round Number: </span><select id="rounds_round_number_select">
-			</select>
-				<br />
-				<br />
+			
+				<div class="edit_model_overlay" id="round_form_overlay">
+					<div class="edit_model_box">
+						<h1>Edit Round</h1>
+						<input id="editround_id" type="hidden" value=""/>
+
+						<div id="editround_team1">
+							<input type="hidden" id="editround_team1_id" value="" />
+							<span id="editround_team1_code"></span>
+							<div class="competitors">
+							</div>
+
+						</div>
+						<div id="editround_team2">
+							<input type="hidden" id="editround_team2_id" value="" />
+							<span id="editround_team2_code"></span>
+							<div class="competitors">
+							</div>
+						</div>
+
+						<div id="editround_result">
+						<select id="editround_result">
+
+						</select>
+						<span id="editround_winner"></span>
+						</div>
+						
+						<button class="save_button" id="add_round_button">Save</button>
+						<button class="cancel_button" id="cancel_round_button">Cancel</button>
+					</div>
+				</div>
+				<div class="top_buttons">
+					<span>Division: </span><select id="rounds_division_select" >
+					</select>
+					<span>Round Number: </span><select id="rounds_round_number_select">
+					</select>
+				</div>
 				<table id="rounds_table">
 				</table>
-				<br />
-				
-				<button id="add_round_button">Add Debate</button>
-				<button id="pair_round_button">Pair Round</button>
-				<button id="print_ballots_button">Print Ballots</button>
+				<div class="bottom_buttons">
+					<button id="add_round_button">Add Debate</button>
+					<button id="pair_round_button">Pair Round</button>
+					<button id="print_ballots_button">Print Ballots</button>
 				</div>
+					
+			</div>
 		</div>
 
 		<div id="teams_container" class="container">
@@ -62,26 +94,22 @@ JS includes
 					<select id="newteam_school">
 					</select>
 				</label>
+				<br />
 				Competitor Names: <br />
 				<div id="newteam_competitors">
 					<input type="text" />
 				
 				</div>
-
+				
 				<label>
-				Team name: <br />
+				Team code: <br />
 					<input id="newteam_name" />
 				</label>
 				<label>
 
 				<button class="save_button" id="add_team_button">Save</button>
 			</div>
-			<div class="search_container">
-				<input type="text" class="search_box" id="teams_search" /> 
-				<button id="teams_search_button" class="search_button">Find</button>
-				<br />
-				<br />
-			</div>
+			
 			<table id="teams_table">
 
 			</table>
@@ -93,22 +121,32 @@ JS includes
 
 		<div id="judges_container" class="container">
 			<div id="judges">
+				<div class="top_buttons">
 				<button id="toggle_judge_form">Add Judge</button>
-				<div id="judge_form" class="input_form">
-					<label>
-					Judge Name: <br />
-						<input id="new_judge_name" type="text"/>
-					</label>
-					<label>
-					School Affiliation <br />
-					<select id="newjudge_school">
-					</select>
-					<ul id="newjudge_divisions">
-				</ul>
-				<br />
-				<button class="save_button" id="add_judge_button">Save</button>
-					</label>
 				</div>
+				<div id="judge_form" class="input_form">
+					<div class="edit_model_overlay" id="judge_form_overlay">
+						<div class="edit_model_box">
+						<h1>Edit Room</h1>
+						<input id="newjudge_id" type="hidden" value=""/>
+						<label>
+						Judge Name: <br />
+						<input id="new_judge_name" type="text"/>
+						</label>
+						<label>
+						School Affiliation <br />
+						<select id="newjudge_school">
+						</select>
+						<ul id="newjudge_divisions">
+						</ul>
+						<br />
+						</label>
+						<button class="save_button" id="add_judge_button">Save</button>
+						<button class="cancel_button" id="cancel_judge_button">Cancel</button>
+						</div>
+					</div>	
+				</div>
+				
 				
 				<br />
 				<br />
@@ -120,42 +158,57 @@ JS includes
 
 		<div id="rooms_container" class="container">
 			<div id="rooms">
-			<button id="toggle_room_form">Add Room</button>
-			<div id="room_form" class="input_form">
-				<label>
-				Room Name: <br />
-					<input id="newroom_name" type="text"/>
-				</label> 
-				<label>
-				Division: <br />
-					<select id="newroom_division" type="text">
-					</select>
-				</label> 
-				<button class="save_button" id="add_room_button">Save</button>
-			</div>
+				<div class="top_buttons">
+					<button id="toggle_room_form">Add Room</button>
+				</div>
+				<div id="room_form" class="input_form">
+					<div class="edit_model_overlay" id="room_form_overlay">
+						<div class="edit_model_box">
+						<h1>Edit Room</h1>
+						<input id="newroom_id" type="hidden" value=""/>
+						<label>
+						Room Name: <br />
+						<input id="newroom_name" type="text"/>
+						</label> 
+						<label>
+						Division: <br />
+						<select id="newroom_division" type="text">
+						</select>
+						</label> 
+						<button class="save_button" id="add_room_button">Save</button>
+						<button class="cancel_button" id="cancel_room_button">Cancel</button>
+						</div>
+					</div>
+				</div>
+				
 				<table id="rooms_table">
 				</table>
-				
-				
-
-				
+						
 			</div>
 		</div>
 
 		<div id="schools_container" class="container">
 			
 			<div id="schools">
-
-				<button id="toggle_school_form">Add School ⇩</button>
-				<div id="school_form" class="input_form">
-				<label>
-				School Name: <br />
-					<input id="newschool_name" />
-				</label> 
-				<button class="save_button" id="add_school_button">Save</button>
+				<div class="top_buttons">
+				<button id="toggle_school_form">Add School</button>
 				</div>
-				<br />
-				<br />
+				<div id="school_form" class="input_form">
+					<div class="edit_model_overlay" id="school_form_overlay">
+						<div class="edit_model_box">
+						<h1>Edit School</h1>
+						<input id="newschool_id" type="hidden" value=""/>
+						<label>
+						School Name: <br />
+						<input id="newschool_name" />
+						</label> 
+						<button class="save_button" id="add_school_button">Save</button>
+						<button class="cancel_button" id="cancel_school_button">Cancel</button>
+
+						</div>
+					</div>
+				</div>
+				
 				<table id="schools_table">
 				</table>
 				
@@ -272,6 +325,7 @@ JS includes
 				<button id="mass_texts">Mass Text</button> <br />
 				Phone Number: <input type="text" id="debug_sms_input_phone"/><br />
 				Message: <br /> <input type="text" id="debug_sms_input_message"/><br />
+				
 				<h1>PDF</h1>
 				<button id="pdf_gen">Round 1 PDF</button> <br />
 				<button id="ballot_gen">Generate CX Ballot</button> <br />
@@ -282,6 +336,12 @@ JS includes
 
 				
 				<a href="#" rel="dialog_content" class="simpledialog">show dialog!</a>
+				
+				<h1>Import and Parse JOT File</h1>
+				<button id="parse_jot">Parse</button> <br />
+				<textarea id="parse_textarea"></textarea>
+				
+
 
 		<!-- content -->
 	<div id="dialog_content" style="display:none;">

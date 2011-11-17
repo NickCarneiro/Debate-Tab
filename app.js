@@ -1,10 +1,11 @@
 /**
  * Module dependencies..
  */
- 
 var express = require('express');
 var fs = require('fs');
 var app = module.exports = express.createServer();
+//change this to automatically set up your ports.
+app.env_name = "nick";
 
 //io.set('log level', 1);
 var Models = require('./models'); //include models
@@ -13,7 +14,31 @@ var mongoose = require('mongoose'); //like include
 
 //Change port variable to your port when testing:
 
-var port = 3002;
+var environments = {
+	nick: {
+		main_port: 3003,
+		twilio_port: 3019
+	} ,
+	ali: {
+		main_port: 3001,
+		twilio_port: 3020
+	} ,
+	nikhil: {
+		main_port: 3007,
+		twilio_port: 3021
+	} ,
+	rohan: {
+		main_port: 3002,
+		twilio_port: 3022
+	} ,
+	production: {
+		main_port: 3005,
+		twilio_port: 3023
+	}
+		
+}
+app.env = environments[app.env_name];
+var port = app.env.main_port;
 
 /*
 'ali.debatetab.com': '127.0.0.1:3001',
