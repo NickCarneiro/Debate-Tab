@@ -947,8 +947,24 @@ color:#9343B9;
   
 }
 
+
 .top_buttons{
-  margin-bottom: 10px;  
+  margin-bottom: 10px; 
+  padding-bottom: 10px;
+  border-bottom: solid 1px #eee;
+  width: 100%; 
+}
+.bottom_buttons{
+  margin-top: 20px;
+
+}
+.top_buttons > button{
+  height: 40px;
+  margin: 0px 5px 0px 0px;
+}
+.bottom_buttons > button{
+  height: 40px;
+  margin: 0px 5px 0px 0px;
 }
 
 #header {
@@ -1015,7 +1031,7 @@ background-color: #E8E8E8;
 opacity: .9;
 }
 .menu_item:hover{
-	
+
 	border: 2px solid #E0E0E0;
 	background: #F8F8F8;
 	cursor: pointer;
@@ -1030,6 +1046,8 @@ opacity: .9;
   background-color: #d8d8d8;
   opacity: .9;
 }
+
+
 
 .search_box {
 width: 230px;
@@ -1368,7 +1386,7 @@ jQuery confirm styles
 .edit_model_overlay{
   width:100%;
   height:100%;
-  position:fixed;
+  position:absolute;
   top:0;
   left:0;
   background:url('../images/ie.png');
@@ -1378,12 +1396,12 @@ jQuery confirm styles
 }
 
 .edit_model_box{
+  margin: 0px auto;
+  margin-top: 50px;
   background:url('../images/body_bg.jpg') repeat-x left bottom #e5e5e5;
   width:460px;
-  position:fixed;
   left:50%;
   top:50px;
-  margin:10px 0 0 -230px;
   border: 1px solid rgba(33, 33, 33, 0.6);
 
   -moz-box-shadow: 0 0 2px rgba(255, 255, 255, 0.6) inset;
