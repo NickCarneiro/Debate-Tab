@@ -1613,22 +1613,53 @@ pdf.generateLDBallot = function(){
 
 	for(var i = 0; i < collection.rounds.length ; i++) {
 		doc.setFontSize(18);
+		var round = collection.rounds.at(i);
 		doc.text(20, 20, 'Lincoln Douglas Debate Ballot');
 		doc.setFontSize(13);
 		doc.text(130, 20, 'Room #:__________');
-		doc.text(20, 30, 'Round:___________'); doc.text(130,30, 'Judge:___________');
-		var affCode = collection.rounds.at(i).get("aff") || "";
-		var affTeam;
-		var negTeam;
+		doc.text(20, 30, 'Round:___________'); 
+		doc.text(130,30, 'Judge:___________');
+		var affCode = "";
+		if (round != undefined) {
+			affCode = round.get("aff");
+		}
+		//var affCode = collection.rounds.at(i).get("aff") || "";
+		var affTeam = "";
+		var negTeam = "";
 		if (affCode == 0){
-			affTeam = collection.rounds.at(i).get("team1").get("team_code");
-			negTeam = collection.rounds.at(i).get("team2").get("team_code");
+			affTeam = round.get("team1");
+			if (affTeam != undefined) {
+				affTeam = affTeam.get("team_code");
+			}
+			negTeam = round.get("team2");
+			if (negTeam != undefined) {
+				negTeam = negTeam.get("team_code");
+			}
 		}
 		else if (affCode == 1){
-			affTeam = collection.rounds.at(i).get("team2").get("team_code");
-			negTeam = collection.rounds.at(i).get("team1").get("team_code");
+			affTeam = round.get("team2");
+			if (affTeam != undefined) {
+				affTeam = affTeam.get("team_code");
+			}
+			negTeam = round.get("team1");
+			if (negTeam != undefined) {
+				negTeam = negTeam.get("team_code");
+			}
 		}
-		var roundName = collection.rounds.at(i).get("round_number").toString();
+
+		var roundName = "";
+		console.log("here");
+		if (round != undefined) {
+			console.log("here");
+			roundNo = round.get("round_number");
+			if (roundNo != undefined) {
+				roundName = roundNo.toString();
+			}
+			else {
+				roundName = "";
+			}
+		}
+
 		doc.text(39,30,roundName);
 		//const round_text = 'Round: ' + headers.round_number;
 		doc.text(20, 40, 'Affirmative Code:___________'); doc.text(130,40, 'Negative Code:___________');
@@ -1636,9 +1667,30 @@ pdf.generateLDBallot = function(){
 		//doc.text(20, 60, headers.message);
 		doc.text(59, 40 ,affTeam);
 		doc.text(164, 40, negTeam);
-		var judgeName = collection.rounds.at(i).get("judge").get("name");
+		var judgeName = round.get("judge");
+		if (judgeName === undefined) {
+			judgeName = "";
+		}
+		else {
+			judgeName = judgeName.get("name");
+		}
 		doc.text(146,30, judgeName);
-		var room = collection.rounds.at(i).get("room").get("name");
+
+		var room =  "";
+		
+		if (round != undefined) {
+			room = round.get("room");
+			console.log( "ROhan " + room);
+			if (room != undefined) {	//do nothing
+				console.log("here1");
+				room = room.get("name");
+				console.log("here");
+			}
+			else {
+				room = "";
+			}
+		}
+
 		doc.text(149, 20, room);
 		doc.setFontSize(9);
 		doc.text(97,52, 'Points');
@@ -1708,8 +1760,8 @@ pdf.generateCXBallot = function(){
 
 		doc.setFontSize(13);
 		doc.text(130, 20, 'Room #:________');
-		var room =  "";
 		
+		var room =  "";
 		if (round != undefined) {
 			room = round.get("room");
 			console.log( "ROhan " + room);
@@ -1723,18 +1775,14 @@ pdf.generateCXBallot = function(){
 			}
 		}
 		
-
 		//console.log(room);
 		//doc.text(149, 20, 'Fill Room');
 		doc.text(149, 20, room);
 		doc.text(20, 30, 'Round:___________'); 
 		doc.text(130,30, 'Judge:___________');
 		//doc.text(38,30,'Fill Round');
-		console.log("here");
 		var roundName = "";
-		console.log("here");
 		if (round != undefined) {
-			console.log("here");
 			roundNo = round.get("round_number");
 			if (roundNo != undefined) {
 				roundName = roundNo.toString();
@@ -1743,7 +1791,6 @@ pdf.generateCXBallot = function(){
 				roundName = "";
 			}
 		}
-		console.log("here");
 		//var roundName = collection.rounds.at(i).get("round_number").toString();
 		doc.text(38,30, roundName);
 		console.log('Round: ' + roundName);
@@ -1794,92 +1841,130 @@ pdf.generateCXBallot = function(){
 pdf.generateOFBallot = function(){
 	// generate a blank document
 	var doc = new jsPDF();
+	var currentTime = new Date();
+	var month = currentTime.getMonth() + 1;
+	var day = currentTime.getDate();
+	var year = currentTime.getFullYear();
+	for(var i = 0; i < collection.rounds.length ; i++){
+		var round = collection.rounds.at(i);
+		doc.setFontSize(18);
+		doc.text(20, 20, 'Public Forum Debate Ballot');
+		doc.setFontSize(13);
+		var roundName = "";
+		if (round != undefined) {
+			roundNo = round.get("round_number");
+			if (roundNo != undefined) {
+				roundName = roundNo.toString();
+			}
+			else {
+				roundName = "";
+			}
+		}
 
-	doc.setFontSize(18);
-	doc.text(20, 20, 'Public Forum Debate Ballot');
-	doc.setFontSize(13);
+		var room =  "";
+		if (round != undefined) {
+			room = round.get("room");
+			console.log( "ROhan " + room);
+			if (room != undefined) {	//do nothing
+				console.log("here1");
+				room = room.get("name");
+				console.log("here");
+			}
+			else {
+				room = "";
+			}
+		}
 
-	doc.text(20, 30, 'Round:___________'); doc.text(130,30, 'Judge:___________');
-	doc.text(39,30,'Fill Round');
-	doc.text(40, 37 ,'Fill Room');
-	doc.text(142, 37, 'Fill Date');
-	doc.text(146,30, 'Fill Judge');
-	//const round_text = 'Round: ' + headers.round_number;
-	doc.text(20, 37, 'Room #:___________'); doc.text(130,37, 'Date:___________');
-	//doc.text(20, 50, headers.start_time_text);
-	doc.setFontSize(10);
-	doc.text(35, 45, '________________________________________________________________________');
-	doc.text(35,45.4, '________________________________________________________________________');
-	//doc.text(20, 60, headers.message);
-	doc.setFontSize(9);
-	doc.text(25,55, 'Code _________________ Side _________________');
-	doc.text(25,60, 'Speaker 1 ___________________________________');
-	doc.text(25,65, 'Speaker 3 ___________________________________');
+		var judgeName = round.get("judge");
+		if (judgeName === undefined) {
+			judgeName = "";
+		}
+		else {
+			judgeName = judgeName.get("name");
+		}
 
-	doc.text(115,55, 'Code _________________ Side _________________');
-	doc.text(115,60, 'Speaker 2 ___________________________________');
-	doc.text(115,65, 'Speaker 4 ___________________________________');
-	//doc.setFontSize(11);
-	//doc.text(20, 60, 'AFFIRMATIVE ______________________  _____       NEGATIVE ______________________  _____  ');
-	//doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
-	doc.setFontSize(9);
-	doc.text(25,73, 'Team Points _______'); 
-	var startY = 79;
-	doc.setFontSize(11);
-	doc.text(88, 75, 'Points Scale');
-	doc.setFontSize(10);
-	doc.text(85,startY, '29-30 Outstanding');
-	doc.text(85,startY+4, '27-28 Above Average');
-	doc.text(85,startY+8, '24-26 Average');
-	doc.text(85,startY+12, '20-23 Below Average');
-	doc.text(135,73, 'Team Points _______'); 
-	//doc.text(20,79, 'but you must indicate the person doing the better job of debating');
+		doc.text(20, 30, 'Round:___________'); doc.text(130,30, 'Judge:___________');
+		doc.text(39,30,roundName);
+		doc.text(40, 37 ,room);
+		doc.text(142, 37, month + "/" + day + "/" + year);
+		doc.text(146,30, judgeName);
+		//const round_text = 'Round: ' + headers.round_number;
+		doc.text(20, 37, 'Room #:___________'); doc.text(130,37, 'Date:___________');
+		//doc.text(20, 50, headers.start_time_text);
+		doc.setFontSize(10);
+		doc.text(35, 45, '________________________________________________________________________');
+		doc.text(35,45.4, '________________________________________________________________________');
+		//doc.text(20, 60, headers.message);
+		doc.setFontSize(9);
+		doc.text(25,55, 'Code _________________ Side _________________');
+		doc.text(25,60, 'Speaker 1 ___________________________________');
+		doc.text(25,65, 'Speaker 3 ___________________________________');
 
-	doc.setFontSize(10);
-	doc.text(20, 105, 'The team that won this debate is _______________ representing the PRO/CON (please circle the winning side)');
-	doc.text(83, 110, '(Code)');
-	doc.setFontSize(9);
-	doc.text(25, 120, 'Comments to debaters');
-	doc.text(130, 120, 'Comments to debaters');
-	doc.setFontSize(12);
-	startY = 123;		//draw a vertical line
-	doc.text(100, startY, '|');
-	startY += 3.7;
-	doc.text(100, startY, '|');
-	startY += 3.7;
-	doc.text(100, startY, '|');
-	startY += 3.7;
-	doc.text(100, startY, '|');
-	startY += 3.7;
-	doc.text(100, startY, '|');
-	startY += 3.7;
-	doc.text(100, startY, '|');
-	startY += 3.7;
-	doc.text(100, startY, '|');
-	startY += 3.7;
-	doc.text(100, startY, '|');
-	startY += 3.7;
-	doc.text(100, startY, '|');
-	startY += 3.7;
-	doc.text(100, startY, '|');
-	startY += 4;
-	doc.text(100, startY, '|');
-	startY += 4;
-	doc.text(100, startY, '|');
-	startY += 4;
-	doc.text(100, startY, '|');
-	startY += 4;
-	doc.text(100, startY, '|');
-	startY += 4;
-	doc.text(100, startY, '|');
-	startY += 4;
-	doc.text(100, startY, '|');
-	startY += 4;
+		doc.text(115,55, 'Code _________________ Side _________________');
+		doc.text(115,60, 'Speaker 2 ___________________________________');
+		doc.text(115,65, 'Speaker 4 ___________________________________');
+		//doc.setFontSize(11);
+		//doc.text(20, 60, 'AFFIRMATIVE ______________________  _____       NEGATIVE ______________________  _____  ');
+		//doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
+		doc.setFontSize(9);
+		doc.text(25,73, 'Team Points _______'); 
+		var startY = 79;
+		doc.setFontSize(11);
+		doc.text(88, 75, 'Points Scale');
+		doc.setFontSize(10);
+		doc.text(85,startY, '29-30 Outstanding');
+		doc.text(85,startY+4, '27-28 Above Average');
+		doc.text(85,startY+8, '24-26 Average');
+		doc.text(85,startY+12, '20-23 Below Average');
+		doc.text(135,73, 'Team Points _______'); 
+		//doc.text(20,79, 'but you must indicate the person doing the better job of debating');
 
-	doc.setFontSize(10);
-	doc.text(20, 200, 'These are the reasons for my decision:');
-	doc.text(20, 280, 'Judge Signature: _____________________________ Affiliation/Occupation _____________________________');
+		doc.setFontSize(10);
+		doc.text(20, 105, 'The team that won this debate is _______________ representing the PRO/CON (please circle the winning side)');
+		doc.text(83, 110, '(Code)');
+		doc.setFontSize(9);
+		doc.text(25, 120, 'Comments to debaters');
+		doc.text(130, 120, 'Comments to debaters');
+		doc.setFontSize(12);
+		startY = 123;		//draw a vertical line
+		doc.text(100, startY, '|');
+		startY += 3.7;
+		doc.text(100, startY, '|');
+		startY += 3.7;
+		doc.text(100, startY, '|');
+		startY += 3.7;
+		doc.text(100, startY, '|');
+		startY += 3.7;
+		doc.text(100, startY, '|');
+		startY += 3.7;
+		doc.text(100, startY, '|');
+		startY += 3.7;
+		doc.text(100, startY, '|');
+		startY += 3.7;
+		doc.text(100, startY, '|');
+		startY += 3.7;
+		doc.text(100, startY, '|');
+		startY += 3.7;
+		doc.text(100, startY, '|');
+		startY += 4;
+		doc.text(100, startY, '|');
+		startY += 4;
+		doc.text(100, startY, '|');
+		startY += 4;
+		doc.text(100, startY, '|');
+		startY += 4;
+		doc.text(100, startY, '|');
+		startY += 4;
+		doc.text(100, startY, '|');
+		startY += 4;
+		doc.text(100, startY, '|');
+		startY += 4;
 
+		doc.setFontSize(10);
+		doc.text(20, 200, 'These are the reasons for my decision:');
+		doc.text(20, 280, 'Judge Signature: _____________________________ Affiliation/Occupation _____________________________');
+		doc.addPage();
+	}
 
 	// Output as Data URI so that it can be downloaded / viewed
 	doc.output('datauri');
