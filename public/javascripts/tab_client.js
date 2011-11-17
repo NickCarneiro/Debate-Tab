@@ -80,9 +80,9 @@ model.Tournament = Backbone.Model.extend({
 });
 
 model.Competitor = Backbone.Model.extend({
-	initialize: function(){
-	            console.log("initialized new competitor");
-	        }
+	default: {
+		name: ""
+	}
 });
 
 model.Team = Backbone.Model.extend({
@@ -129,7 +129,8 @@ model.Room = Backbone.Model.extend({
 	default: {
 		id: null,
 		school_name: "DEFAULT_ROOM_NAME",
-		division: null
+		division: null,
+		name: null
 
 	} ,
 	initialize: function() {
@@ -165,7 +166,8 @@ model.Round = Backbone.Model.extend({
 		team1		: null, //reference to team1 in teams collection
 		team2		: null, //
 		aff			: null, //team1 or team2
-		result		: null
+		result		: null,
+		room        : null
 		/*
 		result can be: 0 - 7:
 		0 AFF_WIN_NEG_LOSS
@@ -343,6 +345,11 @@ collection.Rounds = Backbone.Collection.extend({
 BEGIN: Define Pairing Functions
 =========================================
 */	
+
+//deletes everything.
+pairing.clearStorage = function(){
+	localStorage.clear();
+}
 // all functions for tab below this point
 pairing.getSchoolFromId = function(school_id){
 	for(var i = 0; i < collection.schools.length; i++){
@@ -1604,36 +1611,56 @@ pdf.generateLDBallot = function(){
 	// generate a blank document
 	var doc = new jsPDF();
 
-
-	doc.setFontSize(18);
-	doc.text(20, 20, 'Lincoln Douglas Debate Ballot');
-	doc.setFontSize(13);
-	doc.text(20, 30, 'Round:___________'); doc.text(130,30, 'Judge:___________');
-	doc.text(39,30,'Fill form');
-	//const round_text = 'Round: ' + headers.round_number;
-	doc.text(20, 40, 'Affirmative Code:___________'); doc.text(130,40, 'Negative Code:___________');
-	//doc.text(20, 50, headers.start_time_text); 
-	//doc.text(20, 60, headers.message);
-	doc.setFontSize(9);
-	doc.text(97,52, 'Points');
-	doc.text(186,52, 'Points');
-	doc.setFontSize(11);
-	doc.text(20, 60, 'AFFIRMATIVE ______________________  _____       NEGATIVE ______________________  _____  ');
-	//doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
-	doc.setFontSize(9);
-	doc.text(20,75, 'Speakers should be rated on a scale from 20-30 points.  Half points (.5) are allowed.You may have a tie in points,'); 
-	doc.text(20,79, 'but you must indicate the person doing the better job of debating');
-	doc.setFontSize(13);
-	doc.text(20,94, 'COMMENTS AND REASON(S) FOR DECISION');
-	doc.text(20,94, '_______________________________________');
-	doc.setFontSize(11);
-	doc.text(20,240, 'In my opinion, the better debating was done by  AFFIRMATIVE  NEGATIVE  representing  __________');
-	doc.text(115,245, '(Circle One)');
-	doc.text(176,245, '(Team Code)');
-	doc.text(20, 265, '___________________________________                             _______________________________');
-	doc.text(20, 270, 'Judge Signature');
-	doc.text(128,270, 'Affiliation (School)');
-
+	for(var i = 0; i < collection.rounds.length ; i++) {
+		doc.setFontSize(18);
+		doc.text(20, 20, 'Lincoln Douglas Debate Ballot');
+		doc.setFontSize(13);
+		doc.text(130, 20, 'Room #:__________');
+		doc.text(20, 30, 'Round:___________'); doc.text(130,30, 'Judge:___________');
+		var affCode = collection.rounds.at(i).get("aff") || "";
+		var affTeam;
+		var negTeam;
+		if (affCode == 0){
+			affTeam = collection.rounds.at(i).get("team1").get("team_code");
+			negTeam = collection.rounds.at(i).get("team2").get("team_code");
+		}
+		else if (affCode == 1){
+			affTeam = collection.rounds.at(i).get("team2").get("team_code");
+			negTeam = collection.rounds.at(i).get("team1").get("team_code");
+		}
+		var roundName = collection.rounds.at(i).get("round_number").toString();
+		doc.text(39,30,roundName);
+		//const round_text = 'Round: ' + headers.round_number;
+		doc.text(20, 40, 'Affirmative Code:___________'); doc.text(130,40, 'Negative Code:___________');
+		//doc.text(20, 50, headers.start_time_text); 
+		//doc.text(20, 60, headers.message);
+		doc.text(59, 40 ,affTeam);
+		doc.text(164, 40, negTeam);
+		var judgeName = collection.rounds.at(i).get("judge").get("name");
+		doc.text(146,30, judgeName);
+		var room = collection.rounds.at(i).get("room").get("name");
+		doc.text(149, 20, room);
+		doc.setFontSize(9);
+		doc.text(97,52, 'Points');
+		doc.text(186,52, 'Points');
+		doc.setFontSize(11);
+		doc.text(20, 60, 'AFFIRMATIVE ______________________  _____       NEGATIVE ______________________  _____  ');
+		//doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
+		doc.setFontSize(9);
+		doc.text(20,75, 'Speakers should be rated on a scale from 20-30 points.  Half points (.5) are allowed.You may have a tie in points,'); 
+		doc.text(20,79, 'but you must indicate the person doing the better job of debating');
+		doc.setFontSize(13);
+		doc.text(20,94, 'COMMENTS AND REASON(S) FOR DECISION');
+		doc.text(20,94, '_______________________________________');
+		doc.setFontSize(11);
+		doc.text(20,240, 'In my opinion, the better debating was done by  AFFIRMATIVE  NEGATIVE  representing  __________');
+		doc.text(115,245, '(Circle One)');
+		doc.text(176,245, '(Team Code)');
+		doc.text(20, 265, '___________________________________                             _______________________________');
+		doc.text(20, 270, 'Judge Signature');
+		doc.text(128,270, 'Affiliation (School)');
+		doc.addPage();
+	}
 	// Output as Data URI so that it can be downloaded / viewed
 	doc.output('datauri');
 }
@@ -1641,36 +1668,218 @@ pdf.generateLDBallot = function(){
 pdf.generateCXBallot = function(){
 	// generate a blank document
 	var doc = new jsPDF();
+	//collection.rounds.at(0).get("team1".get("team_code"));
+	console.log('Size: ' + collection.rounds.length);
+	//console.log('adfasfads');
+	for(var i = 0; i < collection.rounds.length ; i++){
+		console.log('i:' + i);
+		var round = collection.rounds.at(i);
+		var affCode = "";
+		if (round != undefined) {
+			affCode = round.get("aff");
+		}
+		//var affCode = collection.rounds.at(i).get("aff") || "";
+		var affTeam = "";
+		var negTeam = "";
+		if (affCode == 0){
+			affTeam = round.get("team1");
+			if (affTeam != undefined) {
+				affTeam = affTeam.get("team_code");
+			}
+			negTeam = round.get("team2");
+			if (negTeam != undefined) {
+				negTeam = negTeam.get("team_code");
+			}
+		}
+		else if (affCode == 1){
+			affTeam = round.get("team2");
+			if (affTeam != undefined) {
+				affTeam = affTeam.get("team_code");
+			}
+			negTeam = round.get("team1");
+			if (negTeam != undefined) {
+				negTeam = negTeam.get("team_code");
+			}
+		}
+		//console.log(affTeam);
+		//console.log(negTeam);
+		doc.setFontSize(18);
+		doc.text(20, 20, 'Cross Examination Debate Ballot');
 
+		doc.setFontSize(13);
+		doc.text(130, 20, 'Room #:________');
+		var room =  "";
+		
+		if (round != undefined) {
+			room = round.get("room");
+			console.log( "ROhan " + room);
+			if (room != undefined) {	//do nothing
+				console.log("here1");
+				room = room.get("name");
+				console.log("here");
+			}
+			else {
+				room = "";
+			}
+		}
+		
+
+		//console.log(room);
+		//doc.text(149, 20, 'Fill Room');
+		doc.text(149, 20, room);
+		doc.text(20, 30, 'Round:___________'); 
+		doc.text(130,30, 'Judge:___________');
+		//doc.text(38,30,'Fill Round');
+		console.log("here");
+		var roundName = "";
+		console.log("here");
+		if (round != undefined) {
+			console.log("here");
+			roundNo = round.get("round_number");
+			if (roundNo != undefined) {
+				roundName = roundNo.toString();
+			}
+			else {
+				roundName = "";
+			}
+		}
+		console.log("here");
+		//var roundName = collection.rounds.at(i).get("round_number").toString();
+		doc.text(38,30, roundName);
+		console.log('Round: ' + roundName);
+
+		var judgeName = round.get("judge");
+		if (judgeName === undefined) {
+			judgeName = "";
+		}
+		else {
+			judgeName = judgeName.get("name");
+		}
+		console.log('Judge: ' + judgeName);
+		doc.text(146,30, judgeName);
+
+		//const round_text = 'Round: ' + headers.round_number;
+		doc.text(20, 40, 'Affirmative Code:___________'); doc.text(130,40, 'Negative Code:___________');
+		//doc.text(59, 40 ,'Fill aff code');
+		//doc.text(164, 40, 'Fill neg code');
+		doc.text(59, 40, affTeam);
+		doc.text(164, 40, negTeam);
+		//doc.text(20, 50, headers.start_time_text); 
+		//doc.text(20, 60, headers.message);
+		doc.setFontSize(9);
+		doc.text(77,52, 'Points    Ranks');
+		doc.text(164,52, 'Points    Ranks');
+		doc.setFontSize(11);
+		doc.text(20, 60, '1st AFF. __________________  _____  _____     1st NEG. __________________  _____  _____');
+		doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
+		doc.setFontSize(9);
+		doc.text(20,80, 'Speakers should be rated on a scale from 20-30 points.  Half points (.5) are allowed.You may have a tie in points,'); 
+		doc.text(20,84, 'but you must indicate the person doing the better job of debating');
+		doc.setFontSize(13);
+		doc.text(20,94, 'COMMENTS AND REASON(S) FOR DECISION');
+		doc.text(20,94, '_______________________________________');
+		doc.setFontSize(11);
+		doc.text(20,240, 'In my opinion, the better debating was done by  AFFIRMATIVE  NEGATIVE  representing  __________');
+		doc.text(115,245, '(Circle One)');
+		doc.text(176,245, '(Team Code)');
+		doc.text(20, 265, '___________________________________                             _______________________________');
+		doc.text(20, 270, 'Judge Signature');
+		doc.text(128,270, 'Affiliation (School)');
+		doc.addPage();
+	// Output as Data URI so that it can be downloaded / viewed
+}
+	doc.output('datauri');
+}
+
+pdf.generateOFBallot = function(){
+	// generate a blank document
+	var doc = new jsPDF();
 
 	doc.setFontSize(18);
-	doc.text(20, 20, 'Cross Examination Debate Ballot');
+	doc.text(20, 20, 'Public Forum Debate Ballot');
 	doc.setFontSize(13);
+
 	doc.text(20, 30, 'Round:___________'); doc.text(130,30, 'Judge:___________');
-	doc.text(39,30,'Fill form');
+	doc.text(39,30,'Fill Round');
+	doc.text(40, 37 ,'Fill Room');
+	doc.text(142, 37, 'Fill Date');
+	doc.text(146,30, 'Fill Judge');
 	//const round_text = 'Round: ' + headers.round_number;
-	doc.text(20, 40, 'Affirmative Code:___________'); doc.text(130,40, 'Negative Code:___________');
-	//doc.text(20, 50, headers.start_time_text); 
+	doc.text(20, 37, 'Room #:___________'); doc.text(130,37, 'Date:___________');
+	//doc.text(20, 50, headers.start_time_text);
+	doc.setFontSize(10);
+	doc.text(35, 45, '________________________________________________________________________');
+	doc.text(35,45.4, '________________________________________________________________________');
 	//doc.text(20, 60, headers.message);
 	doc.setFontSize(9);
-	doc.text(77,52, 'Points    Ranks');
-	doc.text(164,52, 'Points    Ranks');
-	doc.setFontSize(11);
-	doc.text(20, 60, '1st AFF. __________________  _____  _____     1st NEG. __________________  _____  _____');
-	doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
+	doc.text(25,55, 'Code _________________ Side _________________');
+	doc.text(25,60, 'Speaker 1 ___________________________________');
+	doc.text(25,65, 'Speaker 3 ___________________________________');
+
+	doc.text(115,55, 'Code _________________ Side _________________');
+	doc.text(115,60, 'Speaker 2 ___________________________________');
+	doc.text(115,65, 'Speaker 4 ___________________________________');
+	//doc.setFontSize(11);
+	//doc.text(20, 60, 'AFFIRMATIVE ______________________  _____       NEGATIVE ______________________  _____  ');
+	//doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
 	doc.setFontSize(9);
-	doc.text(20,80, 'Speakers should be rated on a scale from 20-30 points.  Half points (.5) are allowed.You may have a tie in points,'); 
-	doc.text(20,84, 'but you must indicate the person doing the better job of debating');
-	doc.setFontSize(13);
-	doc.text(20,94, 'COMMENTS AND REASON(S) FOR DECISION');
-	doc.text(20,94, '_______________________________________');
+	doc.text(25,73, 'Team Points _______'); 
+	var startY = 79;
 	doc.setFontSize(11);
-	doc.text(20,240, 'In my opinion, the better debating was done by  AFFIRMATIVE  NEGATIVE  representing  __________');
-	doc.text(115,245, '(Circle One)');
-	doc.text(176,245, '(Team Code)');
-	doc.text(20, 265, '___________________________________                             _______________________________');
-	doc.text(20, 270, 'Judge Signature');
-	doc.text(128,270, 'Affiliation (School)');
+	doc.text(88, 75, 'Points Scale');
+	doc.setFontSize(10);
+	doc.text(85,startY, '29-30 Outstanding');
+	doc.text(85,startY+4, '27-28 Above Average');
+	doc.text(85,startY+8, '24-26 Average');
+	doc.text(85,startY+12, '20-23 Below Average');
+	doc.text(135,73, 'Team Points _______'); 
+	//doc.text(20,79, 'but you must indicate the person doing the better job of debating');
+
+	doc.setFontSize(10);
+	doc.text(20, 105, 'The team that won this debate is _______________ representing the PRO/CON (please circle the winning side)');
+	doc.text(83, 110, '(Code)');
+	doc.setFontSize(9);
+	doc.text(25, 120, 'Comments to debaters');
+	doc.text(130, 120, 'Comments to debaters');
+	doc.setFontSize(12);
+	startY = 123;		//draw a vertical line
+	doc.text(100, startY, '|');
+	startY += 3.7;
+	doc.text(100, startY, '|');
+	startY += 3.7;
+	doc.text(100, startY, '|');
+	startY += 3.7;
+	doc.text(100, startY, '|');
+	startY += 3.7;
+	doc.text(100, startY, '|');
+	startY += 3.7;
+	doc.text(100, startY, '|');
+	startY += 3.7;
+	doc.text(100, startY, '|');
+	startY += 3.7;
+	doc.text(100, startY, '|');
+	startY += 3.7;
+	doc.text(100, startY, '|');
+	startY += 3.7;
+	doc.text(100, startY, '|');
+	startY += 4;
+	doc.text(100, startY, '|');
+	startY += 4;
+	doc.text(100, startY, '|');
+	startY += 4;
+	doc.text(100, startY, '|');
+	startY += 4;
+	doc.text(100, startY, '|');
+	startY += 4;
+	doc.text(100, startY, '|');
+	startY += 4;
+	doc.text(100, startY, '|');
+	startY += 4;
+
+	doc.setFontSize(10);
+	doc.text(20, 200, 'These are the reasons for my decision:');
+	doc.text(20, 280, 'Judge Signature: _____________________________ Affiliation/Occupation _____________________________');
+
 
 	// Output as Data URI so that it can be downloaded / viewed
 	doc.output('datauri');
@@ -1929,7 +2138,7 @@ view.TeamTable = Backbone.View.extend({
 		"click #add_team_button": "addTeam",
 		"keyup #teams_search": "search",
 		"change #newteam_division": "showCompetitors",
-		"blur .newteam_competitor": "generateTeamName",
+		"focus #newteam_name": "generateTeamName",
 		"keyup #newteam_name":		"keyupTeamName"
 	} ,
 	initialize: function(){
@@ -1961,11 +2170,12 @@ view.TeamTable = Backbone.View.extend({
 	//called when a competitor name box is modified.
 	//generate a team name if every competitor name has been entered.
 	generateTeamName: function(){
+		console.log("generating team name");
 		var competitors =  $("#newteam_competitors").find("input");
 
 		//count number of filled in competitor names to see if they are all complete
 		var i = 0;
-		$("#newteam_competitors").find("input").each(function(index, comp_name){
+		$("#newteam_competitors > .newteam_competitor").each(function(index, comp_name){
 			if($(comp_name).val().length > 0){
 				i++;
 			}
@@ -2702,8 +2912,10 @@ view.StatsArea = Backbone.View.extend({
 view.Round = Backbone.View.extend({
 	tagName: "tr" ,
 	events: { 
-      'click td.remove': 'remove'
+      'click td.remove': 'remove',
+      'click td.roundrow': 'showEditForm'
     },  
+
 
 	initialize: function(){
 		_.bindAll(this, "render", "unrender", "remove");
@@ -2764,13 +2976,37 @@ view.Round = Backbone.View.extend({
 		}
 		var div_name = this.model.get("division").get("division_name");
 		var num = this.model.get("round_number");
-		$(this.el).html('<td>' + aff + '</td> <td>' + neg + '</td><td>'+judge+
-			'</td><td>'+room+'</td><td>' + div_name + '</td><td>'+num+'</td><td class="remove"><button>Remove</button></td>');
+		$(this.el).html('<td class="roundrow">' + aff + '</td> <td class="roundrow">' + neg + '</td><td class="roundrow">'+judge+
+			'</td><td class="roundrow">'+room+'</td><td class="roundrow">' + div_name + '</td><td>'+num+'</td><td class="remove"><button>Remove</button></td>');
 		return this; //required for chainable call, .render().el
 	} ,
 	unrender: function(){
 		$(this.el).remove();
-	}
+	},
+
+	showEditForm: function(){
+		//populate form with existing values
+		//populate team 1 competitors
+		console.log(this.model);
+		var competitors = this.model.get("team1").get("competitors");
+		if(competitors != undefined){
+		
+			for(var i = 0; i < competitors.length; i++){
+				var comp_model = new model.Competitor();
+				comp_model.set({name: competitors[i].name});
+				$("#editround_team1 > .competitors").append((new view.CompetitorInput({model: comp_model})).render().el);
+			}
+		} else {
+			//no competitors? team1 must have been a bye
+			$("#editround_team1 > .competitors").append("BYE");
+		}
+		
+
+		//populate team2 competitors
+
+		$(".edit_model_overlay").css("height", $(document).height());
+		$("#round_form_overlay").fadeIn();
+	} ,
 });
 
 
@@ -2913,6 +3149,33 @@ view.RoundTable = Backbone.View.extend({
 		return this;
 	} 
 	
+});
+
+
+//part of the edit round form
+view.CompetitorInput = Backbone.View.extend({
+	tagName: "div" ,
+	events: { 
+      
+    },  
+
+	initialize: function(){
+		_.bindAll(this, "render", "unrender", "remove");
+	    this.model.bind('remove', this.unrender);
+		this.model.bind('change', this.render);
+
+	} ,
+	render: function(){
+		console.log("rendering competitor input");
+		//these will be rendered in order that they appear in the competitors array in a team model
+		var html = '<span class="competitor_name">' + this.model.get("name") + '</span> Speaker points: <input type="text" class="speaker_points" />' +
+			'Rank: <input type="text" class="rank" />'
+		$(this.el).html(html);
+		return this; //required for chainable call, .render().el
+	} ,
+	unrender: function(){
+		$(this.el).remove();
+	}
 });
 
 view.School = Backbone.View.extend({
@@ -3071,6 +3334,7 @@ view.Division = Backbone.View.extend({
 
 	} ,
 	showEditForm: function(){
+		console.log("showing division edit form");
 		//populate form with existing values
 		$("#newdiv_id").val(this.model.get("id"));
 		$("#newdiv_division_name").val(this.model.get("division_name"));
@@ -3081,6 +3345,8 @@ view.Division = Backbone.View.extend({
 		$("#newdiv_max_speaks").val(this.model.get("max_speaks"));
 		$("#newdiv_prelims").val(this.model.get("prelims"));
 		$("#newdiv_ballot_type").val(this.model.get("ballot_type"));
+
+		$(".edit_model_overlay").css("height", $(document).height());
 		$("#division_form_overlay").fadeIn();
 	} ,
 	remove: function(division){
@@ -3150,7 +3416,7 @@ view.DivisionTable = Backbone.View.extend({
 		//TODO: validate school name
 	
 
-		var id = $("#newdiv_id").val();
+		
 		
 		//TODO: verify all this input
 		var division_name = $("#newdiv_division_name").val();
@@ -3188,11 +3454,13 @@ view.DivisionTable = Backbone.View.extend({
 		$(".edit_model_overlay").fadeOut();
 
 		//check if we are modifying an existing division or created a new one
+		var id = $("#newdiv_id").val();
+		console.log(id);
 		if(id.length > 0){
+			console.log("updating existing model");
 			//update existing model
 			var division = pairing.getDivisionFromId(id);
 			division.set({
-			
 			division_name	: division_name,
 			comp_per_team	: comp_per_team,
 			flighted_rounds	: flighted_rounds,
@@ -3204,6 +3472,7 @@ view.DivisionTable = Backbone.View.extend({
 
 		});
 		} else {
+			console.log("creating new model");
 			var division = new model.Division();
 			division.set({
 			id				: (new ObjectId).toString(),
@@ -3381,6 +3650,17 @@ $("#mass_texts").click(function(){
 	});
 });
 
+
+//when window is resized, change overlay to match it.
+//we want the gradient to always stretch over the entire screen
+//behind the edit window
+$(window).resize(function(){
+	$(".edit_model_overlay").css("height", $(document).height());
+});
+
+
+
+
 //Code for PDF Menu
 $("#menu_pdf").click(function(){
 	$(".container").hide();
@@ -3420,6 +3700,9 @@ $("#ballot_gen").click(function(){
 
 $("#ballotLD_gen").click(function(){
 	pdf.generateLDBallot();	
+});
+$("#ballotOF_gen").click(function(){
+	pdf.generateOFBallot();	
 });
 
 //Code for PDF Brackets Generation
@@ -3613,7 +3896,24 @@ $("#save_state").click(function(){
 });
 
 $("#clear_storage").click(function(){
-	localStorage.clear();
+
+	$.confirm({
+			'title'		: 'Clear localStorage',
+			'message'	: 'You are about to delete ALL LOCAL DATA <br />This will erase the entire tournament! Continue?',
+			'buttons'	: {
+				'Yes'	: {
+					
+					'class'	: 'blue',
+					'action': pairing.clearStorage
+				},
+				'No'	: {
+					'class'	: 'gray',
+					'action': function(){}	
+				}
+			},
+			
+		});
+	
 });
 
 $("#fetch_teams").click(function(){
