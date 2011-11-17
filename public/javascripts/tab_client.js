@@ -81,7 +81,10 @@ model.Tournament = Backbone.Model.extend({
 
 model.Competitor = Backbone.Model.extend({
 	default: {
-		name: ""
+		name: "",
+		total_speaks: 0,
+		adjusted_speaks: 0,
+		total_ranks: 0
 	}
 });
 
@@ -2301,26 +2304,24 @@ view.TeamTable = Backbone.View.extend({
 		var division_id = $("#newteam_division").val();
 		var division = pairing.getDivisionFromId(division_id);
 		var competitors = [];
-		var competitor_phone = [];
+		
 		//populate competitors based on form entries
-		console.log($("#newteam_competitors").children());
+		var i = 0;
 		$("#newteam_competitors").children().each(function(){
 				if(($(this).hasClass("newteam_competitor")) == true)
 				{
-					competitor_phone[0] = ($(this).val());
+					competitors.push({name: $(this).val(), phone_number: ""});
+					i++;
 					$(this).val("");
 				}
-				else
-				{
-					competitor_phone[1] = ($(this).val());
+				else if($(this).hasClass("competitor_phone")) {
+					//it's a phone number box
+					competitors[i-1].phone_number = $(this).val();
 					$(this).val("");
-					competitors.push(competitor_phone);
-					competitor_phone = [];
 				}
-
-			console.log(competitors);
+				
+			
 		});
-	
 		var school = pairing.getSchoolFromId(school_id);
 		
 		team.set({
