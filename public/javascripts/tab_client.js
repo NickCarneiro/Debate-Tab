@@ -6,23 +6,6 @@ Nick Carneiro
 ============================
 */
 
-var name2debate = {};
-// define HashMap of round names to num_debates_that_take_place
-name2debate["triple octafinals"] = 32;
-name2debate["double octafinals"] = 16;
-name2debate["octafinals"] = 8;
-name2debate["quarterfinals"] = 4;
-name2debate["semifinals"] = 2;
-name2debate["finals"] = 1;
-
-var debate2name = {};
-//define HashMap of num_debates_that_take_place to round names
-debate2name["32"] = "triple octafinals";
-debate2name["16"] = "double octafinals";
-debate2name["8"] = "octafinals";
-debate2name["4"] = "quarterfinals";
-debate2name["2"] = "semifinals";
-debate2name["1"] = "finals";
 
 //module pattern
 //see http://www.adequatelygood.com/2010/3/JavaScript-Module-Pattern-In-Depth
@@ -37,6 +20,24 @@ var tab = (function (){
 
 	//contains helpful functions for pairing rounds
 	var pairing = {};
+	pairing.name2debate = {};
+	// define HashMap of round names to num_debates_that_take_place
+	pairing.name2debate["triple octafinals"] = 32;
+	pairing.name2debate["double octafinals"] = 16;
+	pairing.name2debate["octafinals"] = 8;
+	pairing.name2debate["quarterfinals"] = 4;
+	pairing.name2debate["semifinals"] = 2;
+	pairing.name2debate["finals"] = 1;
+
+	pairing.debate2name = {};
+	//define HashMap of num_debates_that_take_place to round names
+	pairing.debate2name["32"] = "triple octafinals";
+	pairing.debate2name["16"] = "double octafinals";
+	pairing.debate2name["8"] = "octafinals";
+	pairing.debate2name["4"] = "quarterfinals";
+	pairing.debate2name["2"] = "semifinals";
+	pairing.debate2name["1"] = "finals";
+
 	//debug console
 	var con = {};
 	//functions to maniulate the interface and ui state
@@ -1893,8 +1894,8 @@ pdf.generateOFBallot = function(){
 pdf.generatePDF_Brackets = function(round_number, division, date, title) {
 	var teamsArray = new Array();
 
-	// name2debate returns the number of debates that takes place. so number of teams = number of debates x 2
-	const num_initial_teams = name2debate[round_number] * 2;
+	// pairing.name2debate returns the number of debates that takes place. so number of teams = number of debates x 2
+	const num_initial_teams = pairing.name2debate[round_number] * 2;
 
 	// number of separations. i.e. log2(num_initial_teams) + 1 (for the winner)
 	const num_cols = Math.log(num_initial_teams)/Math.log(2) + 1;
@@ -1920,7 +1921,7 @@ pdf.generatePDF_Brackets = function(round_number, division, date, title) {
 
 		if(round.get("division") === division) {
 			//get the number of the round
-			const number = name2debate(round.get("round_number")) * 2;		// multiply by 2 to get number of teams in round
+			const number = pairing.name2debate(round.get("round_number")) * 2;		// multiply by 2 to get number of teams in round
 
 			// check if the round should be included
 			// if it is a round equal to or after the initial round, then include it
@@ -2174,7 +2175,7 @@ view.TeamTable = Backbone.View.extend({
 	//generate a team name if every competitor name has been entered.
 	generateTeamName: function(){
 		console.log("generating team name");
-		var competitors =  $("#newteam_competitors").find("input");
+		var competitors =  $("#newteam_competitors > .newteam_competitor");
 
 		//count number of filled in competitor names to see if they are all complete
 		var i = 0;
@@ -2189,15 +2190,15 @@ view.TeamTable = Backbone.View.extend({
 
 			//case 1: 1 competitor. Use initials like
 			//Nick Carneiro => Round Rock NC
-			if(competitors.length === 2){
+			if(competitors.length === 1){
 				var whole_name = $(competitors.get(0)).val();
 				var names = whole_name.split(" ");
 				if(names.length >= 2){
 					
 					team_code += " " + names[0].substr(0,1) + names[1].substr(0,1);
 				}
-			} else if(competitors.length >=4){		
-				var whole_name = $(competitors.get(2)).val();	//TODO: fix indexing, should work for
+			} else if(competitors.length >=2){		
+				var whole_name = $(competitors.get(1)).val();	//TODO: fix indexing, should work for
 				var names = whole_name.split(" ");				//any number of competitors
 				var last_name = names[names.length-1];
 
@@ -2209,12 +2210,14 @@ view.TeamTable = Backbone.View.extend({
 					+ last_name_2.substr(0,1).toUpperCase();
 				
 			} else {
+			
 				//can't generate team code
 			}
 
 			$("#newteam_name").val(team_code);
 			
 		} else {
+		console.log("failed");
 			return;
 		}
 
@@ -2304,7 +2307,11 @@ view.TeamTable = Backbone.View.extend({
 		var division_id = $("#newteam_division").val();
 		var division = pairing.getDivisionFromId(division_id);
 		var competitors = [];
+<<<<<<< HEAD
 		
+=======
+		var competitor_phone = new Object();
+>>>>>>> 40dce192436ee7e17a286aad8121dd0447d7be04
 		//populate competitors based on form entries
 		var i = 0;
 		$("#newteam_competitors").children().each(function(){
@@ -2318,6 +2325,11 @@ view.TeamTable = Backbone.View.extend({
 					//it's a phone number box
 					competitors[i-1].phone_number = $(this).val();
 					$(this).val("");
+<<<<<<< HEAD
+=======
+					competitors.push(competitor_phone);
+					competitor_phone = new Object();
+>>>>>>> 40dce192436ee7e17a286aad8121dd0447d7be04
 				}
 				
 			
@@ -2439,12 +2451,21 @@ view.Judge = Backbone.View.extend({
 		$("#newjudge_id").val(this.model.get("id"));
 		$("#new_judge_name").val(this.model.get("name"));
 		$("#newjudge_school").val(this.model.get("school") === undefined ? "no_affiliation" : this.model.get("school").get("id")); 	
+		var div = this.model.get("divisions");
 		
-		for(i = 0; i < this.model.get("divisions").length; i++)
-		{	
-		//	$("#newjudge_divisions").val(true);						//iterate through all?
-		//	console.log(this.model.get("divisions")[i].id);
-		}
+		$("#newjudge_divisions").children().each(function(i, li){
+			if($(li).attr != undefined){
+				//console.log($(li).find("input").attr("checked"));
+				
+				for(var i = 0; i < div.length; i++)
+				
+				if($(li).data("division_id") === div[i].id){
+				
+					$(li).find("input").attr("checked", true);
+				}
+				
+			}
+		});
 		
 		
 		$("#judge_form_overlay").fadeIn();
@@ -2541,7 +2562,7 @@ view.JudgeTable = Backbone.View.extend({
 		$("#newjudge_id").val("");
 		$("#new_judge_name").val("");
 		$("#newjudge_school").val("");
-		$("#newjudge_divisions").val("");
+		$("#newjudge_divisions").find("input").attr("checked", false);
 	} ,
 	addJudge: function(){
 		//TODO: validate judge name
