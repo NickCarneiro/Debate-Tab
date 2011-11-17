@@ -85,42 +85,46 @@ JS includes
 
 		<div id="teams_container" class="container">
 			<div id="teams">
-			<button id="toggle_team_form">Add Team</button>
-			<div id="team_form" class="input_form">
-				<span class="generic_error" id="add_team_error"></span><br />
-				<label>
-				Division: <br />
-					<select id="newteam_division">
-					</select>
-				</label> 
-
-				School: <br />
-					<select id="newteam_school">
-					</select>
-				</label>
-				<br />
-				Competitor Names: <br />
-				<div id="newteam_competitors">
-					<input type="text" />
+			<div class="top_buttons">
 				
-				</div>
-				
-				<label>
-				Team code: <br />
-					<input id="newteam_name" />
-				</label>
-				<label>
+				<button id="toggle_team_form">Add Team</button>
+			</div>	
+					<div id="team_form" class="input_form">
+						<div class="edit_model_overlay" id="team_form_overlay">
+							<div class="edit_model_box">
+							<h1>Edit Team</h1>
+							<input id="newteam_id" type="hidden" value=""/>
+							<label>
+							Division: <br />
+							<select id="newteam_division">
+							</select>
+							</label> 
+							School: <br />
+							<select id="newteam_school">
+							</select>
+							</label> <br />
+							Competitors:
+							<div id="newteam_competitors">
+									
+							</div>				
+							<label>
+							Team code: <br />
+							<input id="newteam_name" />
+							</label>
+							
+							<label>
+							Stop scheduling: <br />
+							<input id="newteam_stop_scheduling" type="checkbox" />
+							</label>
 
-				<button class="save_button" id="add_team_button">Save</button>
-			</div>
-			
-			<table id="teams_table">
-
-			</table>
-			
-			</div>
-			
-			
+							<button class="save_button" id="add_team_button">Save</button>
+							<button class="cancel_button" id="cancel_team_button">Cancel</button>
+							</div>
+						</div>
+					</div>			
+					<table id="teams_table">
+					</table>			
+			</div>		
 		</div>
 
 		<div id="judges_container" class="container">
@@ -460,9 +464,6 @@ JS includes
 				<button id="ballotOF_gen">Generate Public Forum Ballot</button> <br />
 				<br />
 				<button id="pdf_brackets_gen">Generate Brackets</button> <br />
-
-				
-				<a href="#" rel="dialog_content" class="simpledialog">show dialog!</a>
 				
 				<h1>Import and Parse JOT File</h1>
 				<button id="parse_jot">Parse</button> <br />
