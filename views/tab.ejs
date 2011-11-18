@@ -35,7 +35,16 @@ JS includes
 			
 		<div id="rounds_container" class="container">
 			<div id="rounds">
-			
+				<div class="edit_model_overlay" id="print_pairings_details">
+					<div class="edit_model_box">
+						Start Time:<br />
+						<input id="print_pairings_start" /> <br /><br />
+						Message: <br />
+						<input id="print_pairings_message" /><br />
+						<button class="save_button" id="print_pairings_confirm">Print</button>
+						<button class="cancel_button" id="print_pairings_cancel">Cancel</button>
+					</div>
+				</div>
 				<div class="edit_model_overlay" id="round_form_overlay">
 					<div class="edit_model_box">
 						<h1>Edit Round</h1>
@@ -99,6 +108,13 @@ JS includes
 					<button id="add_round_button">Add Debate</button>
 					<button id="pair_round_button">Pair Round</button>
 					<button id="print_ballots_button">Print Ballots</button>
+					<button id="print_pairings">Print Pairings</button>
+					<button id="text_pairings_button">Text Pairings</button>
+					<div class="results_container">
+						<button id="print_teams_button">Print Teams</button>
+						<button id="print_speakers_button">Print Speakers</button>
+						<button id="print_breaks_button">Print Breaks</button>
+					</div>
 				</div>
 					
 			</div>
@@ -111,6 +127,7 @@ JS includes
 				<button id="toggle_team_form">Add Team</button>
 			</div>	
 					<div id="team_form" class="input_form">
+						
 						<div class="edit_model_overlay" id="team_form_overlay">
 							<div class="edit_model_box">
 							<h1>Edit Team</h1>

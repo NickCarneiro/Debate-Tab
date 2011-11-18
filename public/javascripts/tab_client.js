@@ -1736,12 +1736,12 @@ pdf.generateLDBallot = function(round_number, division){
 	doc.output('datauri');
 }
 
-pdf.generateColumnsPDF = function(matrix) {		//takes in two dimensional array of strings
-	var testMatrix = [
-		['asdfas','asdfas','asdfas','asdfas','asdfas'],
-		['qwrqq','asdf','zxvc','12312','908908'],
-		['asdfas','asdfas','asdfas','asdfas','asdfas']
-	];
+//lists teams in order
+pdf.generateTeams = function(division) {	
+
+	//sort teams in order
+	collection.teams.sort();	
+	
 	var doc = new jsPDF();
 	var team = 20;
 	var wins = team + 50;
@@ -1755,13 +1755,18 @@ pdf.generateColumnsPDF = function(matrix) {		//takes in two dimensional array of
 	doc.text(ranks,30,'Ranks');
 	doc.setFontSize(10);
 	var y = 40;
-	for (var i = 0; i < testMatrix.length; i++, y+=10) {
-			doc.text(team, y, testMatrix[i][0]); 
-			doc.text(wins,y,testMatrix[i][1]);
-			doc.text(adjusted,y,testMatrix[i][2]);
-			doc.text(total,y,testMatrix[i][3]);
-			doc.text(ranks,y,testMatrix[i][4]);
+	for(var i = 0; i < collection.teams.length; i++){
+		if(collection.teams.at(i).get("division") != division){
+			continue;
+		}
+		doc.text(team, y, collection.teams.at(i).get("team_code")); 
+		doc.text(wins,y, collection.teams.at(i).get("wins") + "-" + collection.teams.at(i).get("losses"));
+		doc.text(adjusted,y, collection.teams.at(i).get("adjusted_speaks") || "");
+		doc.text(total,y, collection.teams.at(i).get("total_speaks") || "");
+		doc.text(ranks,y, collection.teams.at(i).get("ranks") || "");
+		y += 5
 	}
+	
 	doc.output('datauri');
 }
 
@@ -3287,7 +3292,10 @@ view.RoundTable = Backbone.View.extend({
 		"change #editround_team2_code": "changeTeam",
 		"change #editround_judge": "changeJudge",
 		"change #editround_room": "changeRoom",
-		"click #editround_swap_sides": "swapSides"
+		"click #editround_swap_sides": "swapSides",
+		"click #print_pairings": "printPairingsPrompt",
+		"click #print_pairings_confirm": "printPairings",
+		"click #print_teams_button": "printTeams"
 	} ,
 	initialize: function(){
 		_.bindAll(this, "render", "addRound", "appendRound", "renderRoundNumberSelect");
@@ -3300,6 +3308,40 @@ view.RoundTable = Backbone.View.extend({
 		collection.divisions.bind("reset", this.renderDivisionSelect, this);
 		collection.divisions.bind("add", this.renderDivisionSelect, this);
 		this.render();
+		
+	} ,
+
+	printTeams: function(){
+		var div_id = $("#rounds_division_select").val();
+		var division = pairing.getDivisionFromId(div_id);
+		pdf.generateTeams(division);
+	} ,
+	printPairingsPrompt: function(){
+		$("#print_pairings_details").fadeIn();
+	} ,
+	printPairings: function(){
+		var div_id = $("#rounds_division_select").val();
+		var division = pairing.getDivisionFromId(div_id);
+		var round_number = $("#rounds_round_number_select").val();
+		var start = $("#print_pairings_start").val();
+		var message = $("#print_pairings_message").val();
+		var headers = {
+			tournament_name: 'Round Rock HS Tournament',
+			date: '11/18/11',
+			round_number: round_number,
+			start_time_text: start,
+			message: message,
+			division: division
+		};
+
+		var titles = [ 
+				"Affirmative",
+				"Negative",
+				"Judge",
+				"Room"
+		];
+		
+	    pdf.generatePairingSheet(headers,titles, round_number, division);
 		
 	} ,
 	swapSides: function(){
@@ -4152,27 +4194,6 @@ $("#menu_pdf").click(function(){
 
 
 
-//Code for Generate PDF Button
-$("#pdf_gen").click(function(){
-	var headers = {
-		tournament_name: 'Round Rock HS Tournament',
-		date: '11/18/11',
-		round_number: '1',
-		start_time_text: 'Start: 3:00 PM',
-		message: 'Welcome to the Round Rock Tournament run by DebateTab!',
-		division: collection.divisions.at(0)
-	};
-
-	var titles = [ "Affirmative",
-			"Negative",
-			"Judge",
-			"Room"
-	];
-	
-    pdf.generatePairingSheet(headers,titles, 1, collection.divisions.at(0));
-	
-
-});
 
 
 
@@ -4190,10 +4211,6 @@ $("#ballotOF_gen").click(function(){
 //Code for PDF Brackets Generation
 $("#pdf_brackets_gen").click(function(){
 	pdf.bracketsDataPDF();
-});
-
-$("#columnsPDF_gen").click(function(){
-	pdf.generateColumnsPDF();	
 });
 
 

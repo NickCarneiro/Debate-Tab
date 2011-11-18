@@ -908,6 +908,7 @@ Author: Nikhil
 Author: Nick Carneiro
 ========================================================================== */
 
+
 .editround_speaks{
   width: 25px;
 }
@@ -998,6 +999,15 @@ color:#9343B9;
   margin: 0px 5px 0px 0px;
 }
 .bottom_buttons > button{
+  height: 40px;
+  margin: 0px 5px 0px 0px;
+}
+
+.results_container{
+  margin-top: 10px;
+}
+
+.results_container > button{
   height: 40px;
   margin: 0px 5px 0px 0px;
 }
