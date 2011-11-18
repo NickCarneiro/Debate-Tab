@@ -2649,7 +2649,7 @@ view.Judge = Backbone.View.extend({
 			}
 		});
 		
-		
+		$("#newjudge_stop_scheduling").prop("checked", this.model.get("stop_scheduling"));
 		$("#judge_form_overlay").fadeIn();
 	} ,
 
@@ -2745,6 +2745,8 @@ view.JudgeTable = Backbone.View.extend({
 		$("#new_judge_name").val("");
 		$("#newjudge_school").val("");
 		$("#newjudge_divisions").find("input").attr("checked", false);
+		$("#newjudge_stop_scheduling").prop("checked", false);
+
 	} ,
 	addJudge: function(){
 		//TODO: validate judge name
@@ -2756,6 +2758,8 @@ view.JudgeTable = Backbone.View.extend({
 		//may be undefined
 		var school = pairing.getSchoolFromId(school_id);
 		var divisions = [];
+		var stop_scheduling = $("#newjudge_stop_scheduling").prop("checked");
+
 		$("#newjudge_divisions").children().each(function(i, li){
 			if($(li).attr != undefined){
 				//console.log($(li).find("input").attr("checked"));
@@ -2777,7 +2781,9 @@ view.JudgeTable = Backbone.View.extend({
 			
 			name: judge_name,
 			school: school,
-			divisions: divisions
+			divisions: divisions,
+			stop_scheduling: stop_scheduling
+
 			
 		});
 		}else{
@@ -2788,7 +2794,9 @@ view.JudgeTable = Backbone.View.extend({
 			id: (new ObjectId).toString(),
 			name: judge_name,
 			school: school,
-			divisions: divisions
+			divisions: divisions,
+			stop_scheduling: stop_scheduling
+
 			
 		});
 		collection.judges.add(judge);
@@ -2859,6 +2867,7 @@ view.Room = Backbone.View.extend({
 		$("#newroom_id").val(this.model.get("id"));
 		$("#newroom_name").val(this.model.get("name"));
 		$("#newroom_division").val((this.model.get("division").get("id")));
+		$("#newroom_stop_scheduling").prop("checked", this.model.get("stop_scheduling"));
 		$("#room_form_overlay").fadeIn();
 	} ,
 
@@ -2933,6 +2942,8 @@ view.RoomTable = Backbone.View.extend({
 		$("#newroom_id").val("");
 		$("#newroom_name").val("");
 		$("#newroom_division").val("");
+		$("#newroom_stop_scheduling").prop("checked", false);
+
 	} ,
 
 	//add new division to dropdown box
@@ -2949,7 +2960,8 @@ view.RoomTable = Backbone.View.extend({
 		var room_name = $("#newroom_name").val();
 		var div_name_id = $("#newroom_division").val();
 		var division = pairing.getDivisionFromId(div_name_id);
-		
+		var stop_scheduling = $("#newroom_stop_scheduling").prop("checked");
+
 		$(".edit_model_overlay").fadeOut();
 		
 		if(id.length > 0){
@@ -2958,7 +2970,9 @@ view.RoomTable = Backbone.View.extend({
 			room.set({
 				
 				name: room_name, 
-				division: division
+				division: division,
+				stop_scheduling: stop_scheduling
+
 		});
 		}else{
 		
@@ -2966,7 +2980,8 @@ view.RoomTable = Backbone.View.extend({
 		room.set({
 			id: (new ObjectId).toString(),
 			name: room_name, 
-			division: division
+			division: division,
+			stop_scheduling: stop_scheduling
 			
 		});
 		collection.rooms.add(room);
