@@ -623,7 +623,7 @@ pairing.deleteAllRounds = function(){
 	con.write("rounds length " + collection.rounds.length);
 	while(collection.rounds.at(0) != undefined){
 	
-		con.write("removing round " + collection.rounds.at(0).get("team1").get("team_code"));
+		con.write("removing round " + collection.rounds.at(0).get("team1"));
 		collection.rounds.at(0).destroy();
 		//collection.rounds.remove(round);
 	}
@@ -3179,70 +3179,40 @@ view.Round = Backbone.View.extend({
 		$(this.el).remove();
 	},
 	
+	
+	populateTeamSelects: function(){
+		//empty out existing teams
+		$("#editround_team1_code").html("");
+		$("#editround_team2_code").html("");
+
+		var div_id = $("#rounds_division_select").val();
+		var division = pairing.getDivisionFromId(div_id);
+		var round_number = $("#rounds_round_number_select").val();
+		for(var i = 0; i < collection.teams.length; i++){
+			//skip irrelevant teams
+			if(collection.teams.at(i).get("division") != division){
+				continue;
+			}
+
+			$("#editround_team1_code").append('<option value="'+collection.teams.at(i).get("id")+'">'
+				+ collection.teams.at(i).get("team_code") +'</option>');
+
+			$("#editround_team2_code").append('<option value="'+collection.teams.at(i).get("id")+'">'
+			+ collection.teams.at(i).get("team_code") +'</option>');
+		}
+
+		//add BYE teams to both
+		$("#editround_team1_code").append('<option value="-1">BYE</option>');
+		$("#editround_team2_code").append('<option value="-1">BYE</option>');
+
+	} ,
 	showEditForm: function(){
 		//populate form with existing values
 		//populate team 1 competitors
 		$("#editround_id").val(this.model.get("id"));
-		var competitors = this.model.get("team1").get("competitors");
-		if(competitors != undefined){
-			//clear out existing form data
-			$("#editround_team1 > .competitors").html('');
-			$("#editround_team1_code").text(this.model.get("team1").get("team_code"));
-			$("#editround_team1_id").text(this.model.get("team1").get("id"));
-
-			var points = this.model.get("team1_points") || []; 
-			for(var i = 0; i < competitors.length; i++){
-				
-				var speaks = (points[i] === undefined ? "" : points[i].speaks);
-				var rank = (points[i] === undefined ? "" : points[i].rank);
-				var competitor_input = competitors[i].name + 
-					'<br /> Points: <input class="editround_speaks" value="'+ speaks +'"/> ' +
-					'Rank: <input class="editround_ranks" value="'+ rank +'"/> <br />';
-
-				$("#editround_team1 > .competitors").append(competitor_input);
-			}
-
-		} else {
-			//no competitors? team1 must have been a bye
-			$("#editround_team1 > .competitors").append("BYE");
-		}
-
-		//draw right side of form
-		competitors = this.model.get("team2").get("competitors");
-		if(competitors != undefined){
-			//clear out existing form data
-			$("#editround_team2 > .competitors").html('');
-			$("#editround_team2_code").text(this.model.get("team2").get("team_code"));
-			$("#editround_team2_id").text(this.model.get("team1").get("id"));
-
-			var points = this.model.get("team2_points") || []; 
-			for(var i = 0; i < competitors.length; i++){
-				
-				var speaks = (points[i] === undefined ? "" : points[i].speaks);
-				var rank = (points[i] === undefined ? "" : points[i].rank);
-				var competitor_input = competitors[i].name + 
-					'<br /> Points: <input class="editround_speaks" value="'+ speaks +'"/> ' +
-					'Rank: <input class="editround_ranks" value="'+ rank +'"/> <br />';
-
-				$("#editround_team2 > .competitors").append(competitor_input);
-			}
-
-		} else {
-			//no competitors? team1 must have been a bye
-			$("#editround_team2 > .competitors").append("BYE");
-		}
-
-		//populate result box
-		var aff;
-		var neg;
-		if(this.model.get("aff") == 0){
-			aff = this.model.get("team1");
-			neg = this.model.get("team2");
-		} else {
-			aff = this.model.get("team2");
-			neg = this.model.get("team1");
-		}
-		$("#editround_result_select").val(this.model.get("result"));
+		this.populateTeamSelects();
+		view.roundTable.drawForm(this.model);
+		
 		/*
 result can be: 0 - 7:
 		0 AFF_WIN_NEG_LOSS
@@ -3271,7 +3241,9 @@ view.RoundTable = Backbone.View.extend({
 		"change #rounds_division_select" : "renderRoundNumberSelect",
 		"change #rounds_round_number_select" : "filterDivisions",
 		"click button#save_round_button": "editRound",
-		"click #add_round_button": "addEmptyRound"
+		"click #add_round_button": "addEmptyRound",
+		"change #editround_team1_code": "changeTeam",
+		"change #editround_team2_code": "changeTeam"
 	} ,
 	initialize: function(){
 		_.bindAll(this, "render", "addRound", "appendRound", "renderRoundNumberSelect");
@@ -3287,6 +3259,115 @@ view.RoundTable = Backbone.View.extend({
 		
 	} ,
 
+	changeTeam: function(){
+		console.log("changeteam");
+		//update edit round form to reflect new team
+		var aff_id = $("#editround_team1_code").val();
+		var aff = pairing.getTeamFromId(aff_id);
+		var neg_id = $("#editround_team2_code").val();
+		var neg = pairing.getTeamFromId(neg_id);
+		var round_id = $("#editround_id").val();
+		var round = pairing.getRoundFromId(round_id);
+
+		
+
+		if(aff === undefined){
+			//create bye teams if necessary
+			var bye_team = new model.Team();
+			bye_team.set({team_code: "BYE"});
+			aff = bye_team;
+		}
+		if(neg === undefined){
+			var bye_team = new model.Team();
+			bye_team.set({team_code: "BYE"});
+			neg = bye_team;
+		}
+
+		if(round.get("aff") == 0){
+			round.set({team1: aff, team2: neg});
+		} else {
+			round.set({team1: neg, team2: aff});
+		}
+		
+		//change team in round
+		this.drawForm(round);
+
+	} ,
+
+	drawForm: function(round){
+
+		var aff;
+		var neg;
+		if(round.get("aff") == 0){
+			aff = round.get("team1");
+			neg = round.get("team2");
+		} else {
+			aff = round.get("team2");
+			neg = round.get("team1");
+		}
+
+					
+		
+		//draw left side of form (aff)
+		var competitors = aff.get("competitors");
+		if(competitors != undefined){
+			//clear out existing form data
+			$("#editround_team1 > .competitors").html('');
+			var aff_id = aff.get("team_code") === "BYE" ? -1 : aff.get("id");
+			console.log(aff_id);
+			$("#editround_team1_code").val(aff_id);
+			$("#editround_team1_id").text(aff_id);
+
+			var points = round.get("aff_points") || []; 
+			for(var i = 0; i < competitors.length; i++){
+				
+				var speaks = (points[i] === undefined ? "" : points[i].speaks);
+				var rank = (points[i] === undefined ? "" : points[i].rank);
+				var competitor_input = competitors[i].name + 
+					'<br /> Points: <input class="editround_speaks" value="'+ speaks +'"/> ' +
+					'Rank: <input class="editround_ranks" value="'+ rank +'"/> <br />';
+
+				$("#editround_team1 > .competitors").append(competitor_input);
+			}
+
+		} else {
+			//no competitors? team1 must have been a bye
+			$("#editround_team1_code").text("BYE");
+		}
+
+
+		//draw right side of form
+		competitors = neg.get("competitors");
+		if(competitors != undefined){
+			//clear out existing form data
+			$("#editround_team2 > .competitors").html('');
+			//id of -1 means BYE
+			var neg_id = neg.get("team_code") === "BYE" ? -1 : neg.get("id");
+			$("#editround_team2_code").val(neg_id);
+			$("#editround_team2_id").text(neg_id);
+
+			var points = round.get("neg_points") || []; 
+			for(var i = 0; i < competitors.length; i++){
+				
+				var speaks = (points[i] === undefined ? "" : points[i].speaks);
+				var rank = (points[i] === undefined ? "" : points[i].rank);
+				var competitor_input = competitors[i].name + 
+					'<br /> Points: <input class="editround_speaks" value="'+ speaks +'"/> ' +
+					'Rank: <input class="editround_ranks" value="'+ rank +'"/> <br />';
+
+				$("#editround_team2 > .competitors").append(competitor_input);
+			}
+
+		} else {
+			//no competitors? team1 must have been a bye
+			$("#editround_team2_code").text("BYE");
+		}
+
+		//populate result box
+		
+		$("#editround_result_select").val(round.get("result"));
+
+	} ,
 	addEmptyRound: function(){
 		var div_id = $("#rounds_division_select").val();
 		var division = pairing.getDivisionFromId(div_id);
@@ -3311,33 +3392,33 @@ view.RoundTable = Backbone.View.extend({
 		var round = pairing.getRoundFromId(round_id);
 		var result = $("#editround_result_select").val();
 		//construct points object for each row in the form
-		var team1_points = [];
+		var aff_points = [];
 		var i = 0;
 		$("#editround_team1 > .competitors").children().each(function(){
 			if($(this).hasClass("editround_speaks")){
-				team1_points.push({speaks: $(this).val(), rank: ""});
+				aff_points.push({speaks: $(this).val(), rank: ""});
 				i++;
 			} else if($(this).hasClass("editround_ranks")){
-				team1_points[i-1].rank = $(this).val();
+				aff_points[i-1].rank = $(this).val();
 			}
 		});
 
-		var team2_points = [];
+		var neg_points = [];
 		var i = 0;
 		$("#editround_team2 > .competitors").children().each(function(){
 			if($(this).hasClass("editround_speaks")){
-				team2_points.push({speaks: $(this).val(), rank: ""});
+				neg_points.push({speaks: $(this).val(), rank: ""});
 				i++;
 			} else if($(this).hasClass("editround_ranks")){
-				team2_points[i-1].rank = $(this).val();
+				neg_points[i-1].rank = $(this).val();
 			}
 		});
-		round.set({"team1_points": team1_points});
-		round.set({"team2_points": team2_points});
+		round.set({"aff_points": aff_points});
+		round.set({"neg_points": neg_points});
 		round.set({"result": result});
 
 		round.save()
-		//speaker points are stored in the round model in team1_points, and team2_points
+		//speaker points are stored in the round model in aff_points, and neg_points
 
 		//hide form
 		$(".edit_model_overlay").fadeOut();
