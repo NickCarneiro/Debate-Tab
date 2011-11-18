@@ -605,7 +605,11 @@ pairing.updateRecords = function(){
 	for(var i = 0; i < collection.teams.length; i++){
 		collection.teams.at(i).set({wins:  0});
 		collection.teams.at(i).set({losses: 0});
+		collection.teams.at(i).set({speaks: []});
+		collection.teams.at(i).set({ranks: []});
+
 		for(var j = 0; j < collection.rounds.length; j++){
+			//get winner
 			if(collection.rounds.at(j).getWinner() === collection.teams.at(i)){
 				var new_wins = collection.teams.at(i).get("wins") + 1;
 				collection.teams.at(i).set({wins: new_wins});
@@ -613,8 +617,75 @@ pairing.updateRecords = function(){
 				var new_losses = collection.teams.at(i).get("losses") + 1;
 				collection.teams.at(i).set({losses: new_losses});
 			}
+
+			//update speaker points
+			var aff_points = collection.rounds.at(j).get("aff_points") || [];
+			var neg_points = collection.rounds.at(j).get("neg_points") || [];
+		
+			if(collection.rounds.at(j).get("team1") === collection.teams.at(i) 
+				&& collection.rounds.at(j).get("aff") == 0 
+				|| collection.rounds.at(j).get("team2") === collection.teams.at(i) 
+				&& collection.rounds.at(j).get("aff") == 1 ){
+				var new_speaks = collection.teams.at(i).get("speaks");
+				var new_ranks = collection.teams.at(i).get("ranks");
+				for(var k = 0; k < aff_points.length; k++){
+					new_speaks.push(aff_points[k].speaks);
+					new_ranks.push(aff_points[k].rank);
+				}
+				collection.teams.at(i).set({"speaks": new_speaks});
+				collection.teams.at(i).set({"ranks": new_ranks});
+			
+			} else if(collection.rounds.at(j).get("team1") === collection.teams.at(i) 
+				&& collection.rounds.at(j).get("aff") == 1 
+				||collection.rounds.at(j).get("team2") === collection.teams.at(i) 
+				&& collection.rounds.at(j).get("aff") == 0 ){
+				var new_speaks = collection.teams.at(i).get("speaks");
+				var new_ranks = collection.teams.at(i).get("ranks");
+				for(var k = 0; k < neg_points.length; k++){
+					new_speaks.push(neg_points[k].speaks);
+					new_ranks.push(neg_points[k].rank);
+				}
+
+				collection.teams.at(i).set({"speaks": new_speaks});
+				collection.teams.at(i).set({"ranks": new_ranks});
+			}
 		}
+
+		//calculate totals
+		var speaks = collection.teams.at(i).get("speaks");
+		var ranks = collection.teams.at(i).get("ranks");
+		//total ranks
+		var total_ranks = 0;
+		for(var j = 0; j < ranks.length; j++){
+			total_ranks += parseFloat(ranks[j]);
+		}
+
+		var speaks_copy = [];
+		for(var j = 0; j < speaks.length; j++){
+			speaks_copy[j] = speaks[j];
+		}
+		//drop high and low
+		speaks_copy = speaks_copy.sort();
+		if(speaks_copy.length >=3){
+			speaks_copy[0] = 0;
+			speaks_copy[speaks_copy.length-1] = 0;
+		}
+		var adjusted_speaks = 0;
+		for(var j = 0; j < speaks_copy.length; j++){
+			adjusted_speaks += parseFloat(speaks_copy[j]);
+		}
+		var total_speaks = 0;
+		var high = -1;
+		var low = 1000;
+		for(var k = 0; k < speaks.length; k++){
+			
+			total_speaks += parseFloat(speaks[k]);
+		}
+		collection.teams.at(i).set({"total_speaks": total_speaks});
+		collection.teams.at(i).set({"adjusted_speaks": adjusted_speaks});
+		collection.teams.at(i).set({"total_ranks": total_ranks});
 		collection.teams.at(i).save();
+
 	}
 }
 
@@ -1890,11 +1961,17 @@ pdf.generateTeams = function(division) {
 		if(collection.teams.at(i).get("division") != division){
 			continue;
 		}
-		doc.text(team, y, collection.teams.at(i).get("team_code")); 
-		doc.text(wins,y, collection.teams.at(i).get("wins") + "-" + collection.teams.at(i).get("losses"));
-		doc.text(adjusted,y, collection.teams.at(i).get("adjusted_speaks") || "");
-		doc.text(total,y, collection.teams.at(i).get("total_speaks") || "");
-		doc.text(ranks,y, collection.teams.at(i).get("ranks") || "");
+		var win_count = collection.teams.at(i).get("wins") === undefined ? "X" : collection.teams.at(i).get("wins");
+		var loss_count = collection.teams.at(i).get("losses") === undefined ? "X" : collection.teams.at(i).get("losses");
+		var total_speaks = collection.teams.at(i).get("total_speaks") === undefined ? " " : collection.teams.at(i).get("total_speaks").toString();
+		var adjusted_speaks = collection.teams.at(i).get("adjusted_speaks") === undefined ? " " : collection.teams.at(i).get("adjusted_speaks").toString();
+		var total_ranks = collection.teams.at(i).get("total_ranks") === undefined ? " " : collection.teams.at(i).get("total_ranks").toString();
+		
+		doc.text(team, y, collection.teams.at(i).get("team_code") || "ERROR"); 
+		doc.text(wins,y, win_count + "-" + loss_count);
+		doc.text(adjusted,y, adjusted_speaks);
+		doc.text(total,y, total_speaks);
+		doc.text(ranks,y, total_ranks);
 		y += 5;
 
 	}
@@ -3569,8 +3646,10 @@ view.RoundTable = Backbone.View.extend({
 	
 	} ,
 	printTeams: function(){
+		//recalculate team wins and points
 		var div_id = $("#rounds_division_select").val();
 		var division = pairing.getDivisionFromId(div_id);
+		pairing.updateRecords(division);
 		pdf.generateTeams(division);
 	} ,
 	printPairingsPrompt: function(){
@@ -3734,8 +3813,10 @@ view.RoundTable = Backbone.View.extend({
 		}
 
 		//select correct room and judge from dropdowns
-		$("#editround_judge").val(round.get("judge").get("id"));
-		$("#editround_room").val(round.get("room").get("id"));
+		var judge_id = round.get("judge") === undefined ? "-1" : round.get("judge").get("id");
+		$("#editround_judge").val(judge_id);
+		var room_id = round.get("room") === undefined ? "-1" : round.get("room").get("id");
+		$("#editround_room").val(room_id);
 		//populate result box
 		
 		$("#editround_result_select").val(round.get("result"));
@@ -4742,63 +4823,6 @@ $("#pair_print_pairings").click(function(){
 
 });
 
-$("#pair_tests").click(function(){
-	con.write("Pairing tests:");
-	var div1 = collection.divisions.at(0);
-	var div2 = collection.divisions.at(1);
-	//teams should have been loaded from localstorage
-	pairing.deleteAllRounds();
-	pairing.pairRound(1, div1);
-
-	pairing.printPairings(1, div1);
-	pairing.simulateRound(1, div1);
-
-	pairing.updateRecords(div1);
-	pairing.sortTeams(div1);
-	pairing.printRecords(div1);
-
-	pairing.pairRound(2, div1);
-	pairing.printPairings(2, div1);
-	pairing.simulateRound(2, div1);
-	pairing.updateRecords(div1);
-	pairing.sortTeams(div1);
-	pairing.printRecords(div1);
-
-	pairing.pairRound(1, div2);
-
-	pairing.printPairings(1, div2);
-	pairing.simulateRound(1, div2);
-
-	pairing.updateRecords(div2);
-	pairing.sortTeams(div2);
-	pairing.printRecords(div2);
-
-	pairing.pairRound(2, div2);
-	pairing.printPairings(2, div2);
-	pairing.simulateRound(2, div2);
-	pairing.updateRecords(div2);
-	pairing.sortTeams(div2);
-	pairing.printRecords(div2);
-/*
-	pairing.pairRound(3, div1);
-	pairing.printPairings(3, div1);
-	pairing.simulateRound(3, div1);
-	pairing.updateRecords(div1);
-	pairing.sortTeams(div1);
-	//pairing.printRecords();
-
-	pairing.pairRound(4, div1);
-	pairing.printPairings(4, div1);
-	pairing.simulateRound(4, div1);
-	pairing.updateRecords(div1);
-	pairing.sortTeams(div1);
-	//pairing.printRecords();
-*/
-
-	con.write("number of teams: " + collection.teams.length);
-	con.write("number of rounds: " + collection.rounds.length);
-		
-});
 
 
 
