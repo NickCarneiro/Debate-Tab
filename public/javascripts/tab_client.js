@@ -3187,14 +3187,38 @@ view.Round = Backbone.View.extend({
 		var div_name = this.model.get("division").get("division_name");
 		var num = this.model.get("round_number");
 		$(this.el).html('<td class="roundrow">' + aff + '</td> <td class="roundrow">' + neg + '</td><td class="roundrow">'+judge+
-			'</td><td class="roundrow">'+room+'</td><td class="roundrow">' + div_name + '</td><td>'+num+'</td><td class="remove"><button>Remove</button></td>');
+			'</td><td class="roundrow">'+room+'</td><td class="roundrow">' + div_name + '</td><td class="remove"><button>Remove</button></td>');
 		return this; //required for chainable call, .render().el
 	} ,
 	unrender: function(){
 		$(this.el).remove();
 	},
 	
-	
+	//fills the rooms and judges selects on the edit round form
+	populateRoomsAndJudges: function(){
+		var div_id = $("#rounds_division_select").val();
+		var division = pairing.getDivisionFromId(div_id);
+		//empty out existing rooms and judges
+		$("#editround_judge").html("");
+		$("#editround_room").html("");
+		for(var i = 0; i < collection.rooms.length; i++){
+			//skip irrelevant rooms
+			if(collection.rooms.at(i).get("division") != division){
+				continue;
+			}
+			$("#editround_room").append('<option value="'+collection.rooms.at(i).get("id")+'">'
+				+ collection.rooms.at(i).get("name") +'</option>');
+
+		}
+
+		for(var i = 0; i < collection.judges.length; i++){
+			
+			$("#editround_judge").append('<option value="'+collection.judges.at(i).get("id")+'">'
+				+ collection.judges.at(i).get("name") +'</option>');
+
+		}
+
+	} ,
 	populateTeamSelects: function(){
 		//empty out existing teams
 		$("#editround_team1_code").html("");
@@ -3226,6 +3250,7 @@ view.Round = Backbone.View.extend({
 		//populate team 1 competitors
 		$("#editround_id").val(this.model.get("id"));
 		this.populateTeamSelects();
+		this.populateRoomsAndJudges();
 		view.roundTable.drawForm(this.model);
 		
 		/*
@@ -3258,7 +3283,10 @@ view.RoundTable = Backbone.View.extend({
 		"click button#save_round_button": "editRound",
 		"click #add_round_button": "addEmptyRound",
 		"change #editround_team1_code": "changeTeam",
-		"change #editround_team2_code": "changeTeam"
+		"change #editround_team2_code": "changeTeam",
+		"change #editround_judge": "changeJudge",
+		"change #editround_room": "changeRoom",
+		"click #editround_swap_sides": "swapSides"
 	} ,
 	initialize: function(){
 		_.bindAll(this, "render", "addRound", "appendRound", "renderRoundNumberSelect");
@@ -3273,9 +3301,37 @@ view.RoundTable = Backbone.View.extend({
 		this.render();
 		
 	} ,
-
+	swapSides: function(){
+		var round_id = $("#editround_id").val();
+		var round = pairing.getRoundFromId(round_id);
+		var aff = round.get("aff");
+		if(aff == 0){
+			round.set({aff: 1})
+		} else {
+			round.set({aff: 0})
+		}
+		round.save();
+		this.drawForm(round);
+	} ,
+	changeJudge: function(){
+		var judge_id = $("#editround_judge").val();
+		var judge = pairing.getJudgeFromId(judge_id);
+		var round_id = $("#editround_id").val();
+		var round = pairing.getRoundFromId(round_id);
+		round.set({judge: judge});
+		round.save();
+		this.drawForm(round);
+	} ,
+	changeRoom: function(){
+		var room_id = $("#editround_room").val();
+		var room = pairing.getRoomFromId(room_id);
+		var round_id = $("#editround_id").val();
+		var round = pairing.getRoundFromId(round_id);
+		round.set({room: room});
+		round.save();
+		this.drawForm(round);
+	} ,
 	changeTeam: function(){
-		console.log("changeteam");
 		//update edit round form to reflect new team
 		var aff_id = $("#editround_team1_code").val();
 		var aff = pairing.getTeamFromId(aff_id);
@@ -3329,7 +3385,6 @@ view.RoundTable = Backbone.View.extend({
 			//clear out existing form data
 			$("#editround_team1 > .competitors").html('');
 			var aff_id = aff.get("team_code") === "BYE" ? -1 : aff.get("id");
-			console.log(aff_id);
 			$("#editround_team1_code").val(aff_id);
 			$("#editround_team1_id").text(aff_id);
 
@@ -3378,6 +3433,9 @@ view.RoundTable = Backbone.View.extend({
 			$("#editround_team2_code").text("BYE");
 		}
 
+		//select correct room and judge from dropdowns
+		$("#editround_judge").val(round.get("judge").get("id"));
+		$("#editround_room").val(round.get("room").get("id"));
 		//populate result box
 		
 		$("#editround_result_select").val(round.get("result"));

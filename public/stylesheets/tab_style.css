@@ -925,11 +925,12 @@ Author: Nick Carneiro
 
 #editround_team1{
   float: left;
-  margin-right: 150px;
+  margin-right: 70px;
 }
 
 #editround_team2{
   float: left;
+  margin-right: 70px;
 }
 #editround_team_container{
   height: 200px;
