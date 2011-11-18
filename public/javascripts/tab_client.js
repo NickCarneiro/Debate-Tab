@@ -1701,10 +1701,12 @@ pdf.generateLDBallot = function(round_number, division){
 
 		doc.text(149, 20, room);
 		doc.setFontSize(9);
-		doc.text(97,52, 'Points');
-		doc.text(186,52, 'Points');
+		doc.text(85,52, 'Points');
+		doc.text(169,52, 'Points');
 		doc.setFontSize(11);
-		doc.text(20, 60, 'AFFIRMATIVE ______________________  _____       NEGATIVE ______________________  _____  ');
+		doc.text(23,55, 'AFF');
+		doc.text(107,55, 'NEG');
+		doc.text(20, 60, '1st  2nd ______________________  _____       1st  2nd ______________________  _____  ');
 		//doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
 		doc.setFontSize(9);
 		doc.text(20,75, 'Speakers should be rated on a scale from 20-30 points.  Half points (.5) are allowed.You may have a tie in points,'); 
@@ -1719,7 +1721,9 @@ pdf.generateLDBallot = function(round_number, division){
 		doc.text(20, 265, '___________________________________                             _______________________________');
 		doc.text(20, 270, 'Judge Signature');
 		doc.text(128,270, 'Affiliation (School)');
-		doc.addPage();
+		if (i != collection.rounds.length -1) {
+			doc.addPage();
+		}
 	}
 	// Output as Data URI so that it can be downloaded / viewed
 	doc.output('datauri');
@@ -1745,6 +1749,7 @@ pdf.generateColumnsPDF = function(matrix) {		//takes in two dimensional array of
 	doc.setFontSize(10);
 	var y = 40;
 	for (var i = 0; i < testMatrix.length; i++, y+=10) {
+		//make sure every row has five entries, since the numbers are hard coded.
 			doc.text(team, y, testMatrix[i][0]); 
 			doc.text(wins,y,testMatrix[i][1]);
 			doc.text(adjusted,y,testMatrix[i][2]);
@@ -1805,11 +1810,9 @@ pdf.generateCXBallot = function(round_number, division){
 		var room =  "";
 		if (round != undefined) {
 			room = round.get("room");
-			console.log( "ROhan " + room);
+			console.log( "Room: " + room);
 			if (room != undefined) {	//do nothing
-				console.log("here1");
 				room = room.get("name");
-				console.log("here");
 			}
 			else {
 				room = "";
@@ -1858,8 +1861,10 @@ pdf.generateCXBallot = function(round_number, division){
 		doc.text(77,52, 'Points    Ranks');
 		doc.text(164,52, 'Points    Ranks');
 		doc.setFontSize(11);
-		doc.text(20, 60, '1st AFF. __________________  _____  _____     1st NEG. __________________  _____  _____');
-		doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
+		doc.text(23,55, 'AFF');
+		doc.text(107,55, 'NEG');
+		doc.text(20, 60, '1st  2nd __________________  _____  _____     1st  2nd __________________  _____  _____');
+		doc.text(20, 70, '1st  2nd __________________  _____  _____     1st  2nd __________________  _____  _____');
 		doc.setFontSize(9);
 		doc.text(20,80, 'Speakers should be rated on a scale from 20-30 points.  Half points (.5) are allowed.You may have a tie in points,'); 
 		doc.text(20,84, 'but you must indicate the person doing the better job of debating');
@@ -1873,13 +1878,15 @@ pdf.generateCXBallot = function(round_number, division){
 		doc.text(20, 265, '___________________________________                             _______________________________');
 		doc.text(20, 270, 'Judge Signature');
 		doc.text(128,270, 'Affiliation (School)');
-		doc.addPage();
+		if (i != collection.rounds.length -1) {
+			doc.addPage();
+		}
 	// Output as Data URI so that it can be downloaded / viewed
 }
 	doc.output('datauri');
 }
 
-pdf.generatePFBallot = function(){
+pdf.generatePFBallot = function(round_number, division){
 	// generate a blank document
 	var doc = new jsPDF();
 	var currentTime = new Date();
@@ -1887,6 +1894,9 @@ pdf.generatePFBallot = function(){
 	var day = currentTime.getDate();
 	var year = currentTime.getFullYear();
 	for(var i = 0; i < collection.rounds.length ; i++){
+		if(collection.rounds.at(i).get("round_number") != round_number || collection.rounds.at(i).get("division") != division){
+			continue;
+		}
 		var round = collection.rounds.at(i);
 		doc.setFontSize(18);
 		doc.text(20, 20, 'Public Forum Debate Ballot');
@@ -1937,13 +1947,15 @@ pdf.generatePFBallot = function(){
 		doc.text(35,45.4, '________________________________________________________________________');
 		//doc.text(20, 60, headers.message);
 		doc.setFontSize(9);
-		doc.text(25,55, 'Code _________________ Side _________________');
-		doc.text(25,60, 'Speaker 1 ___________________________________');
-		doc.text(25,65, 'Speaker 3 ___________________________________');
+		doc.text(25,51, 'Code _________________ Side _________________');
+		doc.text(29,56, 'AFF');
+		doc.text(25,60, '1st   2nd ___________________________________');
+		doc.text(25,65, '1st   2nd ___________________________________');
 
-		doc.text(115,55, 'Code _________________ Side _________________');
-		doc.text(115,60, 'Speaker 2 ___________________________________');
-		doc.text(115,65, 'Speaker 4 ___________________________________');
+		doc.text(115,51, 'Code _________________ Side _________________');
+		doc.text(119,56, 'NEG');
+		doc.text(115,60, '1st   2nd ___________________________________');
+		doc.text(115,65, '1st   2nd ___________________________________');
 		//doc.setFontSize(11);
 		//doc.text(20, 60, 'AFFIRMATIVE ______________________  _____       NEGATIVE ______________________  _____  ');
 		//doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
@@ -2004,7 +2016,9 @@ pdf.generatePFBallot = function(){
 		doc.setFontSize(10);
 		doc.text(20, 200, 'These are the reasons for my decision:');
 		doc.text(20, 280, 'Judge Signature: _____________________________ Affiliation/Occupation _____________________________');
-		doc.addPage();
+		if (i != collection.rounds.length -1) {
+			doc.addPage();
+		}
 	}
 
 	// Output as Data URI so that it can be downloaded / viewed
