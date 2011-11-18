@@ -1645,24 +1645,42 @@ pdf.generateLDBallot = function(round_number, division){
 		//var affCode = collection.rounds.at(i).get("aff") || "";
 		var affTeam = "";
 		var negTeam = "";
-		if (affCode == 0 || affCode === undefined){
+		var affCompetitors ;
+		var negCompetitors ;
+		if (affCode == 0){
 			affTeam = round.get("team1");
 			if (affTeam != undefined) {
 				affTeam = affTeam.get("team_code");
+				affCompetitors = round.get("team1").get("competitors");
+				if (affCompetitors === undefined) {
+					affCompetitors = "";
+				}
 			}
 			negTeam = round.get("team2");
 			if (negTeam != undefined) {
 				negTeam = negTeam.get("team_code");
+				negCompetitors = round.get("team2").get("competitors");
+				if (negCompetitors === undefined) {
+					negCompetitors = "";
+				}
 			}
 		}
 		else if (affCode == 1){
 			affTeam = round.get("team2");
 			if (affTeam != undefined) {
 				affTeam = affTeam.get("team_code");
+				affCompetitors = round.get("team2").get("competitors");
+				if (affCompetitors === undefined) {
+					affCompetitors = "";
+				}
 			}
 			negTeam = round.get("team1");
 			if (negTeam != undefined) {
 				negTeam = negTeam.get("team_code");
+				negCompetitors = round.get("team1").get("competitors");
+				if (negCompetitors === undefined) {
+					negCompetitors = "";
+				}
 			}
 		}
 
@@ -1717,6 +1735,8 @@ pdf.generateLDBallot = function(round_number, division){
 		doc.setFontSize(11);
 		doc.text(23,55, 'AFF');
 		doc.text(107,55, 'NEG');
+		doc.text(37, 60, affCompetitors[0]);
+		doc.text(121, 60, negCompetitors[0]);
 		doc.text(20, 60, '1st  2nd ______________________  _____       1st  2nd ______________________  _____  ');
 		//doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
 		doc.setFontSize(9);
@@ -1790,26 +1810,45 @@ pdf.generateCXBallot = function(round_number, division){
 		//var affCode = collection.rounds.at(i).get("aff") || "";
 		var affTeam = "";
 		var negTeam = "";
+		var affCompetitors ;
+		var negCompetitors ;
 		if (affCode == 0){
 			affTeam = round.get("team1");
 			if (affTeam != undefined) {
 				affTeam = affTeam.get("team_code");
+				affCompetitors = round.get("team1").get("competitors");
+				if (affCompetitors === undefined) {
+					affCompetitors = "";
+				}
 			}
 			negTeam = round.get("team2");
 			if (negTeam != undefined) {
 				negTeam = negTeam.get("team_code");
+				negCompetitors = round.get("team2").get("competitors");
+				if (negCompetitors === undefined) {
+					negCompetitors = "";
+				}
 			}
 		}
 		else if (affCode == 1){
 			affTeam = round.get("team2");
 			if (affTeam != undefined) {
 				affTeam = affTeam.get("team_code");
+				affCompetitors = round.get("team2").get("competitors");
+				if (affCompetitors === undefined) {
+					affCompetitors = "";
+				}
 			}
 			negTeam = round.get("team1");
 			if (negTeam != undefined) {
 				negTeam = negTeam.get("team_code");
+				negCompetitors = round.get("team1").get("competitors");
+				if (negCompetitors === undefined) {
+					negCompetitors = "";
+				}
 			}
 		}
+
 		//console.log(affTeam);
 		//console.log(negTeam);
 		doc.setFontSize(18);
@@ -1874,6 +1913,10 @@ pdf.generateCXBallot = function(round_number, division){
 		doc.setFontSize(11);
 		doc.text(23,55, 'AFF');
 		doc.text(107,55, 'NEG');
+		doc.text(37, 60, affCompetitors[0]);
+		doc.text(37, 70, affCompetitors[1]);
+		doc.text(123, 60, negCompetitors[0]);
+		doc.text(123, 70, negCompetitors[1]);
 		doc.text(20, 60, '1st  2nd __________________  _____  _____     1st  2nd __________________  _____  _____');
 		doc.text(20, 70, '1st  2nd __________________  _____  _____     1st  2nd __________________  _____  _____');
 		doc.setFontSize(9);
