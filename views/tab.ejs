@@ -39,30 +39,51 @@ JS includes
 				<div class="edit_model_overlay" id="round_form_overlay">
 					<div class="edit_model_box">
 						<h1>Edit Round</h1>
-						<input id="editround_id" type="hidden" value=""/>
+						<input id="editround_id" type="hidden" value="" />
+						<div id="editround_team_container">
+							<div id="editround_team1">
+								<input type="hidden" id="editround_team1_id" value="" />
+								<select id="editround_team1_code" class="team_code"></select>
+								<div class="competitors">
+								</div>
 
-						<div id="editround_team1">
-							<input type="hidden" id="editround_team1_id" value="" />
-							<span id="editround_team1_code"></span>
-							<div class="competitors">
+							</div>
+							<div id="editround_team2">
+								<input type="hidden" id="editround_team2_id" value="" />
+								<select id="editround_team2_code" class="team_code"></select>
+								<div class="competitors">
+								</div>
 							</div>
 
-						</div>
-						<div id="editround_team2">
-							<input type="hidden" id="editround_team2_id" value="" />
-							<span id="editround_team2_code"></span>
-							<div class="competitors">
+							<div id="editround_extra">
+								Judge: <br />
+								<select id="editround_judge">
+								</select>
+								<br /> <br />
+								Room <br />
+								<select id="editround_room">
+								</select>
+								<br />
+								<br />
+								<button id="editround_swap_sides">Swap Sides</button>
 							</div>
 						</div>
-
 						<div id="editround_result">
-						<select id="editround_result">
-
+						Result: 
+						<select id="editround_result_select">
+							<option value="0">Aff Win Neg Loss</option> 
+							<option value="1">Aff BYE Neg Forfeit</option> 
+							<option value="2">Neg Win Aff Loss</option> 
+							<option value="3">Neg BYE Aff Forfeit</option> 
+							<option value="4">Double Win</option> 
+							<option value="5">Double Loss</option> 
+							<option value="6">Double Bye</option> 
+							<option value="7">Double Forfeit</option> 
 						</select>
 						<span id="editround_winner"></span>
 						</div>
-						
-						<button class="save_button" id="add_round_button">Save</button>
+						<div id="editround_message"></div>
+						<button class="save_button" id="save_round_button">Save</button>
 						<button class="cancel_button" id="cancel_round_button">Cancel</button>
 					</div>
 				</div>
@@ -85,42 +106,46 @@ JS includes
 
 		<div id="teams_container" class="container">
 			<div id="teams">
-			<button id="toggle_team_form">Add Team</button>
-			<div id="team_form" class="input_form">
-				<span class="generic_error" id="add_team_error"></span><br />
-				<label>
-				Division: <br />
-					<select id="newteam_division">
-					</select>
-				</label> 
-
-				School: <br />
-					<select id="newteam_school">
-					</select>
-				</label>
-				<br />
-				Competitor Names: <br />
-				<div id="newteam_competitors">
-					<input type="text" />
+			<div class="top_buttons">
 				
-				</div>
-				
-				<label>
-				Team code: <br />
-					<input id="newteam_name" />
-				</label>
-				<label>
+				<button id="toggle_team_form">Add Team</button>
+			</div>	
+					<div id="team_form" class="input_form">
+						<div class="edit_model_overlay" id="team_form_overlay">
+							<div class="edit_model_box">
+							<h1>Edit Team</h1>
+							<input id="newteam_id" type="hidden" value=""/>
+							<label>
+							Division: <br />
+							<select id="newteam_division">
+							</select>
+							</label> 
+							School: <br />
+							<select id="newteam_school">
+							</select>
+							</label> <br />
+							Competitors:
+							<div id="newteam_competitors">
+									
+							</div>				
+							<label>
+							Team code: <br />
+							<input id="newteam_name" />
+							</label>
+							
+							<label>
+							Stop scheduling: <br />
+							<input id="newteam_stop_scheduling" type="checkbox" />
+							</label>
 
-				<button class="save_button" id="add_team_button">Save</button>
-			</div>
-			
-			<table id="teams_table">
-
-			</table>
-			
-			</div>
-			
-			
+							<button class="save_button" id="add_team_button">Save</button>
+							<button class="cancel_button" id="cancel_team_button">Cancel</button>
+							</div>
+						</div>
+					</div>			
+					<table id="teams_table">
+					</table>			
+			</div>		
 		</div>
 
 		<div id="judges_container" class="container">
@@ -143,7 +168,10 @@ JS includes
 						</select>
 						<ul id="newjudge_divisions">
 						</ul>
-						<br />
+						</label>
+						<label>
+						Stop scheduling: <br />
+						<input id="newjudge_stop_scheduling" type="checkbox" />
 						</label>
 						<button class="save_button" id="add_judge_button">Save</button>
 						<button class="cancel_button" id="cancel_judge_button">Cancel</button>
@@ -176,6 +204,10 @@ JS includes
 						<select id="newroom_division" type="text">
 						</select>
 						</label> 
+						<label>
+						Stop scheduling: <br />
+						<input id="newroom_stop_scheduling" type="checkbox" />
+						</label>
 						<button class="save_button" id="add_room_button">Save</button>
 						<button class="cancel_button" id="cancel_room_button">Cancel</button>
 						</div>
@@ -461,9 +493,6 @@ JS includes
 				<button id="ballotOF_gen">Generate Public Forum Ballot</button> <br />
 				<br />
 				<button id="pdf_brackets_gen">Generate Brackets</button> <br />
-
-				
-				<a href="#" rel="dialog_content" class="simpledialog">show dialog!</a>
 				
 				<h1>Import and Parse JOT File</h1>
 				<button id="parse_jot">Parse</button> <br />

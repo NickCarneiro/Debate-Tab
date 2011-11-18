@@ -215,6 +215,7 @@ Tables
 
 table { border-collapse: collapse; border-spacing: 0; }
 td { vertical-align: top; }
+tr:hover {background-color: #E8E8E8; cursor:pointer;}
 
 
 /* =============================================================================
@@ -906,6 +907,41 @@ Author: Nikhil
 /* ==|== primary styles =====================================================
 Author: Nick Carneiro
 ========================================================================== */
+
+.editround_speaks{
+  width: 25px;
+}
+.editround_ranks{
+  width: 25px;
+  margin-bottom: 15px;
+  margin-top: 10px;
+}
+
+.team_code{
+  font-weight: bold;
+  display: block;
+  margin-bottom: 10px;
+}
+
+#editround_team1{
+  float: left;
+  margin-right: 70px;
+}
+
+#editround_team2{
+  float: left;
+  margin-right: 70px;
+}
+#editround_team_container{
+  height: 200px;
+}
+#editround_message{
+  color: red;
+  font-weight: bold;
+}
+.competitors{
+  
+}
 label{
   display: block;
   margin: 5px 0px 0px 0px;
@@ -1045,7 +1081,6 @@ opacity: .9;
   background-color: #d8d8d8;
   opacity: .9;
 }
-
 
 
 .search_box {

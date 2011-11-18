@@ -9,7 +9,7 @@ module.exports.setRoutes = function(app) {
 
 	app.get('/tab', function(req, res){
 		res.render('tab', {
-			title: "Debate Tab Demo",
+			title: "Debate Tab",
 			scripts: ["javascripts/libs/tab_plugins.js",
 				"javascripts/tab_client.js",
 				"javascripts/jot_parsing.js"
