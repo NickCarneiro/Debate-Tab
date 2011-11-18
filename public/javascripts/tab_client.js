@@ -3461,7 +3461,7 @@ view.RoundTable = Backbone.View.extend({
 		"keyup #rounds_search": "search",
 		"click #pair_round_button" : "pairRound",
 		"click #print_ballots_button" : "printBallots",
-		"click #text_pairings_button" : "textPairings",
+		
 		"change #rounds_division_select" : "renderRoundNumberSelect",
 		"change #rounds_round_number_select" : "filterDivisions",
 		"click button#save_round_button": "editRound",
@@ -3473,7 +3473,10 @@ view.RoundTable = Backbone.View.extend({
 		"click #editround_swap_sides": "swapSides",
 		"click #print_pairings": "printPairingsPrompt",
 		"click #print_pairings_confirm": "printPairings",
-		"click #print_teams_button": "printTeams"
+		"click #print_teams_button": "printTeams",
+		"click #text_pairings_button": "textPairingsPrompt",
+		"click #text_pairings_confirm": "textPairings"
+
 	} ,
 	initialize: function(){
 		_.bindAll(this, "render", "addRound", "appendRound", "renderRoundNumberSelect");
@@ -3489,6 +3492,82 @@ view.RoundTable = Backbone.View.extend({
 		
 	} ,
 
+	textPairingsPrompt: function(){
+		$("#text_pairings_details").fadeIn();
+	} ,
+	textPairings: function(){
+		$("#text_pairings_details").fadeOut();
+		var div_id = $("#rounds_division_select").val();
+		var div = pairing.getDivisionFromId(div_id);
+		var round_number = $("#rounds_round_number_select").val();
+		var start_time = $("#text_pairings_start").val();
+		var data = [];
+		for(var i =0; i < collection.rounds.length; i++) //collection.rounds.length
+		{
+			if(collection.rounds.at(i).get("round_number") != round_number || collection.rounds.at(i).get("division") != div){
+					continue;
+				}
+
+				if(collection.rounds.at(i).get("team1").get("aff") == 0){
+						var aff = collection.rounds.at(i).get("team1").get("team_code");
+						var neg = collection.rounds.at(i).get("team2").get("team_code");
+					} else {
+						var neg = collection.rounds.at(i).get("team1").get("team_code");
+						var aff = collection.rounds.at(i).get("team2").get("team_code");
+				}
+
+				var judge = (collection.rounds.at(i).get("judge") != undefined ? collection.rounds.at(i).get("judge").get("name") : "");
+				var room = (collection.rounds.at(i).get("room") != undefined ? collection.rounds.at(i).get("room").get("name") : "");
+
+				for(var j = 0; j < collection.rounds.at(i).get("team1").get("competitors").length; j++){
+					
+					var phone_number = collection.rounds.at(i).get("team1").get("competitors")[j].phone_number;
+					//skip invalid numbers
+					if(phone_number.length > 9 && phone_number.length < 12){
+
+						data.push(
+							{
+								phone_number: phone_number, message: 
+							
+							'Aff: ' + aff + "\n" +
+							'Neg: ' + neg + "\n" +
+							'Judge: ' + judge + "\n" +
+							'Room: ' + room + "\n" +
+							'Start: ' + start_time
+							}
+						);
+					}
+				}
+
+				for(var j = 0; j < collection.rounds.at(i).get("team2").get("competitors").length; j++){
+
+					var phone_number = collection.rounds.at(i).get("team2").get("competitors")[j].phone_number;
+					//skip invalid numbers
+					if(phone_number.length > 9 && phone_number.length < 12){
+						data.push(
+							{
+								phone_number: phone_number, message: 
+							
+							'Aff: ' + aff + "\n" +
+							'Neg: ' + neg + "\n" +
+							'Judge: ' + judge + "\n" +
+							'Room: ' + room + "\n" +
+							'Start: ' + start_time
+							}
+						);
+					}
+				}
+
+		}
+		//send this as a mass text
+		$.post("/textMass", data, function(res){
+				console.log('Response from server: ' + res.body);
+				con.write(res);
+			});
+		console.log(data);
+
+	
+	} ,
 	printTeams: function(){
 		var div_id = $("#rounds_division_select").val();
 		var division = pairing.getDivisionFromId(div_id);
@@ -3733,51 +3812,6 @@ view.RoundTable = Backbone.View.extend({
 			con.write("FATAL ERROR: unrecognized ballot type.")
 		}
 		
-	},
-	textPairings: function(){
-	
-	
-		var div_id = $("#rounds_division_select").val();
-		var div = pairing.getDivisionFromId(div_id);
-		var round_number = $("#rounds_round_number_select").val();
-		var data = [];
-	for(var i =0; i < collection.rounds.length; i++) //collection.rounds.length
-	{
-		if(collection.rounds.at(i).get("round_number") != round_number || collection.rounds.at(i).get("division") != div){
-				continue;
-			}
-			for(var j =0; j < collection.rounds.at(i).get("team1").get("competitors").length; j++)
-			{
-				 data = {smsList: [
-					{phone_number: (collection.rounds.at(i).get("team1").get("competitors"))[0].phone_number, message: 
-					
-					'Aff: ' + collection.rounds.at(i).get("team1").get("team_code") + "\n" +
-					'Neg: ' + collection.rounds.at(i).get("team2").get("team_code") + "\n" +
-					'Judge: ' + (collection.rounds.at(i).get("judge") != undefined ? collection.rounds.at(i).get("judge").get("name") : "") + "\n" +
-					'Room: ' + (collection.rounds.at(i).get("room") != undefined ? collection.rounds.at(i).get("room").get("name") : "")},
-
-					{phone_number: (collection.rounds.at(i).get("team2").get("competitors").length > 0 ? (collection.rounds.at(i).get("team2").get("competitors"))[0].phone_number : ""), message: 
-					
-					'Aff: ' + collection.rounds.at(i).get("team1").get("team_code") + "\n" +
-					'Neg: ' + collection.rounds.at(i).get("team2").get("team_code") + "\n" +
-					'Judge: ' + (collection.rounds.at(i).get("judge") != undefined ? collection.rounds.at(i).get("judge").get("name") : "") + "\n" +
-					'Room: ' + (collection.rounds.at(i).get("room") != undefined ? collection.rounds.at(i).get("room").get("name") : "")}
-					
-				]};
-				console.log(data);
-		//send this as a mass text
-		/*$.post("/textMass", data, function(res){
-		console.log('Message sent from UI: ' + res.body);
-		con.write(res);
-	});*/
-			}
-	}
-	
-
-	
-	
-	
-	
 	},
 	pairRound: function(){
 		var div_id = $("#rounds_division_select").val();
