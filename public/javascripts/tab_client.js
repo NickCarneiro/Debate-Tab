@@ -172,7 +172,9 @@ model.Round = Backbone.Model.extend({
 		team2		: null, //
 		aff			: null, //team1 or team2
 		result		: null,
-		room        : null
+		room        : null,
+		team1_points : null,
+		team2_points : null
 		/*
 		result can be: 0 - 7:
 		0 AFF_WIN_NEG_LOSS
@@ -401,6 +403,14 @@ pairing.getJudgeFromId = function(judge_id){
 	return undefined;
 }
 
+pairing.getRoundFromId = function(round_id){
+	for(var i = 0; i < collection.rounds.length; i++){
+		if(round_id === collection.rounds.at(i).get("id")){
+			return collection.rounds.at(i);
+		}
+	}
+	return undefined;
+}
 //returns true if round has already been paired
 pairing.alreadyPaired = function(round_number, division){
 	for(var i = 0; i < collection.rounds.length; i++){
@@ -613,7 +623,7 @@ pairing.deleteAllRounds = function(){
 	con.write("rounds length " + collection.rounds.length);
 	while(collection.rounds.at(0) != undefined){
 	
-		con.write("removing round " + collection.rounds.at(0).get("team1").get("team_code"));
+		con.write("removing round " + collection.rounds.at(0).get("team1"));
 		collection.rounds.at(0).destroy();
 		//collection.rounds.remove(round);
 	}
@@ -1742,24 +1752,42 @@ pdf.generateLDBallot = function(round_number, division){
 		//var affCode = collection.rounds.at(i).get("aff") || "";
 		var affTeam = "";
 		var negTeam = "";
-		if (affCode == 0 || affCode === undefined){
+		var affCompetitors ;
+		var negCompetitors ;
+		if (affCode == 0){
 			affTeam = round.get("team1");
 			if (affTeam != undefined) {
 				affTeam = affTeam.get("team_code");
+				affCompetitors = round.get("team1").get("competitors");
+				if (affCompetitors === undefined) {
+					affCompetitors = "";
+				}
 			}
 			negTeam = round.get("team2");
 			if (negTeam != undefined) {
 				negTeam = negTeam.get("team_code");
+				negCompetitors = round.get("team2").get("competitors");
+				if (negCompetitors === undefined) {
+					negCompetitors = "";
+				}
 			}
 		}
 		else if (affCode == 1){
 			affTeam = round.get("team2");
 			if (affTeam != undefined) {
 				affTeam = affTeam.get("team_code");
+				affCompetitors = round.get("team2").get("competitors");
+				if (affCompetitors === undefined) {
+					affCompetitors = "";
+				}
 			}
 			negTeam = round.get("team1");
 			if (negTeam != undefined) {
 				negTeam = negTeam.get("team_code");
+				negCompetitors = round.get("team1").get("competitors");
+				if (negCompetitors === undefined) {
+					negCompetitors = "";
+				}
 			}
 		}
 
@@ -1809,10 +1837,14 @@ pdf.generateLDBallot = function(round_number, division){
 
 		doc.text(149, 20, room);
 		doc.setFontSize(9);
-		doc.text(97,52, 'Points');
-		doc.text(186,52, 'Points');
+		doc.text(85,52, 'Points');
+		doc.text(169,52, 'Points');
 		doc.setFontSize(11);
-		doc.text(20, 60, 'AFFIRMATIVE ______________________  _____       NEGATIVE ______________________  _____  ');
+		doc.text(23,55, 'AFF');
+		doc.text(107,55, 'NEG');
+		doc.text(37, 60, affCompetitors[0]);
+		doc.text(121, 60, negCompetitors[0]);
+		doc.text(20, 60, '1st  2nd ______________________  _____       1st  2nd ______________________  _____  ');
 		//doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
 		doc.setFontSize(9);
 		doc.text(20,75, 'Speakers should be rated on a scale from 20-30 points.  Half points (.5) are allowed.You may have a tie in points,'); 
@@ -1827,18 +1859,20 @@ pdf.generateLDBallot = function(round_number, division){
 		doc.text(20, 265, '___________________________________                             _______________________________');
 		doc.text(20, 270, 'Judge Signature');
 		doc.text(128,270, 'Affiliation (School)');
-		doc.addPage();
+		if (i != collection.rounds.length -1) {
+			doc.addPage();
+		}
 	}
 	// Output as Data URI so that it can be downloaded / viewed
 	doc.output('datauri');
 }
 
-pdf.generateColumnsPDF = function(matrix) {		//takes in two dimensional array of strings
-	var testMatrix = [
-		['asdfas','asdfas','asdfas','asdfas','asdfas'],
-		['qwrqq','asdf','zxvc','12312','908908'],
-		['asdfas','asdfas','asdfas','asdfas','asdfas']
-	];
+//lists teams in order
+pdf.generateTeams = function(division) {	
+
+	//sort teams in order
+	collection.teams.sort();	
+	
 	var doc = new jsPDF();
 	var team = 20;
 	var wins = team + 50;
@@ -1852,13 +1886,19 @@ pdf.generateColumnsPDF = function(matrix) {		//takes in two dimensional array of
 	doc.text(ranks,30,'Ranks');
 	doc.setFontSize(10);
 	var y = 40;
-	for (var i = 0; i < testMatrix.length; i++, y+=10) {
-			doc.text(team, y, testMatrix[i][0]); 
-			doc.text(wins,y,testMatrix[i][1]);
-			doc.text(adjusted,y,testMatrix[i][2]);
-			doc.text(total,y,testMatrix[i][3]);
-			doc.text(ranks,y,testMatrix[i][4]);
+	for(var i = 0; i < collection.teams.length; i++){
+		if(collection.teams.at(i).get("division") != division){
+			continue;
+		}
+		doc.text(team, y, collection.teams.at(i).get("team_code")); 
+		doc.text(wins,y, collection.teams.at(i).get("wins") + "-" + collection.teams.at(i).get("losses"));
+		doc.text(adjusted,y, collection.teams.at(i).get("adjusted_speaks") || "");
+		doc.text(total,y, collection.teams.at(i).get("total_speaks") || "");
+		doc.text(ranks,y, collection.teams.at(i).get("ranks") || "");
+		y += 5;
+
 	}
+	
 	doc.output('datauri');
 }
 
@@ -1882,26 +1922,45 @@ pdf.generateCXBallot = function(round_number, division){
 		//var affCode = collection.rounds.at(i).get("aff") || "";
 		var affTeam = "";
 		var negTeam = "";
+		var affCompetitors ;
+		var negCompetitors ;
 		if (affCode == 0){
 			affTeam = round.get("team1");
 			if (affTeam != undefined) {
 				affTeam = affTeam.get("team_code");
+				affCompetitors = round.get("team1").get("competitors");
+				if (affCompetitors === undefined) {
+					affCompetitors = "";
+				}
 			}
 			negTeam = round.get("team2");
 			if (negTeam != undefined) {
 				negTeam = negTeam.get("team_code");
+				negCompetitors = round.get("team2").get("competitors");
+				if (negCompetitors === undefined) {
+					negCompetitors = "";
+				}
 			}
 		}
 		else if (affCode == 1){
 			affTeam = round.get("team2");
 			if (affTeam != undefined) {
 				affTeam = affTeam.get("team_code");
+				affCompetitors = round.get("team2").get("competitors");
+				if (affCompetitors === undefined) {
+					affCompetitors = "";
+				}
 			}
 			negTeam = round.get("team1");
 			if (negTeam != undefined) {
 				negTeam = negTeam.get("team_code");
+				negCompetitors = round.get("team1").get("competitors");
+				if (negCompetitors === undefined) {
+					negCompetitors = "";
+				}
 			}
 		}
+
 		//console.log(affTeam);
 		//console.log(negTeam);
 		doc.setFontSize(18);
@@ -1913,11 +1972,9 @@ pdf.generateCXBallot = function(round_number, division){
 		var room =  "";
 		if (round != undefined) {
 			room = round.get("room");
-			console.log( "ROhan " + room);
+			console.log( "Room: " + room);
 			if (room != undefined) {	//do nothing
-				console.log("here1");
 				room = room.get("name");
-				console.log("here");
 			}
 			else {
 				room = "";
@@ -1966,8 +2023,14 @@ pdf.generateCXBallot = function(round_number, division){
 		doc.text(77,52, 'Points    Ranks');
 		doc.text(164,52, 'Points    Ranks');
 		doc.setFontSize(11);
-		doc.text(20, 60, '1st AFF. __________________  _____  _____     1st NEG. __________________  _____  _____');
-		doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
+		doc.text(23,55, 'AFF');
+		doc.text(107,55, 'NEG');
+		doc.text(37, 60, affCompetitors[0]);
+		doc.text(37, 70, affCompetitors[1]);
+		doc.text(123, 60, negCompetitors[0]);
+		doc.text(123, 70, negCompetitors[1]);
+		doc.text(20, 60, '1st  2nd __________________  _____  _____     1st  2nd __________________  _____  _____');
+		doc.text(20, 70, '1st  2nd __________________  _____  _____     1st  2nd __________________  _____  _____');
 		doc.setFontSize(9);
 		doc.text(20,80, 'Speakers should be rated on a scale from 20-30 points.  Half points (.5) are allowed.You may have a tie in points,'); 
 		doc.text(20,84, 'but you must indicate the person doing the better job of debating');
@@ -1981,13 +2044,15 @@ pdf.generateCXBallot = function(round_number, division){
 		doc.text(20, 265, '___________________________________                             _______________________________');
 		doc.text(20, 270, 'Judge Signature');
 		doc.text(128,270, 'Affiliation (School)');
-		doc.addPage();
+		if (i != collection.rounds.length -1) {
+			doc.addPage();
+		}
 	// Output as Data URI so that it can be downloaded / viewed
 }
 	doc.output('datauri');
 }
 
-pdf.generatePFBallot = function(){
+pdf.generatePFBallot = function(round_number, division){
 	// generate a blank document
 	var doc = new jsPDF();
 	var currentTime = new Date();
@@ -1995,6 +2060,9 @@ pdf.generatePFBallot = function(){
 	var day = currentTime.getDate();
 	var year = currentTime.getFullYear();
 	for(var i = 0; i < collection.rounds.length ; i++){
+		if(collection.rounds.at(i).get("round_number") != round_number || collection.rounds.at(i).get("division") != division){
+			continue;
+		}
 		var round = collection.rounds.at(i);
 		doc.setFontSize(18);
 		doc.text(20, 20, 'Public Forum Debate Ballot');
@@ -2045,13 +2113,15 @@ pdf.generatePFBallot = function(){
 		doc.text(35,45.4, '________________________________________________________________________');
 		//doc.text(20, 60, headers.message);
 		doc.setFontSize(9);
-		doc.text(25,55, 'Code _________________ Side _________________');
-		doc.text(25,60, 'Speaker 1 ___________________________________');
-		doc.text(25,65, 'Speaker 3 ___________________________________');
+		doc.text(25,51, 'Code _________________ Side _________________');
+		doc.text(29,56, 'AFF');
+		doc.text(25,60, '1st   2nd ___________________________________');
+		doc.text(25,65, '1st   2nd ___________________________________');
 
-		doc.text(115,55, 'Code _________________ Side _________________');
-		doc.text(115,60, 'Speaker 2 ___________________________________');
-		doc.text(115,65, 'Speaker 4 ___________________________________');
+		doc.text(115,51, 'Code _________________ Side _________________');
+		doc.text(119,56, 'NEG');
+		doc.text(115,60, '1st   2nd ___________________________________');
+		doc.text(115,65, '1st   2nd ___________________________________');
 		//doc.setFontSize(11);
 		//doc.text(20, 60, 'AFFIRMATIVE ______________________  _____       NEGATIVE ______________________  _____  ');
 		//doc.text(20, 70, '2nd AFF. __________________  _____  _____    2nd NEG. __________________  _____  _____');
@@ -2112,7 +2182,9 @@ pdf.generatePFBallot = function(){
 		doc.setFontSize(10);
 		doc.text(20, 200, 'These are the reasons for my decision:');
 		doc.text(20, 280, 'Judge Signature: _____________________________ Affiliation/Occupation _____________________________');
-		doc.addPage();
+		if (i != collection.rounds.length -1) {
+			doc.addPage();
+		}
 	}
 
 	// Output as Data URI so that it can be downloaded / viewed
@@ -2415,7 +2487,7 @@ view.TeamTable = Backbone.View.extend({
 		$("#newteam_id").val("");
 		$("#newteam_division").val("");
 		$("#newteam_school").val("");
-		$("#newteam_competitors").val("");
+		$("#newteam_competitors").html("");
 		$("#newteam_name").val("");
 	} ,
 	//called when a competitor name box is modified.
@@ -2648,7 +2720,8 @@ view.Team = Backbone.View.extend({
 			$("#newteam_competitors").append('Name: <input class="newteam_competitor" type="text" value="' + competitors[i].name + '"/> <br />');
 			$("#newteam_competitors").append('Phone: <input class="competitor_phone" type="text" value="' + competitors[i].phone_number + '"/> <br /> <br />');
 		}
-		
+
+
 		$("#team_form_overlay").fadeIn();
 	} ,
 
@@ -3284,54 +3357,84 @@ view.Round = Backbone.View.extend({
 		var div_name = this.model.get("division").get("division_name");
 		var num = this.model.get("round_number");
 		$(this.el).html('<td class="roundrow">' + aff + '</td> <td class="roundrow">' + neg + '</td><td class="roundrow">'+judge+
-			'</td><td class="roundrow">'+room+'</td><td class="roundrow">' + div_name + '</td><td>'+num+'</td><td class="remove"><button>Remove</button></td>');
+			'</td><td class="roundrow">'+room+'</td><td class="roundrow">' + div_name + '</td><td class="remove"><button>Remove</button></td>');
 		return this; //required for chainable call, .render().el
 	} ,
 	unrender: function(){
 		$(this.el).remove();
 	},
+	
+	//fills the rooms and judges selects on the edit round form
+	populateRoomsAndJudges: function(){
+		var div_id = $("#rounds_division_select").val();
+		var division = pairing.getDivisionFromId(div_id);
+		//empty out existing rooms and judges
+		$("#editround_judge").html("");
+		$("#editround_room").html("");
+		for(var i = 0; i < collection.rooms.length; i++){
+			//skip irrelevant rooms
+			if(collection.rooms.at(i).get("division") != division){
+				continue;
+			}
+			$("#editround_room").append('<option value="'+collection.rooms.at(i).get("id")+'">'
+				+ collection.rooms.at(i).get("name") +'</option>');
 
+		}
+
+		for(var i = 0; i < collection.judges.length; i++){
+			
+			$("#editround_judge").append('<option value="'+collection.judges.at(i).get("id")+'">'
+				+ collection.judges.at(i).get("name") +'</option>');
+
+		}
+
+	} ,
+	populateTeamSelects: function(){
+		//empty out existing teams
+		$("#editround_team1_code").html("");
+		$("#editround_team2_code").html("");
+
+		var div_id = $("#rounds_division_select").val();
+		var division = pairing.getDivisionFromId(div_id);
+		var round_number = $("#rounds_round_number_select").val();
+		for(var i = 0; i < collection.teams.length; i++){
+			//skip irrelevant teams
+			if(collection.teams.at(i).get("division") != division){
+				continue;
+			}
+
+			$("#editround_team1_code").append('<option value="'+collection.teams.at(i).get("id")+'">'
+				+ collection.teams.at(i).get("team_code") +'</option>');
+
+			$("#editround_team2_code").append('<option value="'+collection.teams.at(i).get("id")+'">'
+			+ collection.teams.at(i).get("team_code") +'</option>');
+		}
+
+		//add BYE teams to both
+		$("#editround_team1_code").append('<option value="-1">BYE</option>');
+		$("#editround_team2_code").append('<option value="-1">BYE</option>');
+
+	} ,
 	showEditForm: function(){
 		//populate form with existing values
 		//populate team 1 competitors
-		var competitors = this.model.get("team1").get("competitors");
-		if(competitors != undefined){
-			//clear out existing form data
-			$("#editround_team1 > .competitors").html('');
-			for(var i = 0; i < competitors.length; i++){
-				
-				
-				var competitor_input =this.model.get("team2").get("team_code") + '<br />' +  competitors[i].name + 
-					'<br /> Points: <input class="editround_speaks" /> Rank: <input class="editround_ranks" /> <br />';
-
-				$("#editround_team1 > .competitors").append(competitor_input);
-			}
-
-		} else {
-			//no competitors? team1 must have been a bye
-			$("#editround_team1 > .competitors").append("BYE");
-		}
-
-		//draw right side of form
-		competitors = this.model.get("team2").get("competitors");
-		if(competitors != undefined){
-			//clear out existing form data
-			$("#editround_team2 > .competitors").html('');
-			for(var i = 0; i < competitors.length; i++){
-				
-				
-				var competitor_input = this.model.get("team2").get("team_code") + '<br />' + competitors[i].name + 
-					'<br /> Points: <input class="editround_speaks" /> Rank: <input class="editround_ranks" /> <br />';
-				$("#editround_team2 > .competitors").append(competitor_input);
-			}
-
-		} else {
-			//no competitors? team1 must have been a bye
-			$("#editround_team2 > .competitors").append("BYE");
-		}
-
-		//
-
+		$("#editround_id").val(this.model.get("id"));
+		this.populateTeamSelects();
+		this.populateRoomsAndJudges();
+		view.roundTable.drawForm(this.model);
+		
+		/*
+result can be: 0 - 7:
+		0 AFF_WIN_NEG_LOSS
+		1 AFF_BYE_NEG_FORFEIT
+		2 NEG_WIN_AFF_LOSS
+		3 NEG_BYE_AFF_FORFEIT
+		4 DOUBLE_WIN
+		5 DOUBLE_LOSS
+		6 DOUBLE_BYE
+		7 DOUBLE_FORFEIT
+*/
+		
 		$(".edit_model_overlay").css("height", $(document).height());
 		$("#round_form_overlay").fadeIn();
 	} ,
@@ -3346,7 +3449,17 @@ view.RoundTable = Backbone.View.extend({
 		"click #pair_round_button" : "pairRound",
 		"click #print_ballots_button" : "printBallots",
 		"change #rounds_division_select" : "renderRoundNumberSelect",
-		"change #rounds_round_number_select" : "filterDivisions"
+		"change #rounds_round_number_select" : "filterDivisions",
+		"click button#save_round_button": "editRound",
+		"click #add_round_button": "addEmptyRound",
+		"change #editround_team1_code": "changeTeam",
+		"change #editround_team2_code": "changeTeam",
+		"change #editround_judge": "changeJudge",
+		"change #editround_room": "changeRoom",
+		"click #editround_swap_sides": "swapSides",
+		"click #print_pairings": "printPairingsPrompt",
+		"click #print_pairings_confirm": "printPairings",
+		"click #print_teams_button": "printTeams"
 	} ,
 	initialize: function(){
 		_.bindAll(this, "render", "addRound", "appendRound", "renderRoundNumberSelect");
@@ -3360,6 +3473,236 @@ view.RoundTable = Backbone.View.extend({
 		collection.divisions.bind("add", this.renderDivisionSelect, this);
 		this.render();
 		
+	} ,
+
+	printTeams: function(){
+		var div_id = $("#rounds_division_select").val();
+		var division = pairing.getDivisionFromId(div_id);
+		pdf.generateTeams(division);
+	} ,
+	printPairingsPrompt: function(){
+		$("#print_pairings_details").fadeIn();
+	} ,
+	printPairings: function(){
+		var div_id = $("#rounds_division_select").val();
+		var division = pairing.getDivisionFromId(div_id);
+		var round_number = $("#rounds_round_number_select").val();
+		var start = $("#print_pairings_start").val();
+		var message = $("#print_pairings_message").val();
+		var headers = {
+			tournament_name: 'Round Rock HS Tournament',
+			date: '11/18/11',
+			round_number: round_number,
+			start_time_text: start,
+			message: message,
+			division: division
+		};
+
+		var titles = [ 
+				"Affirmative",
+				"Negative",
+				"Judge",
+				"Room"
+		];
+		
+	    pdf.generatePairingSheet(headers,titles, round_number, division);
+		
+	} ,
+	swapSides: function(){
+		var round_id = $("#editround_id").val();
+		var round = pairing.getRoundFromId(round_id);
+		var aff = round.get("aff");
+		if(aff == 0){
+			round.set({aff: 1})
+		} else {
+			round.set({aff: 0})
+		}
+		round.save();
+		this.drawForm(round);
+	} ,
+	changeJudge: function(){
+		var judge_id = $("#editround_judge").val();
+		var judge = pairing.getJudgeFromId(judge_id);
+		var round_id = $("#editround_id").val();
+		var round = pairing.getRoundFromId(round_id);
+		round.set({judge: judge});
+		round.save();
+		this.drawForm(round);
+	} ,
+	changeRoom: function(){
+		var room_id = $("#editround_room").val();
+		var room = pairing.getRoomFromId(room_id);
+		var round_id = $("#editround_id").val();
+		var round = pairing.getRoundFromId(round_id);
+		round.set({room: room});
+		round.save();
+		this.drawForm(round);
+	} ,
+	changeTeam: function(){
+		//update edit round form to reflect new team
+		var aff_id = $("#editround_team1_code").val();
+		var aff = pairing.getTeamFromId(aff_id);
+		var neg_id = $("#editround_team2_code").val();
+		var neg = pairing.getTeamFromId(neg_id);
+		var round_id = $("#editround_id").val();
+		var round = pairing.getRoundFromId(round_id);
+
+		
+
+		if(aff === undefined){
+			//create bye teams if necessary
+			var bye_team = new model.Team();
+			bye_team.set({team_code: "BYE"});
+			aff = bye_team;
+		}
+		if(neg === undefined){
+			var bye_team = new model.Team();
+			bye_team.set({team_code: "BYE"});
+			neg = bye_team;
+		}
+
+		if(round.get("aff") == 0){
+			round.set({team1: aff, team2: neg});
+		} else {
+			round.set({team1: neg, team2: aff});
+		}
+		
+		//change team in round
+		this.drawForm(round);
+
+	} ,
+
+	drawForm: function(round){
+
+		var aff;
+		var neg;
+		if(round.get("aff") == 0){
+			aff = round.get("team1");
+			neg = round.get("team2");
+		} else {
+			aff = round.get("team2");
+			neg = round.get("team1");
+		}
+
+					
+		
+		//draw left side of form (aff)
+		var competitors = aff.get("competitors");
+		if(competitors != undefined){
+			//clear out existing form data
+			$("#editround_team1 > .competitors").html('');
+			var aff_id = aff.get("team_code") === "BYE" ? -1 : aff.get("id");
+			$("#editround_team1_code").val(aff_id);
+			$("#editround_team1_id").text(aff_id);
+
+			var points = round.get("aff_points") || []; 
+			for(var i = 0; i < competitors.length; i++){
+				
+				var speaks = (points[i] === undefined ? "" : points[i].speaks);
+				var rank = (points[i] === undefined ? "" : points[i].rank);
+				var competitor_input = competitors[i].name + 
+					'<br /> Points: <input class="editround_speaks" value="'+ speaks +'"/> ' +
+					'Rank: <input class="editround_ranks" value="'+ rank +'"/> <br />';
+
+				$("#editround_team1 > .competitors").append(competitor_input);
+			}
+
+		} else {
+			//no competitors? team1 must have been a bye
+			$("#editround_team1_code").text("BYE");
+		}
+
+
+		//draw right side of form
+		competitors = neg.get("competitors");
+		if(competitors != undefined){
+			//clear out existing form data
+			$("#editround_team2 > .competitors").html('');
+			//id of -1 means BYE
+			var neg_id = neg.get("team_code") === "BYE" ? -1 : neg.get("id");
+			$("#editround_team2_code").val(neg_id);
+			$("#editround_team2_id").text(neg_id);
+
+			var points = round.get("neg_points") || []; 
+			for(var i = 0; i < competitors.length; i++){
+				
+				var speaks = (points[i] === undefined ? "" : points[i].speaks);
+				var rank = (points[i] === undefined ? "" : points[i].rank);
+				var competitor_input = competitors[i].name + 
+					'<br /> Points: <input class="editround_speaks" value="'+ speaks +'"/> ' +
+					'Rank: <input class="editround_ranks" value="'+ rank +'"/> <br />';
+
+				$("#editround_team2 > .competitors").append(competitor_input);
+			}
+
+		} else {
+			//no competitors? team1 must have been a bye
+			$("#editround_team2_code").text("BYE");
+		}
+
+		//select correct room and judge from dropdowns
+		$("#editround_judge").val(round.get("judge").get("id"));
+		$("#editround_room").val(round.get("room").get("id"));
+		//populate result box
+		
+		$("#editround_result_select").val(round.get("result"));
+
+	} ,
+	addEmptyRound: function(){
+		var div_id = $("#rounds_division_select").val();
+		var division = pairing.getDivisionFromId(div_id);
+		var round_number = $("#rounds_round_number_select").val();
+		var round = new model.Round();
+		var bye_team = new model.Team();
+		bye_team.set({team_code: "BYE"});
+
+		round.set({"round_number": round_number});
+		round.set({"division": division});
+		round.set({"team1": bye_team});
+		round.set({"team2": bye_team});
+		collection.rounds.add(round);
+	} ,
+	editRound: function(){
+		//verify speaker points
+		var team1_id = $("#editround_team1_code").val();
+		var team2_id = $("#editround_team2_code").val();
+		var team1 = pairing.getTeamFromId(team1_id);
+		var team2 = pairing.getTeamFromId(team2_id);
+		var round_id = $("#editround_id").val();
+		var round = pairing.getRoundFromId(round_id);
+		var result = $("#editround_result_select").val();
+		//construct points object for each row in the form
+		var aff_points = [];
+		var i = 0;
+		$("#editround_team1 > .competitors").children().each(function(){
+			if($(this).hasClass("editround_speaks")){
+				aff_points.push({speaks: $(this).val(), rank: ""});
+				i++;
+			} else if($(this).hasClass("editround_ranks")){
+				aff_points[i-1].rank = $(this).val();
+			}
+		});
+
+		var neg_points = [];
+		var i = 0;
+		$("#editround_team2 > .competitors").children().each(function(){
+			if($(this).hasClass("editround_speaks")){
+				neg_points.push({speaks: $(this).val(), rank: ""});
+				i++;
+			} else if($(this).hasClass("editround_ranks")){
+				neg_points[i-1].rank = $(this).val();
+			}
+		});
+		round.set({"aff_points": aff_points});
+		round.set({"neg_points": neg_points});
+		round.set({"result": result});
+
+		round.save()
+		//speaker points are stored in the round model in aff_points, and neg_points
+
+		//hide form
+		$(".edit_model_overlay").fadeOut();
+		//clear form
 	} ,
 	printBallots: function(){
 		var div_id = $("#rounds_division_select").val();
@@ -4015,27 +4358,6 @@ $("#menu_pdf").click(function(){
 
 
 
-//Code for Generate PDF Button
-$("#pdf_gen").click(function(){
-	var headers = {
-		tournament_name: 'Round Rock HS Tournament',
-		date: '11/18/11',
-		round_number: '1',
-		start_time_text: 'Start: 3:00 PM',
-		message: 'Welcome to the Round Rock Tournament run by DebateTab!',
-		division: collection.divisions.at(0)
-	};
-
-	var titles = [ "Affirmative",
-			"Negative",
-			"Judge",
-			"Room"
-	];
-	
-    pdf.generatePairingSheet(headers,titles, 1, collection.divisions.at(0));
-	
-
-});
 
 
 
@@ -4053,10 +4375,6 @@ $("#ballotOF_gen").click(function(){
 //Code for PDF Brackets Generation
 $("#pdf_brackets_gen").click(function(){
 	pdf.bracketsDataPDF();
-});
-
-$("#columnsPDF_gen").click(function(){
-	pdf.generateColumnsPDF();	
 });
 
 

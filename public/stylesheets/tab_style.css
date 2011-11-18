@@ -908,27 +908,40 @@ Author: Nikhil
 Author: Nick Carneiro
 ========================================================================== */
 
+
 .editround_speaks{
   width: 25px;
 }
 .editround_ranks{
   width: 25px;
+  margin-bottom: 15px;
+  margin-top: 10px;
+}
+
+.team_code{
+  font-weight: bold;
+  display: block;
+  margin-bottom: 10px;
 }
 
 #editround_team1{
   float: left;
-  margin-right: 200px;
+  margin-right: 70px;
 }
 
 #editround_team2{
   float: left;
+  margin-right: 70px;
 }
-#editround_result{
-  margin-top: 150px;
+#editround_team_container{
+  height: 200px;
 }
-
-#editround_result_select{
-  bottom: 10px;
+#editround_message{
+  color: red;
+  font-weight: bold;
+}
+.competitors{
+  
 }
 label{
   display: block;
@@ -986,6 +999,15 @@ color:#9343B9;
   margin: 0px 5px 0px 0px;
 }
 .bottom_buttons > button{
+  height: 40px;
+  margin: 0px 5px 0px 0px;
+}
+
+.results_container{
+  margin-top: 10px;
+}
+
+.results_container > button{
   height: 40px;
   margin: 0px 5px 0px 0px;
 }
