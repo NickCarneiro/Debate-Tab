@@ -657,7 +657,8 @@ pairing.updateRecords = function(){
 		//total ranks
 		var total_ranks = 0;
 		for(var j = 0; j < ranks.length; j++){
-			total_ranks += parseFloat(ranks[j]);
+			var ranks_float = parseFloat(ranks[j]) || 0;
+			total_ranks += ranks_float;
 		}
 
 		var speaks_copy = [];
@@ -672,14 +673,15 @@ pairing.updateRecords = function(){
 		}
 		var adjusted_speaks = 0;
 		for(var j = 0; j < speaks_copy.length; j++){
-			adjusted_speaks += parseFloat(speaks_copy[j]);
+			var speaks_float = parseFloat(speaks_copy[j]) || 0;
+			adjusted_speaks += speaks_float;
 		}
 		var total_speaks = 0;
 		var high = -1;
 		var low = 1000;
 		for(var k = 0; k < speaks.length; k++){
-			
-			total_speaks += parseFloat(speaks[k]);
+			var speaks_float = parseFloat(speaks[k]) || 0;
+			total_speaks += speaks_float;
 		}
 		collection.teams.at(i).set({"total_speaks": total_speaks});
 		collection.teams.at(i).set({"adjusted_speaks": adjusted_speaks});
