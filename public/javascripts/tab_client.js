@@ -1900,11 +1900,12 @@ pdf.generateCXBallot = function(round_number, division){
 		doc.text(146,30, judgeName);
 
 		//const round_text = 'Round: ' + headers.round_number;
-		doc.text(20, 40, 'Affirmative Code:___________'); doc.text(130,40, 'Negative Code:___________');
+		doc.text(20, 38, 'Affirmative Code:___________'); 
+		doc.text(130,38, 'Negative Code:___________');
 		//doc.text(59, 40 ,'Fill aff code');
 		//doc.text(164, 40, 'Fill neg code');
-		doc.text(59, 40, affTeam);
-		doc.text(164, 40, negTeam);
+		doc.text(59, 38, affTeam);
+		doc.text(164, 38, negTeam);
 		//doc.text(20, 50, headers.start_time_text); 
 		//doc.text(20, 60, headers.message);
 		doc.setFontSize(9);
@@ -1969,7 +1970,7 @@ pdf.generatePFBallot = function(round_number, division){
 		var room =  "";
 		if (round != undefined) {
 			room = round.get("room");
-			console.log( "ROhan " + room);
+			console.log( "room: " + room);
 			if (room != undefined) {	//do nothing
 				console.log("here1");
 				room = room.get("name");
@@ -1988,13 +1989,25 @@ pdf.generatePFBallot = function(round_number, division){
 			judgeName = judgeName.get("name");
 		}
 
-		doc.text(20, 30, 'Round:___________'); doc.text(130,30, 'Judge:___________');
-		doc.text(39,30,roundName);
-		doc.text(40, 37 ,room);
-		doc.text(142, 37, month + "/" + day + "/" + year);
+		doc.text(20, 30, 'Round:___________'); 
+		doc.text(130,30, 'Judge:___________');
+		doc.text(39, 30, roundName);
+		doc.text(40, 37, room);
+		/*			current time
+		var hours = currentTime.getHours();
+		if (currentTime.getHours() < 10) {
+			hours = '0' + hours;
+		}
+		var minutes = currentTime.getMinutes();
+		if (currentTime.getMinutes() < 10) {
+			minutes = '0' + minutes;
+		}
+		*/
+		//doc.text(162, 37, hours+ ':' + minutes);
 		doc.text(146,30, judgeName);
 		//const round_text = 'Round: ' + headers.round_number;
-		doc.text(20, 37, 'Room #:___________'); doc.text(130,37, 'Date:___________');
+		doc.text(20, 37, 'Room #:___________'); 
+		doc.text(130,37, 'Time:___________');
 		//doc.text(20, 50, headers.start_time_text);
 		doc.setFontSize(10);
 		doc.text(35, 45, '________________________________________________________________________');
