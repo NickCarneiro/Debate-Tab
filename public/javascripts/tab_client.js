@@ -1570,7 +1570,7 @@ pdf.generatePairingSheet = function(headers, titles, round_number, division){
 	doc.text(20, 50, headers.division.get("division_name") + " : " + headers.start_time_text);
 	doc.text(20, 60, headers.message);
 	
-	var spacing = 47;
+	var spacing = 52;
 
 
 	pdf.printTitles(doc, titles, 20, 80, spacing);
@@ -1596,6 +1596,7 @@ pdf.generatePairingSheet = function(headers, titles, round_number, division){
 			aff = team2;
 			neg = team1;
 		}
+		doc.setFontSize(10);
 		//print out round info
 		doc.text(x_value, data_y_value, aff); //AFF
 		x_value = x_value + spacing;		// add a spacing between each column
@@ -1634,9 +1635,9 @@ pdf.generateLDBallot = function(round_number, division){
 		var round = collection.rounds.at(i);
 		doc.text(20, 20, 'Lincoln Douglas Debate Ballot');
 		doc.setFontSize(13);
-		doc.text(130, 20, 'Room #:__________');
+		doc.text(124, 20, 'Room #:__________');
 		doc.text(20, 30, 'Round:___________'); 
-		doc.text(130,30, 'Judge:___________');
+		doc.text(124,30, 'Judge:___________');
 		var affCode = "";
 		if (round != undefined) {
 			affCode = round.get("aff");
@@ -1644,7 +1645,7 @@ pdf.generateLDBallot = function(round_number, division){
 		//var affCode = collection.rounds.at(i).get("aff") || "";
 		var affTeam = "";
 		var negTeam = "";
-		if (affCode == 0){
+		if (affCode == 0 || affCode === undefined){
 			affTeam = round.get("team1");
 			if (affTeam != undefined) {
 				affTeam = affTeam.get("team_code");
@@ -1677,14 +1678,14 @@ pdf.generateLDBallot = function(round_number, division){
 				roundName = "";
 			}
 		}
-
 		doc.text(39,30,roundName);
 		//const round_text = 'Round: ' + headers.round_number;
-		doc.text(20, 40, 'Affirmative Code:___________'); doc.text(130,40, 'Negative Code:___________');
+		doc.text(20, 40, 'Affirmative Code:___________'); doc.text(124,40, 'Negative Code:___________');
 		//doc.text(20, 50, headers.start_time_text); 
 		//doc.text(20, 60, headers.message);
+		doc.setFontSize(10);
 		doc.text(59, 40 ,affTeam);
-		doc.text(164, 40, negTeam);
+		doc.text(158, 40, negTeam);
 		var judgeName = round.get("judge");
 		if (judgeName === undefined) {
 			judgeName = "";
@@ -1692,7 +1693,7 @@ pdf.generateLDBallot = function(round_number, division){
 		else {
 			judgeName = judgeName.get("name");
 		}
-		doc.text(146,30, judgeName);
+		doc.text(140,30, judgeName);
 
 		var room =  "";
 		
