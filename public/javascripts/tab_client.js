@@ -3448,6 +3448,7 @@ view.RoundTable = Backbone.View.extend({
 		"keyup #rounds_search": "search",
 		"click #pair_round_button" : "pairRound",
 		"click #print_ballots_button" : "printBallots",
+		"click #text_pairings_button" : "textPairings",
 		"change #rounds_division_select" : "renderRoundNumberSelect",
 		"change #rounds_round_number_select" : "filterDivisions",
 		"click button#save_round_button": "editRound",
@@ -3719,6 +3720,51 @@ view.RoundTable = Backbone.View.extend({
 			con.write("FATAL ERROR: unrecognized ballot type.")
 		}
 		
+	},
+	textPairings: function(){
+	
+	
+		var div_id = $("#rounds_division_select").val();
+		var div = pairing.getDivisionFromId(div_id);
+		var round_number = $("#rounds_round_number_select").val();
+		var data = [];
+	for(var i =0; i < collection.rounds.length; i++) //collection.rounds.length
+	{
+		if(collection.rounds.at(i).get("round_number") != round_number || collection.rounds.at(i).get("division") != div){
+				continue;
+			}
+			for(var j =0; j < collection.rounds.at(i).get("team1").get("competitors").length; j++)
+			{
+				 data = {smsList: [
+					{phone_number: (collection.rounds.at(i).get("team1").get("competitors"))[0].phone_number, message: 
+					
+					'Aff: ' + collection.rounds.at(i).get("team1").get("team_code") + "\n" +
+					'Neg: ' + collection.rounds.at(i).get("team2").get("team_code") + "\n" +
+					'Judge: ' + (collection.rounds.at(i).get("judge") != undefined ? collection.rounds.at(i).get("judge").get("name") : "") + "\n" +
+					'Room: ' + (collection.rounds.at(i).get("room") != undefined ? collection.rounds.at(i).get("room").get("name") : "")},
+
+					{phone_number: (collection.rounds.at(i).get("team2").get("competitors").length > 0 ? (collection.rounds.at(i).get("team2").get("competitors"))[0].phone_number : ""), message: 
+					
+					'Aff: ' + collection.rounds.at(i).get("team1").get("team_code") + "\n" +
+					'Neg: ' + collection.rounds.at(i).get("team2").get("team_code") + "\n" +
+					'Judge: ' + (collection.rounds.at(i).get("judge") != undefined ? collection.rounds.at(i).get("judge").get("name") : "") + "\n" +
+					'Room: ' + (collection.rounds.at(i).get("room") != undefined ? collection.rounds.at(i).get("room").get("name") : "")}
+					
+				]};
+				console.log(data);
+		//send this as a mass text
+		/*$.post("/textMass", data, function(res){
+		console.log('Message sent from UI: ' + res.body);
+		con.write(res);
+	});*/
+			}
+	}
+	
+
+	
+	
+	
+	
 	},
 	pairRound: function(){
 		var div_id = $("#rounds_division_select").val();
@@ -4337,6 +4383,7 @@ $("#mass_texts").click(function(){
 		con.write(res);
 	});
 });
+
 
 
 //when window is resized, change overlay to match it.
