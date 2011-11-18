@@ -39,30 +39,38 @@ JS includes
 				<div class="edit_model_overlay" id="round_form_overlay">
 					<div class="edit_model_box">
 						<h1>Edit Round</h1>
-						<input id="editround_id" type="hidden" value=""/>
+						<input id="editround_id" type="hidden" value="" />
+						<div id="editround_team_container">
+							<div id="editround_team1">
+								<input type="hidden" id="editround_team1_id" value="" />
+								<span id="editround_team1_code" class="team_code"></span>
+								<div class="competitors">
+								</div>
 
-						<div id="editround_team1">
-							<input type="hidden" id="editround_team1_id" value="" />
-							<span id="editround_team1_code"></span>
-							<div class="competitors">
 							</div>
-
-						</div>
-						<div id="editround_team2">
-							<input type="hidden" id="editround_team2_id" value="" />
-							<span id="editround_team2_code"></span>
-							<div class="competitors">
+							<div id="editround_team2">
+								<input type="hidden" id="editround_team2_id" value="" />
+								<span id="editround_team2_code" class="team_code"></span>
+								<div class="competitors">
+								</div>
 							</div>
 						</div>
-
 						<div id="editround_result">
+						Result: 
 						<select id="editround_result_select">
-						
+							<option value="0">Aff Win Neg Loss</option> 
+							<option value="1">Aff BYE Neg Forfeit</option> 
+							<option value="2">Neg Win Aff Loss</option> 
+							<option value="3">Neg BYE Aff Forfeit</option> 
+							<option value="4">Double Win</option> 
+							<option value="5">Double Loss</option> 
+							<option value="6">Double Bye</option> 
+							<option value="7">Double Forfeit</option> 
 						</select>
 						<span id="editround_winner"></span>
 						</div>
-						
-						<button class="save_button" id="add_round_button">Save</button>
+						<div id="editround_message"></div>
+						<button class="save_button" id="save_round_button">Save</button>
 						<button class="cancel_button" id="cancel_round_button">Cancel</button>
 					</div>
 				</div>

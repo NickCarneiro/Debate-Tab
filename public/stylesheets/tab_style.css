@@ -912,22 +912,33 @@ Author: Nick Carneiro
 }
 .editround_ranks{
   width: 25px;
+  margin-bottom: 15px;
+  margin-top: 10px;
+}
+
+.team_code{
+  font-weight: bold;
+  display: block;
+  margin-bottom: 10px;
 }
 
 #editround_team1{
   float: left;
-  margin-right: 200px;
+  margin-right: 150px;
 }
 
 #editround_team2{
   float: left;
 }
-#editround_result{
-  margin-top: 150px;
+#editround_team_container{
+  height: 190px;
 }
-
-#editround_result_select{
-  bottom: 10px;
+#editround_message{
+  color: red;
+  font-weight: bold;
+}
+.competitors{
+  
 }
 label{
   display: block;
