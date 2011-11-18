@@ -2487,7 +2487,7 @@ view.TeamTable = Backbone.View.extend({
 		$("#newteam_id").val("");
 		$("#newteam_division").val("");
 		$("#newteam_school").val("");
-		$("#newteam_competitors").html("");
+		$("#newteam_competitors").find("input").val("");
 		$("#newteam_name").val("");
 	} ,
 	//called when a competitor name box is modified.
