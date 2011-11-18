@@ -1564,49 +1564,156 @@ pdf.generatePairingSheet = function(headers, titles, round_number, division){
 
 
 	pdf.printTitles(doc, titles, 20, 80, spacing);
-
+	var flight_at_i = 0;			//REMOVE
 	var data_y_value = 90;
 	var j = 0;
 
 	//loop through every round and print it out into the pdf if it's applicable
+	if(division.get("flighted_rounds") == false){		//no flighted rounds
+		for(var i = 0; i < collection.rounds.length; i++){
+			//don't print irrelevant rounds
+			if(collection.rounds.at(i).get("round_number") != round_number || collection.rounds.at(i).get("division") != division){
+				continue;
+			}
+			var x_value = 20;
+			var team1 = collection.rounds.at(i).get("team1").get("team_code");
+			var team2 = collection.rounds.at(i).get("team2").get("team_code");
+			var aff;
+			var neg;
+			if(collection.rounds.at(i).get("aff") === 0){
+				aff = team1;
+				neg = team2;
+			} else {
+				aff = team2;
+				neg = team1;
+			}
+			doc.setFontSize(10);
+			//print out round info
+			doc.text(x_value, data_y_value, aff); //AFF
+			x_value = x_value + spacing;		// add a spacing between each column
+			doc.text(x_value, data_y_value, neg); //NEG
+			x_value = x_value + spacing;
+			var judge_name = collection.rounds.at(i).get("judge") != undefined ? collection.rounds.at(i).get("judge").get("name") : "";
+			doc.text(x_value, data_y_value, judge_name); //JUDGE
+			x_value = x_value + spacing;
+
+			var room_name = collection.rounds.at(i).get("room") != undefined ? collection.rounds.at(i).get("room").get("name") : "";
+			doc.text(x_value, data_y_value, room_name); //ROOM
+			x_value = x_value + spacing;
+
+			data_y_value = data_y_value + 10;
+			if(data_y_value > max_page_length) {
+				doc.addPage();
+				data_y_value = page_start_y_value;
+				pdf.printTitles(doc, titles, 20, 30, spacing);	// where to start printing
+									// of titles on new page
+			}
+		}
+	}else{		//flighted rounds true
+		
+	doc.setFontSize(14);
+	doc.text(20, 70, 'Flight A');	//print 'flight A'
+	doc.text(20, 71, '_______');
+	
 	for(var i = 0; i < collection.rounds.length; i++){
-		//don't print irrelevant rounds
-		if(collection.rounds.at(i).get("round_number") != round_number || collection.rounds.at(i).get("division") != division){
-			continue;
-		}
-		var x_value = 20;
-		var team1 = collection.rounds.at(i).get("team1").get("team_code");
-		var team2 = collection.rounds.at(i).get("team2").get("team_code");
-		var aff;
-		var neg;
-		if(collection.rounds.at(i).get("aff") === 0){
-			aff = team1;
-			neg = team2;
-		} else {
-			aff = team2;
-			neg = team1;
-		}
-		doc.setFontSize(10);
-		//print out round info
-		doc.text(x_value, data_y_value, aff); //AFF
-		x_value = x_value + spacing;		// add a spacing between each column
-		doc.text(x_value, data_y_value, neg); //NEG
-		x_value = x_value + spacing;
-		var judge_name = collection.rounds.at(i).get("judge") != undefined ? collection.rounds.at(i).get("judge").get("name") : "";
-		doc.text(x_value, data_y_value, judge_name); //JUDGE
-		x_value = x_value + spacing;
+		if(flight_at_i == 0) {  //say 0 is flight A, print those only here   collection.rounds.at(i).get("division").get("flight") etc
+	
+				//don't print irrelevant rounds
+				if(collection.rounds.at(i).get("round_number") != round_number || collection.rounds.at(i).get("division") != division){
+					continue;
+				}
+				var x_value = 20;
+				var team1 = collection.rounds.at(i).get("team1").get("team_code");
+				var team2 = collection.rounds.at(i).get("team2").get("team_code");
+				var aff;
+				var neg;
+				if(collection.rounds.at(i).get("aff") === 0){
+					aff = team1;
+					neg = team2;
+				} else {
+					aff = team2;
+					neg = team1;
+				}
+				doc.setFontSize(10);
+				//print out round info
+				doc.text(x_value, data_y_value, aff); //AFF
+				x_value = x_value + spacing;		// add a spacing between each column
+				doc.text(x_value, data_y_value, neg); //NEG
+				x_value = x_value + spacing;
+				var judge_name = collection.rounds.at(i).get("judge") != undefined ? collection.rounds.at(i).get("judge").get("name") : "";
+				doc.text(x_value, data_y_value, judge_name); //JUDGE
+				x_value = x_value + spacing;
 
-		var room_name = collection.rounds.at(i).get("room") != undefined ? collection.rounds.at(i).get("room").get("name") : "";
-		doc.text(x_value, data_y_value, room_name); //ROOM
-		x_value = x_value + spacing;
+				var room_name = collection.rounds.at(i).get("room") != undefined ? collection.rounds.at(i).get("room").get("name") : "";
+				doc.text(x_value, data_y_value, room_name); //ROOM
+				x_value = x_value + spacing;
 
+				data_y_value = data_y_value + 10;
+				if(data_y_value > max_page_length) {
+					doc.addPage();
+					data_y_value = page_start_y_value;
+					pdf.printTitles(doc, titles, 20, 30, spacing);	// where to start printing
+										// of titles on new page
+				}
+				
+				if(i == Math.floor(collection.rounds.length/4))	//REMOVE ONCE FLIGHTS ARE IMPLEMENTED
+				{
+					flight_at_i = 1;
+					
+				}
+				
+			}
+		}
+		
+		doc.setFontSize(14);
+		doc.text(20, data_y_value, 'Flight B');
+		doc.text(20, data_y_value + 1, '_______');
 		data_y_value = data_y_value + 10;
-		if(data_y_value > max_page_length) {
-			doc.addPage();
-			data_y_value = page_start_y_value;
-			pdf.printTitles(doc, titles, 20, 30, spacing);	// where to start printing
-								// of titles on new page
+
+		for(var i = 0; i < collection.rounds.length; i++){
+		flight_at_i = 1;
+			if(flight_at_i == 1) {  //say 1 is flight B, collection.rounds.at(i).get("division").get("flight") etc
+				//don't print irrelevant rounds
+				if(collection.rounds.at(i).get("round_number") != round_number || collection.rounds.at(i).get("division") != division){
+					continue;
+				}
+				var x_value = 20;
+				var team1 = collection.rounds.at(i).get("team1").get("team_code");
+				var team2 = collection.rounds.at(i).get("team2").get("team_code");
+				var aff;
+				var neg;
+				if(collection.rounds.at(i).get("aff") === 0){
+					aff = team1;
+					neg = team2;
+				} else {
+					aff = team2;
+					neg = team1;
+				}
+				doc.setFontSize(10);
+				//print out round info
+				doc.text(x_value, data_y_value, aff); //AFF
+				x_value = x_value + spacing;		// add a spacing between each column
+				doc.text(x_value, data_y_value, neg); //NEG
+				x_value = x_value + spacing;
+				var judge_name = collection.rounds.at(i).get("judge") != undefined ? collection.rounds.at(i).get("judge").get("name") : "";
+				doc.text(x_value, data_y_value, judge_name); //JUDGE
+				x_value = x_value + spacing;
+
+				var room_name = collection.rounds.at(i).get("room") != undefined ? collection.rounds.at(i).get("room").get("name") : "";
+				doc.text(x_value, data_y_value, room_name); //ROOM
+				x_value = x_value + spacing;
+
+				data_y_value = data_y_value + 10;
+				if(data_y_value > max_page_length) {
+					doc.addPage();
+					data_y_value = page_start_y_value;
+					pdf.printTitles(doc, titles, 20, 30, spacing);	// where to start printing
+										// of titles on new page
+				}
+				
+			}
 		}
+	
 	}
 
 	// Output as Data URI so that it can be downloaded / viewed
@@ -1715,8 +1822,8 @@ pdf.generateLDBallot = function(round_number, division){
 		doc.text(20,94, '_______________________________________');
 		doc.setFontSize(11);
 		doc.text(20,240, 'In my opinion, the better debating was done by  AFFIRMATIVE  NEGATIVE  representing  __________');
-		doc.text(115,245, '(Circle One)');
-		doc.text(176,245, '(Team Code)');
+		doc.text(121,245, '(Circle One)');
+		doc.text(184,245, '(Team Code)');
 		doc.text(20, 265, '___________________________________                             _______________________________');
 		doc.text(20, 270, 'Judge Signature');
 		doc.text(128,270, 'Affiliation (School)');
